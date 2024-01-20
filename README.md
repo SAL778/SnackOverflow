@@ -12,7 +12,7 @@ Contributing
 
 Team Members:
 - Saahil Rachh (rachh)
-- 
+- Larissa Zhang (ltzhang)
 - 
 - 
 - 
