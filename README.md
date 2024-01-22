@@ -16,7 +16,7 @@ Team Members:
 - Saahil Rachh (rachh)
 - Larissa Zhang (ltzhang)
 - Soodarshan Gajadhur (gajadhur)
-- 
+- Dylan Clarke (dclarke)
 - 
 
 ## Licensing
