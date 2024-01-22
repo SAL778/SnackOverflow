@@ -17,7 +17,7 @@ Team Members:
 - Larissa Zhang (ltzhang)
 - Soodarshan Gajadhur (gajadhur)
 - Dylan Clarke (dclarke)
-- 
+- Tauseef Nafee Fattah (fattah)
 
 ## Licensing
 Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
