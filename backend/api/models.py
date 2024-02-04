@@ -36,7 +36,6 @@ class FollowRequest(models.Model):
     from_user = models.ForeignKey(Author, related_name='sent_follow_requests', on_delete=models.CASCADE)
     to_user = models.ForeignKey(Author, related_name='received_follow_requests', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_accepted = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('from_user', 'to_user')
