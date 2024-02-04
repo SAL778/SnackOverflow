@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -37,7 +37,7 @@ def get_and_update_author(request, id):
             serializer.save()
             return Response(serializer.data)
 
-        return Response(status=400, data=serializer.errors)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
 
 @api_view(['GET'])
@@ -50,8 +50,8 @@ def get_followers(request, id):
 
     # better way to do this?
     followers_set = set()
-    for follower in followers:
-        followers_set.add(follower.follower)
+    for follower_object in followers:
+        followers_set.add(follower_object.follower)
 
     serializer = AuthorSerializer(followers_set, context={'request': request}, many=True)
     response = {
@@ -68,21 +68,26 @@ def get_update_and_delete_follower(request, id_author, id_follower):
     """
 
     if request.method == 'GET':
-        follower = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
-        serializer = AuthorSerializer(follower.follower, context={'request': request})
+        follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
+        serializer = AuthorSerializer(follower_object.follower, context={'request': request})
+        # must return True or False??
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        follower = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
-        serializer = AuthorSerializer(follower.follower, data=request.data, context={'request': request}, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(status=400, data=serializer.errors)
+        # create a new follower
+        author = Author.objects.filter(id=id_follower)
+        print(author)
+
+        if author.exists() and author.count() == 1:
+            follower, created = Follower.objects.get_or_create(follower_id=id_follower, followed_user_id=id_author)
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
     elif request.method == 'DELETE':
-        follower = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
-        follower.delete()
+        follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
+        follower_object.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
