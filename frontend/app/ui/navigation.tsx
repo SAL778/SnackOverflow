@@ -21,7 +21,7 @@ function Links() {
         allLinks.push(<Link
             key={object.content}
             href={object.href}
-            className='flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3'
+            className='flex h-[48px] grow items-center justify-center gap-2 bg-white p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3'
           >
             <Icons className="w-6" />
             <p className="md:block">{object.content}</p>
@@ -47,10 +47,10 @@ export default function Navigation() {
 			/>
           </div>
         </Link>
-        <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
+        <div className="flex grow flex-row justify-between space-x-2 shadow-md md:flex-col md:space-x-0">
         <Links/ >
-        <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
-            <button className="flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
+        <div className="hidden h-auto w-full grow bg-white md:block"></div>
+            <button className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
               <PowerIcon className="w-6" />
               <div className="hidden md:block">Sign Out</div>
             </button>
