@@ -16,8 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 urlpatterns = [
-    path('', include('api.urls')),
+    # frontend urls
+    path('', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('profile/', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('feed/', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('explore/', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('newpost/', TemplateView.as_view(template_name='index.html'), name='index'),
+
+    path('api/', include('api.urls')),
     path('admin/', admin.site.urls),
 ]

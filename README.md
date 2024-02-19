@@ -64,3 +64,5 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 ## Resources
 - https://stackoverflow.com/questions/58794639/how-to-make-follower-following-system-with-django-model
 - https://medium.com/analytics-vidhya/add-friends-with-689a2fa4e41d
+- https://www.youtube.com/watch?v=diB38AvVkHw
+- https://www.youtube.com/watch?v=Ae7nc1EGv-A
