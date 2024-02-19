@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+.bg-dark-orange {
+	background-color: #f47a20; /* or any dark orange color you prefer */
+}
+
+.text-white {
+	color: #ffffff;
+}
+
 /* #root {
   max-width: 1280px;
   margin: 0 auto;
