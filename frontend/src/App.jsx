@@ -1,5 +1,6 @@
 import React from "react";
 import "./App.css";
+import "./output.css";
 import Navigation from "./components/Navbar.jsx";
 import NotificationBar from "./components/Notifbar.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
