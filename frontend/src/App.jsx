@@ -4,10 +4,10 @@ import "./output.css";
 import Navigation from "./components/Navbar.jsx";
 import NotificationBar from "./components/Notifbar.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Profile from "./Profile.jsx";
-import Feed from "./Feed.jsx";
-import Explore from "./Explore.jsx";
-import NewPost from "./NewPost.jsx";
+import Profile from "./components/Profile.jsx";
+import Feed from "./components/Feed.jsx";
+import Explore from "./components/Explore.jsx";
+import NewPost from "./components/NewPost.jsx";
 
 function App() {
 	return (
