@@ -1,11 +1,73 @@
-from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from .models import Author, Follower, FollowRequest
-from .serializers import AuthorSerializer, FollowRequestSerializer
+from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegisterSerializer, UserLoginSerializer
+from django.contrib.auth import login, logout
+from rest_framework import status, permissions
+from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication
 
 # Create your views here.
+class UserRegister(APIView):
+    """
+    Register a new user
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        # clean_data = custom_validation(request.data)
+        serializer = UserRegisterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserLogin(APIView):
+    """
+    Login a user
+    """
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = (SessionAuthentication,)
+
+    def post(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.check_user(request.data)
+            login(request, user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserLogout(APIView):
+    """
+    Logout a user
+    """
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = ()
+
+    def post(self, request):
+        logout(request)
+        return Response(status=status.HTTP_200_OK)
+
+
+# will be removed
+class UserView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+    ##
+    def get(self, request):
+        serializer = AuthorSerializer(request.user, context={'request': request})
+        return Response({'user': serializer.data}, status=status.HTTP_200_OK)
+
+
+
 @api_view(['GET'])
 def get_authors(request):
     """

@@ -1,5 +1,38 @@
 from rest_framework import serializers
+from django.contrib.auth import authenticate
 from .models import Author
+
+
+class UserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(max_length=128, write_only=True)
+
+    def check_user(self, data):
+        user = authenticate(email=data['email'], password=data['password'])
+        if not user:
+            raise serializers.ValidationError('Invalid credentials')
+        return user
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    class Meta:
+        model = Author
+        fields = '__all__'
+        extra_kwargs = {'password': {'write_only': True}, 'id': {'read_only': True}}
+
+    def create(self, validated_data):
+        author = Author.objects.create(
+            email=validated_data['email'],
+            display_name=validated_data['display_name'],
+            github=validated_data['github'],
+            profile_image=validated_data['profile_image']
+        )
+        author.set_password(validated_data['password'])
+        author.save()
+
+        return author
 
 
 class AuthorSerializer(serializers.Serializer):
