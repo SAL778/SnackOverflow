@@ -13,19 +13,6 @@ import {
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/nav-links.tsx
 // snack overflow image source https://i.imgur.com/jSUHoMZ.png
 
-// var allLinks = []
-// for (let object of objects) {
-//     const Icons = object.icon;
-//     allLinks.push(<Link
-//         key={object.content}
-//         to={object.href} // Changed from href to to
-//         className='flex h-[48px] grow items-center justify-center gap-2 bg-white p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3'
-//       >
-//         <Icons className="w-6" />
-//         <p className="md:block">{object.content}</p>
-//     </Link>);
-// }
-
 function Links() {
 	const objects = [
 		{ content: "Profile", href: "/profile", icon: UserIcon },
@@ -50,25 +37,6 @@ function Links() {
 	}
 	return <div>{allLinks}</div>;
 }
-
-// // ... rest of your imports
-
-// // Inside your Links function, replace <a> with <Link> like this:
-
-// var allLinks = []
-// for (let object of objects) {
-//     const Icons = object.icon;
-//     allLinks.push(<Link
-//         key={object.content}
-//         to={object.href} // Changed from href to to
-//         className='flex h-[48px] grow items-center justify-center gap-2 bg-white p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3'
-//       >
-//         <Icons className="w-6" />
-//         <p className="md:block">{object.content}</p>
-//     </Link>);
-// }
-
-// // ... rest of your Navigation function
 
 export default function Navigation() {
 	return (
