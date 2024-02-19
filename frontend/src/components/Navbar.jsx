@@ -1,4 +1,11 @@
-import { ArrowTrendingUpIcon, PencilIcon, PowerIcon, RectangleStackIcon, UserIcon } from '@heroicons/react/24/outline';
+import { Link } from "react-router-dom";
+import {
+	ArrowTrendingUpIcon,
+	PencilIcon,
+	PowerIcon,
+	RectangleStackIcon,
+	UserIcon,
+} from "@heroicons/react/24/outline";
 
 // For creating the nav bar:
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/sidenav.tsx
@@ -6,54 +13,88 @@ import { ArrowTrendingUpIcon, PencilIcon, PowerIcon, RectangleStackIcon, UserIco
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/nav-links.tsx
 // snack overflow image source https://i.imgur.com/jSUHoMZ.png
 
-function Links() {
-    const objects = [
-        {content: "Profile", href: "/profile", icon: UserIcon},
-        {content: "Feed", href: "/feed", icon: RectangleStackIcon}, 
-        {content: "Explore", href: "/explore", icon: ArrowTrendingUpIcon},
-        {content: "New Post", href: "/newpost", icon: PencilIcon}
-    ];
+// var allLinks = []
+// for (let object of objects) {
+//     const Icons = object.icon;
+//     allLinks.push(<Link
+//         key={object.content}
+//         to={object.href} // Changed from href to to
+//         className='flex h-[48px] grow items-center justify-center gap-2 bg-white p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3'
+//       >
+//         <Icons className="w-6" />
+//         <p className="md:block">{object.content}</p>
+//     </Link>);
+// }
 
-    var allLinks = []
-    for (let object of objects) {
-        const Icons = object.icon;
-        allLinks.push(<a
-            key={object.content}
-            href={object.href}
-            className='flex h-[48px] grow items-center justify-center gap-2 bg-white p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3'
-          >
-            <Icons className="w-6" />
-            <p className="md:block">{object.content}</p>
-        </a>);
-    }
-    return <div>{allLinks}</div>;
+function Links() {
+	const objects = [
+		{ content: "Profile", href: "/profile", icon: UserIcon },
+		{ content: "Feed", href: "/feed", icon: RectangleStackIcon },
+		{ content: "Explore", href: "/explore", icon: ArrowTrendingUpIcon },
+		{ content: "New Post", href: "/newpost", icon: PencilIcon },
+	];
+
+	var allLinks = [];
+	for (let object of objects) {
+		const Icons = object.icon;
+		allLinks.push(
+			<Link
+				key={object.content}
+				to={object.href} // Changed from href to to
+				className="flex h-[48px] grow items-center justify-center gap-2 bg-white p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3"
+			>
+				<Icons className="w-6" />
+				<p className="md:block">{object.content}</p>
+			</Link>
+		);
+	}
+	return <div>{allLinks}</div>;
 }
 
+// // ... rest of your imports
+
+// // Inside your Links function, replace <a> with <Link> like this:
+
+// var allLinks = []
+// for (let object of objects) {
+//     const Icons = object.icon;
+//     allLinks.push(<Link
+//         key={object.content}
+//         to={object.href} // Changed from href to to
+//         className='flex h-[48px] grow items-center justify-center gap-2 bg-white p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3'
+//       >
+//         <Icons className="w-6" />
+//         <p className="md:block">{object.content}</p>
+//     </Link>);
+// }
+
+// // ... rest of your Navigation function
+
 export default function Navigation() {
-    return (
-      <div className="flex h-full flex-col px-3 py-4">
-        <a
-          className="mb-2 flex h-20 items-end rounded-md bg-white p-4 shadow-md"
-          href="/"
-        >
-          <div>
-            <img
-                className="object-center"
-                src="/snack-logo.png"
-                alt="Snack Overflow icon"
-                width={250}
-                height={40}
-			/>
-          </div>
-        </a>
-        <div className="flex grow flex-row justify-between space-x-2 shadow-md md:flex-col md:space-x-0">
-        <Links />
-        <div className="hidden h-auto w-full grow bg-white md:block"></div>
-            <button className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
-              <PowerIcon className="w-6" />
-              <div className="hidden md:block">Sign Out</div>
-            </button>
-        </div>
-      </div>
-    );
-  }
+	return (
+		<div className="flex h-full flex-col px-3 py-4">
+			<a
+				className="mb-2 flex h-20 items-end rounded-md bg-white p-4 shadow-md"
+				href="/"
+			>
+				<div>
+					<img
+						className="object-center"
+						src="/snack-logo.png"
+						alt="Snack Overflow icon"
+						width={250}
+						height={40}
+					/>
+				</div>
+			</a>
+			<div className="flex grow flex-row justify-between space-x-2 shadow-md md:flex-col md:space-x-0">
+				<Links />
+				<div className="hidden h-auto w-full grow bg-white md:block"></div>
+				<button className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
+					<PowerIcon className="w-6" />
+					<div className="hidden md:block">Sign Out</div>
+				</button>
+			</div>
+		</div>
+	);
+}
