@@ -1,0 +1,69 @@
+.post-card {
+	background: white;
+	margin: 24px;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	width: 1000px; /* Fixed width */
+	height: 800px; /* Fixed height */
+	display: flex;
+	flex-direction: column;
+}
+
+.post-header {
+	margin-bottom: 10px;
+	width: 100%;
+	text-align: center;
+	font-size: 32px;
+}
+
+.username {
+	font-weight: bold;
+	color: #000;
+	text-decoration: none;
+	font-size: 24px;
+	display: inline-block;
+	width: fit-content;
+}
+
+.post-date {
+	color: #666;
+	font-size: 18px;
+	text-align: right;
+	margin-right: 20px;
+}
+
+.post-card img {
+	max-height: 400px; /* Fixed max-height for the image */
+	width: 80%; /* Fixed width for the image */
+	/* max-width: 800px; Fixed max-width for the image */
+	object-fit: cover; /* This will ensure the image covers the area without stretching */
+	margin: 0 auto 10px auto;
+	display: block;
+}
+
+.post-description {
+	flex-grow: 1; /* Description takes up remaining space */
+	overflow-y: auto; /* Scroll if content is too long */
+	margin: 20px 0 10px 0; /* Margin for spacing */
+	max-height: 400px; /* Fixed max-height for the description */
+}
+
+.post-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: auto;
+}
+
+.post-footer button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 8px;
+	font-size: 16px;
+}
+
+.post-footer button:focus {
+	outline: none;
+}
