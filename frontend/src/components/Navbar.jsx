@@ -1,4 +1,6 @@
-import { NavLink, Link, Navigate } from "react-router-dom";
+import logo from "../assets/snack-logo.png";
+import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
 	ArrowTrendingUpIcon,
 	PencilIcon,
@@ -76,7 +78,7 @@ export default function Navigation({ isLoggedIn }) {
 				<div>
 					<img
 						className="object-center"
-						src="/snack-logo.png"
+						src={logo}
 						alt="Snack Overflow icon"
 						width={250}
 						height={40}
