@@ -1,5 +1,4 @@
-import { NavLink } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { NavLink, Link, Navigate } from "react-router-dom";
 import {
 	ArrowTrendingUpIcon,
 	PencilIcon,
@@ -7,6 +6,7 @@ import {
 	RectangleStackIcon,
 	UserIcon,
 } from "@heroicons/react/24/outline";
+import { useAuth } from "../utils/Auth.jsx";
 
 // For creating the nav bar:
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/sidenav.tsx
@@ -57,12 +57,21 @@ function Links() {
 	return <div>{allLinks}</div>;
 }
 
-export default function Navigation() {
+export default function Navigation({ isLoggedIn }) {
+
+    const auth = useAuth();
+
+    function handleLogout(e) {
+        e.preventDefault();
+        auth.logout();
+        <Navigate to="/login" replace={true}/>;
+    }
+
 	return (
 		<div className="flex h-full flex-col px-3 py-4">
-			<a
+			<Link
 				className="mb-2 flex h-20 items-end rounded-md bg-white p-4 shadow-md"
-				href="/"
+				to="/"
 			>
 				<div>
 					<img
@@ -73,11 +82,11 @@ export default function Navigation() {
 						height={40}
 					/>
 				</div>
-			</a>
+			</Link>
 			<div className="flex grow flex-row justify-between space-x-2 shadow-md md:flex-col md:space-x-0">
 				<Links />
 				<div className="hidden h-auto w-full grow bg-white md:block"></div>
-				<button className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
+				<button onClick={handleLogout} className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
 					<PowerIcon className="w-6" />
 					<div className="hidden md:block">Sign Out</div>
 				</button>

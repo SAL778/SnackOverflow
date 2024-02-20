@@ -66,3 +66,4 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 - https://medium.com/analytics-vidhya/add-friends-with-689a2fa4e41d
 - https://www.youtube.com/watch?v=diB38AvVkHw
 - https://www.youtube.com/watch?v=Ae7nc1EGv-A
+- https://github.com/mui/material-ui/blob/v5.15.10/docs/data/material/getting-started/templates/sign-in/SignIn.js
