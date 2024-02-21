@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from .models import Author, Follower, FollowRequest, Post
-from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegisterSerializer, UserLoginSerializer, PostSerializer
+from .models import Author, Follower, FollowRequest, Post, Comment, Like
+from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegisterSerializer, UserLoginSerializer, PostSerializer, CommentSerializer, LikeSerializer
 from django.contrib.auth import login, logout
 from rest_framework import status, permissions
 from rest_framework.views import APIView
@@ -10,6 +10,9 @@ from rest_framework.authentication import SessionAuthentication
 import requests
 #TODO: does a post not have a like value?
 #TODO: doesn't return the author information fix that
+#TODO: add pagination
+# TODO: should comment have content type like post?
+#TODO: will there be individual comments or just a list of comments?
 # Create your views here.
 class UserRegister(APIView):
     """
@@ -246,7 +249,7 @@ def get_and_create_post(request, id_author):
 
         if serializer.is_valid():
             serializer.save(author=author)
-            # send the serializer.data to the inbox of the author's followers
+            # send the serializer.data (post) to the inbox of the author's followers
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
@@ -348,3 +351,94 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
             return Response({"detail":"Can't delete someone elses post"}, status=status.HTTP_401_UNAUTHORIZED)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+# comments
+# URL: ://service/authors/{AUTHOR_ID}/posts/{POST_ID}/comments
+# GET [local, remote] get the list of comments of the post whose id is POST_ID (paginated)
+# POST [local] if you post an object of "type":"comment", it will add your comment to the post whose id is POST_ID
+@api_view(['GET', 'POST'])
+def get_and_create_comment(request, id_author, id_post):
+    """
+    Get all comments of a single post or create a new comment
+    """
+    user = request.user
+    if(isinstance(user, Author)):
+        userId = user.id
+    else:
+        userId = None
+    
+    post = get_object_or_404(Post, id=id_post)
+    if request.method == 'GET':
+        comments = Comment.objects.filter(post=post).order_by('-published')
+        serializer = CommentSerializer(comments, context={'request': request}, many=True)
+        response = {
+            "type": "comments",
+            "items": serializer.data,
+        }
+        return Response(response)
+    
+    if request.method == 'POST':
+        if userId is None:
+            return Response({"details":"can't create a comment anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
+        commentAuthor = get_object_or_404(Author, id=userId)
+        commentData = request.data
+        commentData["type"] = "comment"
+        commentData["author"] = commentAuthor
+        serializer = CommentSerializer(data=commentData, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(post=post)
+            # send comment in inbox of post author
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes", views.get_post_likes, name="get_post_likes"),
+# URL: ://service/authors/{AUTHOR_ID}/posts/{POST_ID}/likes
+# GET [local, remote] a list of likes from other authors on AUTHOR_ID's post POST_ID
+@api_view(['GET'])
+def get_post_likes(request, id_author, id_post):
+    """
+    Get all likes of a single post
+    """    
+    post = get_object_or_404(Post, id=id_post, author__id=id_author)
+    likes = Like.objects.filter(post=post)
+    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    response = {
+        "type": "likes",
+        "items": serializer.data,
+    }
+    return Response(response)
+# URL: ://service/authors/{AUTHOR_ID}/posts/{POST_ID}/comments/{COMMENT_ID}/likes
+# GET [local, remote] a list of likes from other authors on AUTHOR_ID's post POST_ID comment COMMENT_ID
+# path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments/<uuid:id_comment>/likes", views.get_comment_likes, name="get_comment_likes"),
+@api_view(['GET'])
+def get_comment_likes(request, id_author, id_post, id_comment):
+    """
+    Get all likes of a single comment
+    """
+    comment = get_object_or_404(Comment, id=id_comment, post__id=id_post, post__author__id=id_author)
+    likes = Like.objects.filter(comment=comment)
+    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    response = {
+        "type": "likes",
+        "items": serializer.data,
+    }
+    return Response(response)
+# path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
+# URL: ://service/authors/{AUTHOR_ID}/liked
+# GET [local, remote] list what public things AUTHOR_ID liked.
+# It's a list of of likes originating from this author
+# Note: be careful here private information could be disclosed.
+@api_view(['GET'])
+def get_liked(request, id_author):
+    """
+    Get all likes of a single author
+    """
+    author = get_object_or_404(Author, id=id_author)
+    likes = Like.objects.filter(author=author)
+    serializer = LikeSerializer(likes, context={'request': request}, many=True)
+    response = {
+        "type": "likes",
+        "items": serializer.data,
+    }
+    return Response(response)
+#TODO: inbox
+# check if item is a post, comment, like, follow, follow request

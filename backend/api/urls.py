@@ -19,22 +19,23 @@ urlpatterns = [
     path("authors/<uuid:id>/followrequests", views.get_received_follow_requests, name="get_received_follow_requests"),
     path("authors/<uuid:id_author>/followrequests/<uuid:id_sender>", views.get_and_delete_follow_request, name="get_and_delete_a_follow_request"),
 
-    # #apis for posts
+    # apis for posts
     path("authors/<uuid:id_author>/posts/", views.get_and_create_post, name="get_and_create_post"),
     path("authors/<uuid:id_author>/posts/<uuid:id_post>/image", views.get_image, name="get_image"),
-    path("authors/<uuid:id_author>/posts/<uuid:id_post>", views.get_update_and_delete_specific_post, name="get_update_and_delete_post"),
-    # #TODO: can we add extra urls?
-    # path("posts/", views.get_posts, name="get_posts"),
-    #
-    # #apis for comments
-    # path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments", views.get_and_create_comment, name="get_and_create_comment"),
-    #
-    # #apis for likes
-    # path("authors/<uuid:id_author>/inbox", views.send_like_to_inbox, name="send_like_to_inbox"),
-    # path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes", views.get_like, name="get_like"),
-    # path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments/<uuid:id_comment>/likes", views.get_like, name="get_like"),
-    # path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
-    #
-    # #apis for inbox
+    path("authors/<uuid:id_author>/posts/<uuid:id_post>", views.get_update_and_delete_specific_post, name="get_update_and_delete_specific_post"),
+
+    # apis for comments
+    path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments", views.get_and_create_comment, name="get_and_create_comment"),
+
+    # apis for likes
+    path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes", views.get_post_likes, name="get_post_likes"),
+    path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments/<uuid:id_comment>/likes", views.get_comment_likes, name="get_comment_likes"),
+    path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
+
+    # apis for inbox
     # path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
+
+    # #TODO: custom urls
+    # path("posts/", views.get_posts, name="get_posts"),
+
 ]

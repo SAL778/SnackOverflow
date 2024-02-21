@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import Author, Post
+from .models import Author, Post, Comment, Like
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -110,3 +110,30 @@ class PostSerializer(serializers.ModelSerializer):
         data["comments"] = f"{current_url}/{instance.id}/comments"
         return data
     
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['type', 'id', 'author', 'comment', 'contentType', 'published', 'post']
+        read_only_fields = ['type', 'id', 'author', 'published', 'post']
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        current_url = request.build_absolute_uri()
+        data["author"] = AuthorSerializer(instance.author, context=self.context).data
+        data["id"] = f"{current_url}{instance.id}"
+        return data
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = [ 'type', 'summary', 'author', 'post', 'comment']
+        read_only_fields = ['type', 'author']
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["author"] = AuthorSerializer(instance.author, context=self.context).data
+        if instance.comment:
+            data["object"] = instance.comment.id
+        elif instance.post:
+            data["object"] = instance.post.id
+        else:
+            data["object"] = None
+        return data

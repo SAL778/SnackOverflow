@@ -75,22 +75,25 @@ class Post(models.Model):
     image = models.URLField(max_length=200, blank=True, null=True)
     
 # #comments
-# class Comment(models.Model):
-#     id = models.UUIDField(primary_key=True,unique=True, default=uuid.uuid4, editable=False)
-#     author = models.ForeignKey(User, related_name='author', on_delete=models.CASCADE)
-#     comment=models.TextField()
-#     contentType = models.CharField(max_length=50, default="text/markdown")
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+class Comment(models.Model):
+    type = models.CharField(max_length=50, default="comment")
+    id = models.UUIDField(primary_key=True,unique=True, default=uuid.uuid4, editable=False)
+    author = models.ForeignKey(User, related_name='comments_author', on_delete=models.CASCADE)
+    comment=models.TextField()
+    contentType = models.CharField(max_length=50, default="text/markdown")
+    published = models.DateTimeField(auto_now_add=True)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
 #
 # #likes
-# class Like(models.Model):
-#     author = models.ForeignKey(User, related_name='author', on_delete=models.CASCADE)
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="like_post", null=True)
-#     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="like_comment", null=True)
+class Like(models.Model):
+    type = models.CharField(max_length=20, default="Like")
+    summary = models.CharField(max_length=248)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="author")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="like_post", null=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="like_comment", null=True)
 #
 # #inbox
 # class Inbox(models.Model):
 #     author = models.ForeignKey(Author, related_name='author', on_delete=models.CASCADE)
 #     items = models.JSONField()
-#     created_at = models.DateTimeField(auto_now_add=True)
+#     published = models.DateTimeField(auto_now_add=True)
