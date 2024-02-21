@@ -9,7 +9,6 @@ urlpatterns = [
     path("logout/", views.UserLogout.as_view(), name="logout"),
     path("user/", views.UserView.as_view(), name="user"),
 
-
     path("authors/", views.get_authors, name="get_authors"),
     path("authors/<uuid:id>", views.get_and_update_author, name="get_and_update_author"),
     path("authors/<uuid:id>/followers", views.get_followers, name="get_followers"),
@@ -35,7 +34,7 @@ urlpatterns = [
     # apis for inbox
     # path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
 
-    # #TODO: custom urls
-    # path("posts/", views.get_posts, name="get_posts"),
-
+    # custom urls
+    path("publicPosts/", views.get_all_public_posts, name="get_all_public_posts"),
+    path("friendsFollowerPosts/", views.get_all_friends_follows_posts, name="get_all_friends_follows_posts"),
 ]
