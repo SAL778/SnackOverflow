@@ -88,8 +88,36 @@ export const AuthProvider = ({ children }) => {
         });
     }
 
+    const register = (email, password, displayname, github, profileimage) => {
+        // i dont know if this is good or not
+        client.post(
+            "/api/register/",
+            {
+                email: email,
+                password: password,
+                display_name: displayname,
+                profile_image: profileimage,
+                github: github
+            }
+        ).then(function(res) {
+            setUser(res.data.email);
+            setIsLoggedIn(true);
+
+            // when restricting new users, must update this if flag is set to restrict
+            // an account will be created but users will be prompted that they must wait for admin approval
+            console.log("register");
+            console.log(isLoggedIn);
+            console.log(user);
+            console.log(res.data);
+            console.log("-----------------");
+        }
+        ).catch(function(error) {
+            console.log(error);
+        });
+    }
+
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoggedIn, login, logout, register }}>
             {isLoading ? <div>Loading...</div> : children} {/* Render children only when isLoading is false */}
         </AuthContext.Provider>
     )

@@ -3,9 +3,10 @@ import logo from "../assets/snack-logo.png";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { Button, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { orange } from "@mui/material/colors";
+import { useAuth } from "../utils/Auth.jsx";
 
 const theme = createTheme({
 	palette: {
@@ -15,16 +16,22 @@ const theme = createTheme({
   
 
 function Signup() {
+
+	const auth = useAuth();
+
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
 		console.log({
 		  email: data.get('email'),
 		  password: data.get('password'),
-		  displayname: data.get('displayname'),
+		  displayname: data.get('display_name'),
 		  github: data.get('github'),
-		  profileimage: data.get('profileimage')
+		  profileimage: data.get('profile_image')
 		});
+
+		auth.register(data.get('email'), data.get('password'), data.get('display_name'), data.get('github'), data.get('profile_image'));
+		<Navigate to="/" replace={true}/>;
 		// if submission valid, redirect to /feed
 		// if submission valid but signup restriction, indicate success but do not redirect
 		// if submission invalid, indicate error
@@ -76,10 +83,10 @@ function Signup() {
 					<TextField
 						required
 						fullWidth
-						id="displayname"
+						id="display_name"
 						label="Display Name"
 						size="small"
-						name="displayname"
+						name="display_name"
 					/>
 					<TextField
 						required
@@ -91,10 +98,10 @@ function Signup() {
 					/>
 					<TextField
 						fullWidth
-						id="profileimage"
+						id="profile_image"
 						label="Profile Image"
 						size="small"
-						name="profileimage"
+						name="profile_image"
 					/>
 					<Button 
 						variant="contained" 
@@ -107,7 +114,7 @@ function Signup() {
 					>
 						Sign Up
 					</Button>
-					<Link className="text-orange-700 hover:underline" to="/">
+					<Link className="text-orange-700 hover:underline" to="/login/">
 						Have an account? Sign in.
 					</Link>
 				</Box>
