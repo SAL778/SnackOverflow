@@ -20,9 +20,9 @@ urlpatterns = [
     path("authors/<uuid:id_author>/followrequests/<uuid:id_sender>", views.get_and_delete_follow_request, name="get_and_delete_a_follow_request"),
 
     # #apis for posts
-    # path("authors/<uuid:id_author>/posts/<uuid:id_post>", views.get_update_and_delete_post, name="get_update_and_delete_post"),
-    # path("authors/<uuid:id_author>/posts/", views.get_and_create_post, name="get_and_create_post"),
-    # path("authors/<uuid:id_author>/posts/<uuid:id_post>/image", views.get_image, name="get_image"),
+    path("authors/<uuid:id_author>/posts/", views.get_and_create_post, name="get_and_create_post"),
+    path("authors/<uuid:id_author>/posts/<uuid:id_post>/image", views.get_image, name="get_image"),
+    path("authors/<uuid:id_author>/posts/<uuid:id_post>", views.get_update_and_delete_specific_post, name="get_update_and_delete_post"),
     # #TODO: can we add extra urls?
     # path("posts/", views.get_posts, name="get_posts"),
     #
