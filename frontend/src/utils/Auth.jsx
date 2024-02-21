@@ -15,82 +15,85 @@ const client = axios.create({
 
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState();
-    const [isLoggedIn, setIsLoggedIn] = useState();
-    const [isLoading, setIsLoading] = useState(true); // Add isLoading state
+    const [user, setUser] = useState(localStorage.getItem('user') || null);
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
 
 
     // to determine if the user is logged in
     useEffect(() => {
-        client.get(
-            "/api/user/", 
-            {withCredentials: true}
-        ).then(function(res) {
-            console.log("inside useEffect");
-            console.log(res.data);
-            console.log(res.data.user.displayName);
-            console.log("-----------------");
+        const fetchData = async () => {
+            try {
+                const response = await client.get("/api/user/", { withCredentials: true });
+                setUser(response.data.user.displayName);
+                setIsLoggedIn(true);
 
-            setUser(res.data.user.displayName);
-            setIsLoggedIn(true);
-            setIsLoading(false); // Set isLoading to false when data is fetched
+                // localStorage.setItem('user', response.data.displayName);
+                // localStorage.setItem('isLoggedIn', 'true');
 
-        })
-        .catch(function(error) {
-            console.log("inside useEffect error");
-            console.log(error);
-            console.log("-----------------");
-
-            setUser(null);
-            setIsLoggedIn(false);
-            setIsLoading(false); // Set isLoading to false even if there's an error
-        });
-    }, []);
+                console.log("inside useEffect");
+                console.log(response.data);
+                console.log(response.data.user.displayName);
+                console.log("-----------------");
 
 
-    const login = (email, password) => {
-        client.post(
-            "/api/login/",
-            {
-                email: email,
-                password: password
+            } catch (error) {
+                setUser(null);
+                setIsLoggedIn(false);
+                console.error("Error fetching user data:", error);
             }
-        ).then(function(res) {
-            setUser(res.data.email);
+        };
+        fetchData();
+    }, [user]);
+
+
+    const login = async (email, password) => {
+        try {
+            const response = await client.post("/api/login/", { email, password });
+            setUser(response.data.email);
             setIsLoggedIn(true);
+
+            localStorage.setItem('user', response.data.email);
+            localStorage.setItem('isLoggedIn', 'true');
 
             console.log("login");
             console.log(isLoggedIn);
-            console.log(user);
-            console.log(res.data);
+            console.log("User: " + user);
+            console.log(response.data);
             console.log("-----------------");
+            return true;
+
+        } catch (error) {
+            console.error("Error logging in:", error);
+            console.log("User: " + user);
+            return false;
         }
-        ).catch(function(error) {
-            console.log(error);
-        });
     }
 
 
-    const logout = () => {
-        client.post(
-            "/api/logout/",
-            {withCredentials: true}
-        ).then(function(res) {
+    const logout = async () => {
+        try {
+            const response = await client.post("/api/logout/", { withCredentials: true });
             setUser(null);
             setIsLoggedIn(false);
+
+            localStorage.removeItem('user');
+            localStorage.setItem('isLoggedIn', 'false');
 
             console.log("logout");
             console.log(isLoggedIn);
             console.log(user);
-            console.log(res.data);
+            console.log(response.data);
             console.log("-----------------");
 
-        });
+        } catch (error) {
+            console.error("Error logging out:", error);
+        }
     }
+
 
     return (
         <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
-            {isLoading ? <div>Loading...</div> : children} {/* Render children only when isLoading is false */}
+            { children }
         </AuthContext.Provider>
     )
 }

@@ -1,4 +1,4 @@
-import { NavLink, Link, Navigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import {
 	ArrowTrendingUpIcon,
 	PencilIcon,
@@ -57,15 +57,16 @@ function Links() {
 	return <div>{allLinks}</div>;
 }
 
-export default function Navigation({ isLoggedIn }) {
+export default function Navigation() {
 
     const auth = useAuth();
+	const navigate = useNavigate();
 
-    function handleLogout(e) {
+    const handleLogout = async (e) => {
         e.preventDefault();
-        auth.logout();
-        <Navigate to="/login" replace={true}/>;
-    }
+        await auth.logout();
+        navigate("/login");
+    };
 
 	return (
 		<div className="flex h-full flex-col px-3 py-4">
