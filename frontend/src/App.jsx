@@ -12,6 +12,7 @@ import Login from "./components/Login.jsx";
 import Welcome from "./components/Welcome.jsx";
 import PrivateRoute from "./utils/PrivateRoute.jsx";
 import { AuthProvider, useAuth } from "./utils/Auth.jsx";
+import Signup from "./components/Signup.jsx";
 
 function App() {
 
@@ -30,6 +31,7 @@ function App() {
 				
 				<Routes>
 				    <Route path="/login" element={<Login />} />
+					<Route path="/signup" element={<Signup />} />
 
 					<Route path="/" element={ <PrivateRoute> < Welcome /> </PrivateRoute> }/>
 					<Route path="/profile" element={<PrivateRoute> <Profile /> </PrivateRoute> } />
