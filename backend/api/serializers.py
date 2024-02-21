@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import Author
+from .models import Author, Post
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -91,3 +91,22 @@ class FollowRequestSerializer(serializers.Serializer):
 
     def get_summary(self, obj):
         return f'{obj.from_user.display_name} sent a follow request to {obj.to_user.display_name}'
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = [
+            'type', 'id', 'title', 'source', 'origin', 'description', 'contentType',
+            'content', 'author', 'count', 'comments', 'published',
+            'visibility', 'image'
+        ]
+        read_only_fields = ['type', 'id', 'author', 'count', 'comments', 'published']
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        current_url = request.build_absolute_uri()
+        data["author"] = AuthorSerializer(instance.author, context=self.context).data
+        data["id"] = f"{current_url}{instance.id}"
+        data["comments"] = f"{current_url}/{instance.id}/comments"
+        return data
+    

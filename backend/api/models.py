@@ -51,30 +51,29 @@ class FollowRequest(models.Model):
         return f'{self.from_user.display_name} sent a follow request to {self.to_user.display_name}'
     
 # #posts
-# class Post(models.Model):
-#     CONTENT_TYPES = (
-#         ('text/markdown', 'text/markdown'),
-#         ('text/plain', 'text/plain'),
-#         ('application/base64', 'application/base64'),
-#         ('image/png;base64', 'image/png;base64'),
-#         ('image/jpeg;base64', 'image/jpeg;base64')
-#     )
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-#     title = models.CharField(max_length=100)
-#     source = models.URLField(max_length=200, blank=True)
-#     origin = models.URLField(max_length=200, blank=True)
-#     description = models.TextField()
-#     contentType = models.CharField(max_length=50, choices=CONTENT_TYPES, default="text/markdown")
-#     content = models.TextField()
-#     author = models.ForeignKey(Author, related_name='posts_author', on_delete=models.CASCADE)
-#     count = models.IntegerField(default=0)
-#     comments = models.CharField(max_length=100, blank=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     visibility = models.CharField(choices=['PUBLIC','FRIENDS','UNLISTED'])
-#     image = models.URLField(max_length=200, blank=True, null=True)
-#     #not sure if we need this
-#     commentsSrc = models.JSONField(null=True, blank=True)
-#
+class Post(models.Model):
+    CONTENT_TYPES = (
+        ('text/markdown', 'text/markdown'),
+        ('text/plain', 'text/plain'),
+        ('application/base64', 'application/base64'),
+        ('image/png;base64', 'image/png;base64'),
+        ('image/jpeg;base64', 'image/jpeg;base64')
+    )
+    type = models.CharField(max_length=50, default="post")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    title = models.CharField(max_length=100)
+    source = models.URLField(max_length=200, blank=True)
+    origin = models.URLField(max_length=200, blank=True)
+    description = models.TextField()
+    contentType = models.CharField(max_length=50, choices=CONTENT_TYPES, default="text/markdown")
+    content = models.TextField()
+    author = models.ForeignKey(Author, related_name='posts_author', on_delete=models.CASCADE)
+    count = models.IntegerField(default=0)
+    comments = models.CharField(max_length=100)
+    published = models.DateTimeField(auto_now_add=True)
+    visibility = models.CharField(max_length=50, choices=(('PUBLIC','PUBLIC'),('FRIENDS', 'FRIENDS'),('UNLISTED','UNLISTED')))
+    image = models.URLField(max_length=200, blank=True, null=True)
+    
 # #comments
 # class Comment(models.Model):
 #     id = models.UUIDField(primary_key=True,unique=True, default=uuid.uuid4, editable=False)
