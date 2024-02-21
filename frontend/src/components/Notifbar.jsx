@@ -57,6 +57,7 @@ function Notifications() {
 		const keyIndex = inbox.indexOf(object);
 		if (object.type === followType) {
 			allNotifs.push(
+				// TODO: these a elements need to be changed to Link elements
 				<div key={keyIndex} className="flex flex-initial rounded-md shadow-md bg-orange-300/75 p-3 m-2">
 					<p className="text-sm">
 						<a href={author.url} className="font-semibold hover:underline hover:text-orange-700">
