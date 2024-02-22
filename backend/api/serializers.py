@@ -105,9 +105,8 @@ class PostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
-        base_url = request.get_host()
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
-        current_url = f"{base_url}/api/authors/{instance.author.id}/posts"
+        current_url = f"{request.build_absolute_uri('/')}/api/authors/{instance.author.id}/posts"
         data['id'] = f"{current_url}/{instance.id}"
         data["comments"] = f"{current_url}/{instance.id}/comments"
         return data
@@ -122,7 +121,7 @@ class CommentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
-        current_url = f"{request.get_host()}/api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments"
+        current_url = f"{request.build_absolute_uri('/')}/api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments"
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
         data["id"] = f"{current_url}/{instance.id}"
         return data
