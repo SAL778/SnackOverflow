@@ -25,7 +25,6 @@ class Author(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.display_name
 
-
 class Follower(models.Model):
     follower = models.ForeignKey(Author, related_name='following', on_delete=models.CASCADE)
     followed_user = models.ForeignKey(Author, related_name='followers', on_delete=models.CASCADE)
@@ -83,7 +82,7 @@ class Comment(models.Model):
     contentType = models.CharField(max_length=50, choices = (('text/markdown', 'text/markdown'), ('text/plain', 'text/plain')), default="text/markdown")
     published = models.DateTimeField(auto_now_add=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-#
+
 # #likes
 class Like(models.Model):
     type = models.CharField(max_length=20, default="Like")
@@ -91,9 +90,10 @@ class Like(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="likes_author")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="like_post", null=True)
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="like_comment", null=True)
-#
+    object = models.CharField(max_length=250)
 # #inbox
-# class Inbox(models.Model):
-#     author = models.ForeignKey(Author, related_name='author', on_delete=models.CASCADE)
-#     items = models.JSONField()
-#     published = models.DateTimeField(auto_now_add=True)
+class Inbox(models.Model):
+    type = models.CharField(max_length=50, default="inbox")
+    author = models.ForeignKey(Author, related_name='author', on_delete=models.CASCADE)
+    item = models.JSONField()
+    published = models.DateTimeField(auto_now_add=True)
