@@ -56,7 +56,7 @@ export default function Login() {
             {
               error && 
               <Alert severity="error">
-                An error occured when logging in. Please try again.
+                Invalid credentials. Please try again.
               </Alert>
             }
             <CssBaseline />
