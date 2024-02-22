@@ -1,0 +1,14 @@
+.new-post-page {
+	padding: 40px;
+	min-height: 100vh; /* full viewport height */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+/* media queries for responsiveness */
+@media (max-width: 1024px) {
+	.new-post-page {
+		padding: 20px;
+	}
+}

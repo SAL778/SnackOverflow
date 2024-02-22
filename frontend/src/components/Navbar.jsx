@@ -1,13 +1,13 @@
 import logo from "../assets/snack-logo.png";
 import { NavLink } from "react-router-dom";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import {
-	ArrowTrendingUpIcon,
-	PencilIcon,
-	PowerIcon,
-	RectangleStackIcon,
-	UserIcon,
-} from "@heroicons/react/24/outline";
+	User,
+	UsersThree,
+	Sparkle,
+	UploadSimple,
+	SignOut,
+} from "@phosphor-icons/react";
 
 // For creating the nav bar:
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/sidenav.tsx
@@ -17,10 +17,14 @@ import {
 
 function Links() {
 	const objects = [
-		{ content: "Profile", href: "/profile", icon: UserIcon },
-		{ content: "Feed", href: "/feed", icon: RectangleStackIcon },
-		{ content: "Explore", href: "/explore", icon: ArrowTrendingUpIcon },
-		{ content: "New Post", href: "/newpost", icon: PencilIcon },
+		{
+			content: "Profile",
+			href: "/profile",
+			icon: User,
+		},
+		{ content: "Feed", href: "/feed", icon: UsersThree },
+		{ content: "Explore", href: "/explore", icon: Sparkle },
+		{ content: "New Post", href: "/newpost", icon: UploadSimple },
 	];
 
 	var allLinks = [];
@@ -79,7 +83,7 @@ export default function Navigation() {
 				<Links />
 				<div className="hidden h-auto w-full grow bg-white md:block"></div>
 				<button className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
-					<PowerIcon className="w-6" />
+					<SignOut style={{ width: "24px", height: "24px" }} />
 					<div className="hidden md:block">Sign Out</div>
 				</button>
 			</div>
