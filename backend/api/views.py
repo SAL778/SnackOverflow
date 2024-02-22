@@ -1,13 +1,18 @@
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from .models import Author, Follower, FollowRequest
-from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegisterSerializer, UserLoginSerializer
+from .models import Author, Follower, FollowRequest, Post, Comment, Like
+from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegisterSerializer, UserLoginSerializer, PostSerializer, CommentSerializer, LikeSerializer
 from django.contrib.auth import login, logout
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication
-
+import requests
+#TODO: does a post not have a like value?
+#TODO: doesn't return the author information fix that
+#TODO: add pagination
+#TODO: should comment have content type like post?
+#TODO: will there be individual comments or just a list of comments?
 # Create your views here.
 class UserRegister(APIView):
     """
@@ -178,3 +183,317 @@ def get_and_delete_follow_request(request, id_author, id_sender):
         follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
         serializer = FollowRequestSerializer(follow_request, context={'request': request})
         return Response(serializer.data)
+
+# GET [local, remote] get the recent posts from author AUTHOR_ID (paginated)
+# Not authenticated: only public posts.
+# Authenticated locally as author: all posts.
+# Authenticated locally as friend of author: public + friends-only posts.
+# Authenticated as remote server: This probably should not happen. Remember, the way remote server becomes aware of local posts is by local server pushing those posts to inbox, not by remote server pulling.
+#TODO: pagination
+#custom uris for getting all public posts
+@api_view(['GET'])
+def get_all_public_posts(request):
+    """
+    Get all public posts
+    primary used in the explore feed (public stream)
+    """
+    if request.method == 'GET':
+        posts = Post.objects.filter(visibility="PUBLIC").order_by('-published')
+        serializer = PostSerializer(posts, context={'request': request}, many=True)
+        response = {
+            "type": "posts",
+            "items": serializer.data,
+        }
+        return Response(response)
+    
+#custom uris for getting all the posts of everyone I am following
+@api_view(['GET'])
+def get_all_friends_follows_posts(request):
+    """
+    Get all friends and follows posts
+    primary used in the home feed (friends stream)
+    This will have all the public posts of the people I am following 
+    and the friends only posts of the people I am friends with (they follow and I follow them)
+    """
+    user = request.user
+    if(isinstance(user, Author)):
+        userId = user.id
+    else:
+        userId = None
+    if request.method == 'GET':
+        if userId is None:
+            return Response({"details":"User is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            following = Follower.objects.filter(follower__id=userId)
+            followers = Follower.objects.filter(followed_user__id=userId)
+            friends = following.filter(followed_user__in=followers.values_list('follower', flat=True))
+            
+            public_posts = Post.objects.filter(author__in=following.values_list('followed_user', flat=True), visibility="PUBLIC")
+            friends_posts = Post.objects.filter(author__in=friends.values_list('followed_user', flat=True), visibility="FRIENDS")
+            posts = public_posts.union(friends_posts).order_by('-published')
+
+            serializer = PostSerializer(posts, context={'request': request}, many=True)
+            response = {
+                "type": "posts",
+                "items": serializer.data,
+            }
+            return Response(response)
+
+# path("authors/<uuid:id_author>/posts/", views.get_and_create_post, name="get_and_create_post")
+@api_view(['GET', 'POST'])
+def get_and_create_post(request, id_author):
+    """
+    Get all posts by a single author or create a new post
+    Primarily used in the authors page stream
+    """
+    user = request.user
+    if(isinstance(user, Author)):
+        userId = user.id
+    else:
+        userId = None
+    
+    author = Author.objects.filter(id=id_author).first()
+    if request.method == 'GET':
+        if author is None:
+            # send a request to team 1 and then to team 2 to see if a user with that id exists
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            # the author is in our local server
+            if userId is None:
+                posts = Post.objects.filter(author=author, visibility="PUBLIC")
+            elif userId == id_author:
+                posts = Post.objects.filter(author=author)
+            else:
+                # check if the user is a friend of the author
+                follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
+                following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
+
+                if follower and following:
+                    posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS"])
+                else:
+                    posts = Post.objects.filter(author=author, visibility="PUBLIC")
+            # return all posts
+            serializer = PostSerializer(posts, context={'request': request}, many=True)
+            response = {
+                "type": "posts",
+                "items": serializer.data,
+            }
+            return Response(response)
+
+    if request.method == 'POST':
+        #check if its the same user
+        if userId != id_author:
+            return Response({"detail":"Can't create post for another user"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        copyData = request.data.copy()
+        
+        if(copyData.get("origin") is None):
+            copyData["origin"] = ""
+        
+        if(copyData.get("source") is None):
+            copyData["source"] = ""
+        
+        serializer = PostSerializer(data=copyData, context={'request': request})
+        
+        if serializer.is_valid():
+            serializer.save(author=author)
+            # send the serializer.data (post) to the inbox of the author's followers
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+# path("authors/<uuid:id_author>/posts/<uuid:id_post>/image", views.get_image, name="get_image"),
+#TODO: not sure what this endpoint means
+# URL: ://service/authors/{AUTHOR_ID}/posts/{POST_ID}/image
+# GET [local, remote] get the public post converted to binary as an image
+# return 404 if not an image
+# This end point decodes image posts as images. This allows the use of image tags in markdown.
+# You can use this to proxy or cache images.
+@api_view(['GET'])
+def get_image(request, id_author, id_post):
+    """
+    Get the image of a single post
+    """
+    user = request.user
+    if(isinstance(user, Author)):
+        userId = user.id
+    else:
+        userId = None
+
+    post = get_object_or_404(Post, id=id_post)
+    if post.contentType.startswith("image"):
+        try:
+            response = requests.get(post.image)
+            response.raise_for_status()
+            image_content = response.content
+        except requests.exceptions.RequestException as e:
+            return Response({'error': f'Error fetching image: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        if post.visibility == "PUBLIC" or userId == id_author:
+            return Response(image_content, status=status.HTTP_200_OK)
+        
+        elif post.visibility == "FRIENDS":
+            if userId is None:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
+            following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
+            if follower and following:
+                return Response(image_content, status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+# path("authors/<uuid:id_author>/posts/<uuid:id_post>", views.get_update_and_delete_specific_post, name="get_update_and_delete_post"),
+# GET [local, remote] get the public post whose id is POST_ID
+# friends-only posts: must be authenticated
+# DELETE [local,remote] remove the post whose id is POST_ID
+# local posts: must be authenticated locally as the author
+# remote posts: must be authenticated locally as the author's server
+# The remote server should do this when a post is deleted
+# PUT [local,remote] update a post where its id is POST_ID
+# local posts: must be authenticated locally as the author
+# remote posts: must be authenticated locally as the author's server
+# The remote server should do this when a post is edited
+@api_view(['GET', 'PUT', 'DELETE'])
+def get_update_and_delete_specific_post(request, id_author, id_post):
+    """
+    Get, update, or delete a single post
+    """
+    user = request.user
+    if(isinstance(user, Author)):
+        userId = user.id
+    else:
+        userId = None
+    
+    if request.method == 'GET':
+        post = get_object_or_404(Post, id=id_post)
+        serializer = PostSerializer(post, context={'request': request})
+        if post.visibility == "PUBLIC" or userId == id_author:
+            return Response(serializer.data)
+        elif post.visibility == "FRIENDS":
+            if userId is None:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
+            following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
+            if follower and following:
+                return Response(serializer.data)
+            else:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        elif post.visibility == "UNLISTED":
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'PUT':
+        post = get_object_or_404(Post, id=id_post)
+        if userId != id_author:
+            return Response({"detail":"Can't edit someone elses post"}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = PostSerializer(post, data=request.data, context={'request': request}, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == 'DELETE':
+        post = get_object_or_404(Post, id=id_post)
+        if userId != id_author:
+            return Response({"detail":"Can't delete someone elses post"}, status=status.HTTP_401_UNAUTHORIZED)
+        post.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+# comments
+# URL: ://service/authors/{AUTHOR_ID}/posts/{POST_ID}/comments
+# GET [local, remote] get the list of comments of the post whose id is POST_ID (paginated)
+# POST [local] if you post an object of "type":"comment", it will add your comment to the post whose id is POST_ID
+@api_view(['GET', 'POST'])
+def get_and_create_comment(request, id_author, id_post):
+    """
+    Get all comments of a single post or create a new comment
+    """
+    user = request.user
+    if(isinstance(user, Author)):
+        userId = user.id
+    else:
+        userId = None
+    
+    post = get_object_or_404(Post, id=id_post)
+    if request.method == 'GET':
+        comments = Comment.objects.filter(post=post).order_by('-published')
+        serializer = CommentSerializer(comments, context={'request': request}, many=True)
+        response = {
+            "type": "comments",
+            "items": serializer.data,
+        }
+        return Response(response)
+    
+    if request.method == 'POST':
+        if userId is None:
+            return Response({"details":"can't create a comment anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
+        commentAuthor = get_object_or_404(Author, id=userId)
+
+        commentData = request.data.copy()
+        commentData["author"] = commentAuthor.id
+        commentData["post"] = post.id
+        print(request.data)
+        print(commentData)
+        serializer = CommentSerializer(data=commentData, context={'request': request})
+        print(serializer)
+        if serializer.is_valid():
+            serializer.save()
+            # send comment in inbox of post author
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes", views.get_post_likes, name="get_post_likes"),
+# URL: ://service/authors/{AUTHOR_ID}/posts/{POST_ID}/likes
+# GET [local, remote] a list of likes from other authors on AUTHOR_ID's post POST_ID
+@api_view(['GET'])
+def get_post_likes(request, id_author, id_post):
+    """
+    Get all likes of a single post
+    """    
+    post = get_object_or_404(Post, id=id_post, author__id=id_author)
+    likes = Like.objects.filter(post=post)
+    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    response = {
+        "type": "likes",
+        "items": serializer.data,
+    }
+    return Response(response)
+# URL: ://service/authors/{AUTHOR_ID}/posts/{POST_ID}/comments/{COMMENT_ID}/likes
+# GET [local, remote] a list of likes from other authors on AUTHOR_ID's post POST_ID comment COMMENT_ID
+# path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments/<uuid:id_comment>/likes", views.get_comment_likes, name="get_comment_likes"),
+@api_view(['GET'])
+def get_comment_likes(request, id_author, id_post, id_comment):
+    """
+    Get all likes of a single comment
+    """
+    comment = get_object_or_404(Comment, id=id_comment, post__id=id_post, post__author__id=id_author)
+    likes = Like.objects.filter(comment=comment)
+    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    response = {
+        "type": "likes",
+        "items": serializer.data,
+    }
+    return Response(response)
+# path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
+# URL: ://service/authors/{AUTHOR_ID}/liked
+# GET [local, remote] list what public things AUTHOR_ID liked.
+# It's a list of of likes originating from this author
+# Note: be careful here private information could be disclosed.
+@api_view(['GET'])
+def get_liked(request, id_author):
+    """
+    Get all likes of a single author
+    """
+    author = get_object_or_404(Author, id=id_author)
+    likes = Like.objects.filter(author=author)
+    serializer = LikeSerializer(likes, context={'request': request}, many=True)
+    response = {
+        "type": "likes",
+        "items": serializer.data,
+    }
+    return Response(response)
+
+#TODO: inbox
+# check if item is a post, comment, like, follow, follow request
