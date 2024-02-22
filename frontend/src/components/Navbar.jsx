@@ -11,11 +11,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../utils/Auth.jsx";
 
-// For creating the nav bar:
+// The navigation and links components are adapted and modified from the "Learning Next.js" tutorial written by
+// Vercel inc. and their contributors. Both links below are the source component pages from the repository which showcases the finished 
+// example webpage after the tutorial is completed. Accessed 2024-02-22
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/sidenav.tsx
-// For mass creating the links in the bar:
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/nav-links.tsx
-// snack overflow image source https://i.imgur.com/jSUHoMZ.png
 
 function Links() {
 	const objects = [

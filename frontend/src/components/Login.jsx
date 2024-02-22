@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
@@ -14,6 +13,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../utils/Auth.jsx";
 import { orange } from "@mui/material/colors";
 import logo from "../assets/snack-logo.png";
+import Alert from '@mui/material/Alert';
 
 
 const theme = createTheme({
@@ -22,32 +22,43 @@ const theme = createTheme({
     },
   });
 
+// This login page has been adapted from this base template written by Material UI SAS and their contributors:
+// https://github.com/mui/material-ui/tree/v5.15.11/docs/data/material/getting-started/templates/sign-up
+// Accessed 2024-02-22
+
 export default function Login() {
 
     const auth = useAuth();
     const navigate = useNavigate();
+    const [error, setError] = React.useState(null);
 
     const handleLogin = async (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
 
+        // try to log in the user to the server
         try {
           await auth.login(data.get('email'), data.get('password'));
+          setError(null);
           navigate("/");
 
         } catch (error) {
-          // not working, is not called
-          console.error("ERRRRRROOOOOR:", error);
-
+          setError(error);
         }
     };
-
 
     return (
       auth.user ? <Navigate to="/"/> :
 
         <ThemeProvider theme={theme}>
           <Container component="main" maxWidth="xs">
+            {/* Error will display if unable to log in. */}
+            {
+              error && 
+              <Alert severity="error">
+                An error occured when logging in. Please try again.
+              </Alert>
+            }
             <CssBaseline />
             <Box
               className="bg-white rounded-md shadow-md p-5"

@@ -13,11 +13,9 @@ const client = axios.create({
   // can add headers here
 });
 
-
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(localStorage.getItem('user') || null);
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
-
 
     // to determine if the user is logged in
     useEffect(() => {
@@ -60,12 +58,16 @@ export const AuthProvider = ({ children }) => {
             console.log("User: " + user);
             console.log(response.data);
             console.log("-----------------");
-            return true;
+            return new Promise((resolve) => {
+                resolve(true);
+            });
 
         } catch (error) {
             console.error("Error logging in:", error);
             console.log("User: " + user);
-            return false;
+            return new Promise(() => {
+                throw error;
+            });
         }
     }
 
@@ -90,32 +92,31 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
-    const register = (email, password, displayname, github, profileimage) => {
-        // i dont know if this is good or not
-        client.post(
-            "/api/register/",
-            {
+    const register = async (email, password, displayname, github, profileimage) => {
+        try {
+            const response = await client.post("/api/register/", {
                 email: email,
                 password: password,
                 display_name: displayname,
-                profile_image: profileimage,
-                github: github
-            }
-        ).then(function(res) {
-            setUser(res.data.email);
-            setIsLoggedIn(true);
+                github: github,
+                profile_image: profileimage
+            });
 
-            // when restricting new users, must update this if flag is set to restrict
-            // an account will be created but users will be prompted that they must wait for admin approval
             console.log("register");
             console.log(isLoggedIn);
-            console.log(user);
-            console.log(res.data);
+            console.log(response.data);
             console.log("-----------------");
+            // return true;
+            return new Promise((resolve) => {
+                resolve(true);
+            });
+
+        } catch (error) {
+            console.error("Error registering:", error);
+            return new Promise(() => {
+                throw error;
+            });
         }
-        ).catch(function(error) {
-            console.log("Error registering user:", error);
-        });
     }
 
     return (
