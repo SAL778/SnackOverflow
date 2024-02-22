@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
             console.log("-----------------");
         }
         ).catch(function(error) {
-            console.log(error);
+            console.log("Error registering user:", error);
         });
     }
 

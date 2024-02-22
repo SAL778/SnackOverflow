@@ -6,16 +6,21 @@ import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../utils/Auth.jsx";
+import { orange } from "@mui/material/colors";
+import logo from "../assets/snack-logo.png";
 
 
-const defaultTheme = createTheme();
+const theme = createTheme({
+    palette: {
+      primary: orange,
+    },
+  });
 
 export default function Login() {
 
@@ -41,10 +46,11 @@ export default function Login() {
     return (
       auth.user ? <Navigate to="/"/> :
 
-        <ThemeProvider theme={defaultTheme}>
+        <ThemeProvider theme={theme}>
           <Container component="main" maxWidth="xs">
             <CssBaseline />
             <Box
+              className="bg-white rounded-md shadow-md p-5"
               sx={{
                 marginTop: 8,
                 display: 'flex',
@@ -52,9 +58,13 @@ export default function Login() {
                 alignItems: 'center',
               }}
             >
-            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-                <LockOutlinedIcon />
-            </Avatar>
+              <img
+                className="p-2"
+                src={logo}
+                alt="Snack Overflow icon"
+                width={400}
+                height={40}
+              />
               <Typography component="h1" variant="h5">
                 Sign in
               </Typography>
@@ -92,7 +102,7 @@ export default function Login() {
                   <Grid item xs>
                   </Grid>
                   <Grid item>
-                    <Link href="#" variant="body2">
+                    <Link href="/signup" variant="body2">
                       {"Don't have an account? Sign Up"}
                     </Link>
                   </Grid>
