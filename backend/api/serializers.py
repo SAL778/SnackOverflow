@@ -58,12 +58,12 @@ class AuthorSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
-        data['id'] = f"{request.build_absolute_uri('/authors/')}{instance.id}"
+        data['id'] = f"{request.build_absolute_uri('/api/authors/')}{instance.id}"
         return data
 
     def get_url(self, obj):
         request = self.context.get('request')
-        url = f"{request.build_absolute_uri('/authors/')}{obj.id}"
+        url = f"{request.build_absolute_uri('/api/authors/')}{obj.id}"
         return url
 
     def get_host(self, obj):

@@ -75,11 +75,28 @@ def get_authors(request):
     Get all profiles on the server (paginated)
     """
     authors = Author.objects.all()
+    page_number = request.query_params.get('page', 0)
+
+    # default page size is 10
+    size = request.query_params.get('size', 10)
+    # ensure size is an integer
+    try:
+        size = int(size)
+    except:
+        size = 10
+
+    response = {}
+    response["type"] = "authors"
+
+    # if page param is provided, paginate the authors, otherwise return all authors
+    if page_number:
+        paginator = Paginator(authors, size)
+        authors = paginator.get_page(page_number)
+        response["page"] = authors.number
+        response["size"] = size
+
     serializer = AuthorSerializer(authors, context={'request': request}, many=True)
-    response = {
-        "type": "authors",
-        "items": serializer.data,
-    }
+    response["items"] = serializer.data
     return Response(response)
 
 @api_view(['GET', 'POST'])
@@ -203,7 +220,7 @@ def get_all_public_posts(request):
                 "items": serializer.data,
             }
             return Response(response)
-    
+
 #custom uris for getting all the posts of everyone I am following
 @api_view(['GET'])
 def get_all_friends_follows_posts(request):
@@ -225,7 +242,7 @@ def get_all_friends_follows_posts(request):
             following = Follower.objects.filter(follower__id=userId)
             followers = Follower.objects.filter(followed_user__id=userId)
             friends = following.filter(followed_user__in=followers.values_list('follower', flat=True))
-            
+
             public_posts = Post.objects.filter(author__in=following.values_list('followed_user', flat=True), visibility="PUBLIC")
             friends_posts = Post.objects.filter(author__in=friends.values_list('followed_user', flat=True), visibility="FRIENDS")
             posts = public_posts.union(friends_posts).order_by('-published')
@@ -260,7 +277,7 @@ def get_and_create_post(request, id_author):
         userId = user.id
     else:
         userId = None
-    
+
     author = Author.objects.filter(id=id_author).first()
     if request.method == 'GET':
         page_number = request.query_params.get('page', 0)
@@ -283,7 +300,7 @@ def get_and_create_post(request, id_author):
                     posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS"])
                 else:
                     posts = Post.objects.filter(author=author, visibility="PUBLIC")
-            
+
             if int(page_number) and int(size):
                 paginator = Paginator(posts, size)
                 posts = paginator.get_page(page_number)
@@ -304,17 +321,17 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         copyData = request.data.copy()
-        
+
         if(copyData.get("origin") is None):
             copyData["origin"] = ""
-        
+
         if(copyData.get("source") is None):
             copyData["source"] = ""
-        
+
         serializer = PostSerializer(data=copyData, context={'request': request})
-        
+
         if serializer.is_valid():
             serializer.save(author=author)
             # send the serializer.data (post) to the inbox of the author's followers
@@ -347,7 +364,7 @@ def get_and_create_post(request, id_author):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
 #TODO: not sure what this endpoint means
 @api_view(['GET'])
 def get_image(request, id_author, id_post):
@@ -368,10 +385,10 @@ def get_image(request, id_author, id_post):
             image_content = response.content
         except requests.exceptions.RequestException as e:
             return Response({'error': f'Error fetching image: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         if post.visibility == "PUBLIC" or userId == id_author:
             return Response(image_content, status=status.HTTP_200_OK)
-        
+
         elif post.visibility == "FRIENDS":
             if userId is None:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -381,7 +398,7 @@ def get_image(request, id_author, id_post):
                 return Response(image_content, status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         return Response(status=status.HTTP_404_NOT_FOUND)
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
@@ -396,7 +413,7 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
         userId = user.id
     else:
         userId = None
-    
+
     if request.method == 'GET':
         post = get_object_or_404(Post, id=id_post)
         serializer = PostSerializer(post, context={'request': request})
@@ -414,7 +431,7 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
         elif post.visibility == "UNLISTED":
             return Response(serializer.data)
         return Response(status=status.HTTP_404_NOT_FOUND)
-    
+
     if request.method == 'PUT':
         post = get_object_or_404(Post, id=id_post)
         if userId != id_author:
@@ -424,14 +441,14 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     if request.method == 'DELETE':
         post = get_object_or_404(Post, id=id_post)
         if userId != id_author:
             return Response({"detail":"Can't delete someone elses post"}, status=status.HTTP_401_UNAUTHORIZED)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
 # comments
 @api_view(['GET', 'POST'])
 def get_and_create_comment(request, id_author, id_post):
@@ -465,7 +482,7 @@ def get_and_create_comment(request, id_author, id_post):
                 "items": serializer.data,
             }
             return Response(response)
-    
+
     if request.method == 'POST':
         if userId is None:
             return Response({"details":"can't create a comment anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -500,7 +517,7 @@ def get_and_create_comment(request, id_author, id_post):
 def get_post_likes(request, id_author, id_post):
     """
     Get all likes of a single post
-    """    
+    """
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
     likes = Like.objects.filter(post=post)
     serializer = AuthorSerializer(likes, context={'request': request}, many=True)
