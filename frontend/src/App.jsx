@@ -8,11 +8,11 @@ import Profile from "./pages/Profile.jsx";
 import Feed from "./pages/Feed.jsx";
 import Explore from "./pages/Explore.jsx";
 import NewPost from "./pages/NewPost.jsx";
-import Login from "./components/Login.jsx";
-import Welcome from "./components/Welcome.jsx";
+import Login from "./pages/Login.jsx";
+import Welcome from "./pages/Welcome.jsx";
 import PrivateRoute from "./utils/PrivateRoute.jsx";
 import { AuthProvider, useAuth } from "./utils/Auth.jsx";
-import Signup from "./components/Signup.jsx";
+import Signup from "./pages/Signup.jsx";
 
 function App() {
 

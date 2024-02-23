@@ -26,7 +26,7 @@ All text is licensed under the CC-BY-SA 4.0 http://creativecommons.org/licenses/
 
 ## Extra citations
 
-For our logo "Snack Overflow", the original source image comes from a reply to the original post by u/Roadcrosser at this [link](https://www.reddit.com/r/ProgrammerHumor/comments/2vadys/snack_overflow/) accessed 2024-02-22. The direct link to the image is available [here](https://i.imgur.com/jSUHoMZ.png).
+For our logo "Snack Overflow", the original source image comes from a reply to the original post by u/Roadcrosser at this [link](https://www.reddit.com/r/ProgrammerHumor/comments/2vadys/comment/cofylak/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) accessed 2024-02-22. The direct link to the image is available [here](https://i.imgur.com/jSUHoMZ.png).
 
 ## Getting Started
 
