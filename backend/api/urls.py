@@ -47,7 +47,7 @@ urlpatterns = [
     path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
 
     # apis for inbox
-    # path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
+    path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
 
     # custom urls
     path("publicPosts/", views.get_all_public_posts, name="get_all_public_posts"),

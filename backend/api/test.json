@@ -1,0 +1,108 @@
+{
+    "type":"inbox",
+    "author":"http://127.0.0.1:5454/authors/c1e3db8ccea4541a0f3d7e5c75feb3fb",
+    "items":[
+        {
+            "type": "post",
+            "id": "http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a/posts/d4feacb5-f8c4-46be-bdf7-da6e2c2f8145",
+            "title": "A post title about a post about web dev",
+            "source": "http://lastplaceigotthisfrom.com/posts/yyyyy",
+            "origin": "http://whereitcamefrom.com/posts/zzzzz",
+            "description": "This post discusses stuff -- brief",
+            "contentType": "text/plain",
+            "content": "Þā wæs on burgum Bēowulf Scyldinga, lēof lēod-cyning, longe þrāge folcum gefrǣge (fæder ellor hwearf, aldor of earde), oð þæt him eft onwōc hēah Healfdene; hēold þenden lifde, gamol and gūð-rēow, glæde Scyldingas. Þǣm fēower bearn forð-gerīmed in worold wōcun, weoroda rǣswan, Heorogār and Hrōðgār and Hālga til; hȳrde ic, þat Elan cwēn Ongenþēowes wæs Heaðoscilfinges heals-gebedde. Þā wæs Hrōðgāre here-spēd gyfen, wīges weorð-mynd, þæt him his wine-māgas georne hȳrdon, oð þæt sēo geogoð gewēox, mago-driht micel. Him on mōd bearn, þæt heal-reced hātan wolde, medo-ærn micel men gewyrcean, þone yldo bearn ǣfre gefrūnon, and þǣr on innan eall gedǣlan geongum and ealdum, swylc him god sealde, būton folc-scare and feorum gumena. Þā ic wīde gefrægn weorc gebannan manigre mǣgðe geond þisne middan-geard, folc-stede frætwan. Him on fyrste gelomp ǣdre mid yldum, þæt hit wearð eal gearo, heal-ærna mǣst; scōp him Heort naman, sē þe his wordes geweald wīde hæfde. Hē bēot ne ālēh, bēagas dǣlde, sinc æt symle. Sele hlīfade hēah and horn-gēap: heaðo-wylma bād, lāðan līges; ne wæs hit lenge þā gēn þæt se ecg-hete āðum-swerian 85 æfter wæl-nīðe wæcnan scolde. Þā se ellen-gǣst earfoðlīce þrāge geþolode, sē þe in þȳstrum bād, þæt hē dōgora gehwām drēam gehȳrde hlūdne in healle; þǣr wæs hearpan swēg, swutol sang scopes. Sægde sē þe cūðe frum-sceaft fīra feorran reccan",
+            "author": {
+                "type": "author",
+                "id": "http://localhost:8000/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+                "url": "http://localhost:8000/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+                "host": "http://localhost:8000/",
+                "displayName": "Tauseef",
+                "github": "",
+                "profileImage": ""
+            },
+            "count": 0,
+            "comments": "http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a/posts/d4feacb5-f8c4-46be-bdf7-da6e2c2f8145/comments",
+            "published": "2024-02-20T22:55:27.726403Z",
+            "visibility": "PUBLIC",
+            "image": null
+        }
+    ]
+}
+
+{
+    "type":"inbox",
+    "author":"http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+    "items":[
+        {
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "summary": "Lara Croft Likes your post",         
+            "type": "Like",
+            "author":{
+                "type":"author",
+                "id":"http://localhost:8000/authors/0846c4ab-9a04-4175-befe-822597af66eb",
+                "host":"http://127.0.0.1:5454/",
+                "displayName":"Lara Croft",
+                "url":"http://localhost:8000/authors/0846c4ab-9a04-4175-befe-822597af66eb",
+                "github":"http://github.com/laracroft",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "object":"http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a/posts/d4feacb5-f8c4-46be-bdf7-da6e2c2f8145"
+        }
+    ]
+}
+
+{
+    "type":"inbox",
+    "author":"http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+    "items":[
+        {
+            "type": "comment",
+            "id": "http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a/posts/d4feacb5-f8c4-46be-bdf7-da6e2c2f8145/comments/0a2698c3-8b89-48d7-b5a3-1876a2541679",
+            "author": {
+                "type": "author",
+                "id": "http://localhost:8000/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+                "url": "http://localhost:8000/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+                "host": "http://localhost:8000/",
+                "displayName": "Tauseef",
+                "github": "",
+                "profileImage": ""
+            },
+            "comment": "new",
+            "contentType": "text/markdown",
+            "published": "2024-02-21T23:00:32.905521Z",
+            "post": "d4feacb5-f8c4-46be-bdf7-da6e2c2f8145"
+        }
+    ]
+}
+
+{
+    "type":"inbox",
+    "author":"http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+    "items":[
+        {
+            "type": "Follow",      
+            "summary":"Greg wants to follow Lara",
+            "actor":{
+                "type":"author",
+                "id":"http://localhost:8000/authors/0846c4ab-9a04-4175-befe-822597af66eb",
+                "url":"http://localhost:8000/authors/0846c4ab-9a04-4175-befe-822597af66eb",
+                "host":"http://127.0.0.1:5454/",
+                "displayName":"Greg Johnson",
+                "github": "http://github.com/gjohnson",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "object":{
+                "type":"author",
+                "id":"http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+                "host":"http://127.0.0.1:5454/",
+                "displayName":"Lara Croft",
+                "url":"http://localhost:8000/api/authors/b6e84b7b-0025-4f23-96e6-3dd59869699a",
+                "github": "http://github.com/laracroft",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            }
+        }
+    ]
+}
+
+
+

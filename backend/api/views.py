@@ -7,7 +7,7 @@ from django.contrib.auth import login, logout
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication
-import requests
+import requests, json
 from django.core.paginator import Paginator
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -324,6 +324,33 @@ def get_and_create_post(request, id_author):
         if serializer.is_valid():
             serializer.save(author=author)
             # send the serializer.data (post) to the inbox of the author's followers
+            # send the post to the author's followers or friends
+            # check if the post is coming from our host. If its from our host do this else just add that to the inbox (everything is correct in that case)
+            postId = serializer.data.get("id").split("/")[-1]
+            post = Post.objects.filter(id=postId).first()
+            postType = post.visibility
+            if postType == "PUBLIC":
+                followers = Follower.objects.filter(followed_user__id=id_author)
+                for follower in followers:
+                    # check if the follower is in another server and if it is then send the request
+                    copyData["author"] = follower.follower.id
+                    inboxSerializer = InboxSerializer(data=copyData, context={'request': request})
+                    if inboxSerializer.is_valid():
+                        inboxSerializer.save()
+            elif postType == "FRIENDS":
+                followers = Follower.objects.filter(followed_user__id=id_author)
+                for follower in followers:
+                    followerObject = Follower.objects.filter(follower__id=id_author, followed_user__id=follower.follower.id).first()
+                    if followerObject is not None:
+                        copyData["author"] = follower.follower.id
+                        inboxSerializer = InboxSerializer(data=copyData, context={'request': request})
+                        if inboxSerializer.is_valid():
+                            inboxSerializer.save()
+                # what if the follower is in another server, how do we know its a friend?
+                # we have to know its a friend so that we can send it to their inbox
+            else:
+                print("unlisted post")
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
@@ -422,7 +449,7 @@ def get_and_create_comment(request, id_author, id_post):
         userId = user.id
     else:
         userId = None
-    
+    # if the post is not in our server, we have to send a request to the server where the post is and get that specific post
     post = get_object_or_404(Post, id=id_post)
     if request.method == 'GET':
         page_number = request.query_params.get('page', 0)
@@ -503,17 +530,6 @@ def get_liked(request, id_author):
     }
     return Response(response)
 
-#TODO: inbox
-# check if item is a post, comment, like, follow, follow request
-# path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
-# GET [local]: if authenticated get a list of posts sent to AUTHOR_ID (paginated)
-# Should be sorted most recent first
-# POST [local, remote]: send a post to the author
-# if the type is "post" then add that post to AUTHOR_ID's inbox
-# if the type is "follow" then add that follow is added to AUTHOR_ID's inbox to approve later
-# if the type is "Like" then add that like to AUTHOR_ID's inbox
-# if the type is "comment" then add that comment to AUTHOR_ID's inbox
-# DELETE [local]: clear the inbox
 @api_view(['GET', 'POST', 'DELETE'])
 def get_and_post_inbox(request, id_author):
     """
@@ -525,6 +541,7 @@ def get_and_post_inbox(request, id_author):
     else:
         userId = None
     author = get_object_or_404(Author, id=id_author)
+
     if request.method == 'GET':
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
@@ -544,34 +561,41 @@ def get_and_post_inbox(request, id_author):
             serializer = InboxSerializer(inbox, context={'request': request}, many=True)
             response = {
                 "type": "inbox",
+                "author": request.build_absolute_uri(f"/api/authors/{id_author}"),
                 "items": serializer.data,
             }
             return Response(response)
+    
     if request.method == 'POST':
         if userId is None:
             return Response({"details":"Can't post to inbox anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
         copyData = request.data.copy()
         copyData["author"] = author.id
-        
-        if copyData.get("item") is None:
+        items = copyData.get("items")
+        if not (isinstance(items, list)):
+            items = [items]
+        item = items[0]
+
+        if item is None:
             return Response({"details":"item is required"}, status=status.HTTP_400_BAD_REQUEST)
-        itemType = copyData.get("item").get("type")
-        
+        itemType = item.get("type").lower()
+
         if itemType == "like":
-            likeAuthor = get_object_or_404(Author, id=userId)
-            likeData = copyData.get("item")
+            # send the like to the author of the post/comments inbox - frontend
+            likeAuthor = get_object_or_404(Author, id=item.get("author").get("id").split("/")[-1])
+            likeData = item.copy()
             likeData["author"] = likeAuthor.id
             objectString = likeData.get("object")
             
             if objectString is not None or objectString != "":
                 if "comments" in objectString:
                     commentId = objectString.split("/")[-1]
-                    likeData["comment"] = get_object_or_404(Comment, id=commentId)
+                    likeData["comment"] = get_object_or_404(Comment, id=commentId).id
                 else:
                     likeData["comment"] = None
                 if "posts" in objectString:
                     postId = objectString.split("/")[-1]
-                    likeData["post"] = get_object_or_404(Post, id=postId)
+                    likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -586,60 +610,75 @@ def get_and_post_inbox(request, id_author):
                 return Response({"details":"like already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             likeSerializer = LikeSerializer(data=likeData, context={'request': request})
-            
+
             if likeSerializer.is_valid():
                 likeSerializer.save()
-                copyData["item"] = likeSerializer.data
+                copyData["item"] = item
             else:
                 return Response(likeSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         elif itemType == "follow":
-            actor = copyData["item"].get("actor")
-            object = copyData["item"].get("object")
+            # send the follow request to the objectAuthor's inbox - frontend
+            actor = item.get("actor")
+            object = item.get("object")
             if actor is None or object is None:
                 return Response({"details":"actor and object are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-            actorAuthor = Author.objects.filter(id = actor.get("id")).first()
-            objectAuthor = Author.objects.filter(id = object.get("id")).first()
+            
+            actorAuthor = Author.objects.filter(id = actor.get("id").split("/")[-1]).first()
+            objectAuthor = Author.objects.filter(id = object.get("id").split("/")[-1]).first()
 
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
             if followRequest:
-                return Response({"details":"follow request already exists"}, status=status.HTTP_400_BAD_REQUEST)
+                # # unfollow them
+                # # if the followed_user is in our server do this else send the request
+                # Follower.objects.filter(follower=actorAuthor, followed_user=objectAuthor).delete()
+                # return Response({"details":f"{actorAuthor.display_name} unfollowed {objectAuthor.display_name}"}, status=status.HTTP_200_OK)
+                return Response({"details":f"{actorAuthor.display_name} already follows {objectAuthor.display_name}"}, status=status.HTTP_400_BAD_REQUEST)
             
+            # followingData = {
+            #     "follower": actorAuthor,
+            #     "followed_user": objectAuthor
+            # }
             followRequestData = {
                 "from_user": actorAuthor,
                 "to_user": objectAuthor
             }
-            
-            followRequestSerializer = FollowRequestSerializer(data=followRequestData, context={'request': request})
-            
-            if followRequestSerializer.is_valid():
-                followRequestSerializer.save()
-                copyData["item"] = followRequestSerializer.data
-            else:
-                return Response(followRequestSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # create a follow request
+            try:
+                newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
+                newFollowRequest.save()
+                copyData["item"] = item
+            except Exception as e:
+                return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # if its a post or comment check if the post or comment exists
         elif itemType == "post":
-            postId = copyData.get("item").get("id")
+            postId = item.get("id").split("/")[-1]
             if postId is None:
                 return Response({"details":"post id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            
+            print("____________________________________________________")
+            print(postId)
+            print("____________________________________________________")
             try:
+                # if the post is in our host do this else put the post in the copyData item
                 post = Post.objects.get(id=postId)
-                copyData["item"] = PostSerializer(post, context={'request': request}).data
+                copyData["item"] = item
             except Post.DoesNotExist:
                 return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
         
         elif itemType == "comment":
-            commentId = copyData.get("item").get("id")
+            # do you want to send the comment to the author of the post
+            commentId = item.get("id").split("/")[-1]
             if commentId is None:
                 return Response({"details":"comment id is required"}, status=status.HTTP_400_BAD_REQUEST)
             
             try:
+                # if the comments author is not in our host, parse the comment id to get the post id.
                 comment = Comment.objects.get(id=commentId)
-                copyData["item"] = CommentSerializer(comment, context={'request': request}).data
+                item["post"] = str(comment.post.id)
+                copyData["item"] = item
+                # if the author of the post is not in our domain send the request, else just add the comment to the inbox
             except Comment.DoesNotExist:
                 return Response({"details":"comment does not exist"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -647,12 +686,15 @@ def get_and_post_inbox(request, id_author):
             return Response({"details":"item type is required and should be one of post, comment, like, follow"}, status=status.HTTP_400_BAD_REQUEST)
         
         # create the inbox item
+        print("creating the inbox item")
+        print(copyData)
+
         inboxSerializer = InboxSerializer(data=copyData, context={'request': request})
         if inboxSerializer.is_valid():
             inboxSerializer.save()
             return Response(inboxSerializer.data, status=status.HTTP_201_CREATED)
         return Response(inboxSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            
     if request.method == 'DELETE':
         if userId is None:
             return Response({"details":"Can't delete inbox anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
