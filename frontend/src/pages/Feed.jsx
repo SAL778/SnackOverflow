@@ -1,6 +1,6 @@
 import "./Feed.css";
 import React from "react";
-import PostCard from "./PostCard.jsx";
+import PostCard from "../components/PostCard.jsx";
 import temp_image1 from "../assets/snack-logo.png";
 import temp_image2 from "../assets/snoop.jpg";
 
