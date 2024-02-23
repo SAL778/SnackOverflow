@@ -1,8 +1,18 @@
 import React from "react";
+import Drawer from '@mui/material/Drawer';
+import Button from '@mui/material/Button';
+import { orange } from "@mui/material/colors";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const followType = "follow";
 const commentType = "comment";
 const likeType = "like";
+
+const theme = createTheme({
+    palette: {
+      primary: orange,
+    },
+  });
 
 function Notifications() {
 	// set up promises to send request object to inbox
@@ -48,7 +58,7 @@ function Notifications() {
 		object: "PostorCommentURL"
 	};
 	// not sure how the inbox object will be serialized so this is temporary
-	var inbox = [followObject, commentObject, likeObject, commentObject, commentObject, commentObject, commentObject];
+	var inbox = [followObject, commentObject, likeObject, commentObject, commentObject];
 	var allNotifs = [];
 
 	// building the feed for all the objects in the inbox
@@ -109,10 +119,27 @@ function Notifications() {
 }
 
 export default function NotificationBar() {
+	const [open, setOpen] = React.useState(false);
+
+	const toggleDrawer = (newOpen) => () => {
+		setOpen(newOpen);
+	};
+
 	return (
-		<div className="fixed top-0 right-0 mt-4 mr-4 flex flex-initial flex-col bg-white rounded-md shadow-md h-4/6 w-3/12 p-4 overflow-hidden z-10">
-			<h1 className="text-center mb-2">Notifications</h1>
-			<Notifications />
-		</div>
+		// <div className="fixed top-0 right-0 mt-4 mr-4 flex flex-initial flex-col bg-white rounded-md shadow-md h-4/6 w-3/12 p-4 overflow-hidden z-10">
+		// 	<h1 className="text-center mb-2">Notifications</h1>
+		// 	<Notifications />
+		// </div>
+		<ThemeProvider theme={theme}>
+			<div className="fixed top-0 right-0 mt-4 mr-4 bg-white">
+				<Button color="primary" onClick={toggleDrawer(true)}>
+					Notifications
+				</Button>
+				<Drawer open={open} anchor="right" onClose={toggleDrawer(false)}>
+					<Notifications />
+				</Drawer>
+			</div>
+		</ThemeProvider>
+		
 	);
 }
