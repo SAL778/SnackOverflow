@@ -16,6 +16,7 @@ const client = axios.create({
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(localStorage.getItem('user') || null);
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
+    const [userId, setUserId] = useState(localStorage.getItem('userId') || null);
 
     // to determine if the user is logged in
     useEffect(() => {
@@ -25,8 +26,10 @@ export const AuthProvider = ({ children }) => {
                 setUser(response.data.user.displayName);
                 setIsLoggedIn(true);
 
-                // localStorage.setItem('user', response.data.displayName);
-                // localStorage.setItem('isLoggedIn', 'true');
+                let parts = (response.data.user.id).split('/')
+                let uuid = parts[parts.length - 1]
+                setUserId(uuid);
+                localStorage.setItem('userId', uuid);
 
                 console.log("inside useEffect");
                 console.log(response.data);
@@ -64,7 +67,6 @@ export const AuthProvider = ({ children }) => {
 
         } catch (error) {
             console.error("Error logging in:", error);
-            console.log("User: " + user);
             return new Promise(() => {
                 throw error;
             });
@@ -79,6 +81,7 @@ export const AuthProvider = ({ children }) => {
             setIsLoggedIn(false);
 
             localStorage.removeItem('user');
+            localStorage.removeItem('userId');
             localStorage.setItem('isLoggedIn', 'false');
 
             console.log("logout");
@@ -120,7 +123,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn, login, logout, register }}>
+        <AuthContext.Provider value={{ user, userId, isLoggedIn, login, logout, register }}>
             { children }
         </AuthContext.Provider>
     )

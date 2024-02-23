@@ -3,8 +3,12 @@ import React from "react";
 import PostCard from "../components/PostCard.jsx";
 import temp_image1 from "../assets/snack-logo.png";
 import temp_image2 from "../assets/snoop.jpg";
+import { getRequest, postRequest } from "../utils/Requests.jsx";
+import { useAuth } from "../utils/Auth.jsx";
 
 function Feed() {
+    const auth = useAuth();
+
 	// DUMMY DATA
 	const posts = [
 		{
@@ -27,6 +31,18 @@ function Feed() {
 		},
 		// more posts go here:
 	];
+
+    // will probably need to be inside a useEffect???
+    // example of how to make a request to the server
+    // auth.userId ==> current signed in user id
+    getRequest(`authors/${auth.userId}/posts`)
+        .then((data) => {
+            console.log('GET posts Request Data:', data);
+        })
+        .catch((error) => {
+            console.log('ERROR: ', error.message);
+        });
+
 	return (
 		<div className="feed-container">
 			{posts.map((post) => (
