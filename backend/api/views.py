@@ -69,8 +69,6 @@ class UserView(APIView):
         serializer = AuthorSerializer(request.user, context={'request': request})
         return Response({'user': serializer.data}, status=status.HTTP_200_OK)
 
-
-
 @api_view(['GET'])
 def get_authors(request):
     """
@@ -83,7 +81,6 @@ def get_authors(request):
         "items": serializer.data,
     }
     return Response(response)
-
 
 @api_view(['GET', 'POST'])
 def get_and_update_author(request, id):
@@ -103,7 +100,6 @@ def get_and_update_author(request, id):
             return Response(serializer.data)
 
         return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
-
 
 @api_view(['GET'])
 def get_followers(request, id):
@@ -125,7 +121,6 @@ def get_followers(request, id):
     }
     return Response(response)
 
-
 @api_view(['GET', 'PUT', 'DELETE'])
 def get_update_and_delete_follower(request, id_author, id_follower):
     """
@@ -141,7 +136,6 @@ def get_update_and_delete_follower(request, id_author, id_follower):
     elif request.method == 'PUT':
         # create a new follower
         author = Author.objects.filter(id=id_follower)
-        print(author)
 
         if author.exists() and author.count() == 1:
             follower, created = Follower.objects.get_or_create(follower_id=id_follower, followed_user_id=id_author)
@@ -482,9 +476,23 @@ def get_and_create_comment(request, id_author, id_post):
         commentData["post"] = post.id
 
         serializer = CommentSerializer(data=commentData, context={'request': request})
+
         if serializer.is_valid():
             serializer.save()
             # send comment in inbox of post author
+            commentDataInbox = commentData.copy()
+            commentDataInbox["author"] = str(commentAuthor.id)
+            commentDataInbox["post"] = str(post.id)
+            commentInbox = {
+                "author": str(post.author.id),
+                "item": commentDataInbox
+            }
+            print(commentInbox)
+            inboxSerializer = InboxSerializer(data=commentInbox, context={'request': request})
+            if inboxSerializer.is_valid():
+                inboxSerializer.save()
+            else:
+                return Response(inboxSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -657,9 +665,6 @@ def get_and_post_inbox(request, id_author):
             postId = item.get("id").split("/")[-1]
             if postId is None:
                 return Response({"details":"post id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            print("____________________________________________________")
-            print(postId)
-            print("____________________________________________________")
             try:
                 # if the post is in our host do this else put the post in the copyData item
                 post = Post.objects.get(id=postId)
@@ -674,7 +679,6 @@ def get_and_post_inbox(request, id_author):
                 return Response({"details":"comment id is required"}, status=status.HTTP_400_BAD_REQUEST)
             
             try:
-                # if the comments author is not in our host, parse the comment id to get the post id.
                 comment = Comment.objects.get(id=commentId)
                 item["post"] = str(comment.post.id)
                 copyData["item"] = item
@@ -686,8 +690,6 @@ def get_and_post_inbox(request, id_author):
             return Response({"details":"item type is required and should be one of post, comment, like, follow"}, status=status.HTTP_400_BAD_REQUEST)
         
         # create the inbox item
-        print("creating the inbox item")
-        print(copyData)
 
         inboxSerializer = InboxSerializer(data=copyData, context={'request': request})
         if inboxSerializer.is_valid():
