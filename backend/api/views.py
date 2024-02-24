@@ -147,7 +147,6 @@ def get_update_and_delete_follower(request, id_author, id_follower):
     if request.method == 'GET':
         follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
         serializer = AuthorSerializer(follower_object.follower, context={'request': request})
-        # must return True or False??
         return Response(serializer.data)
 
     elif request.method == 'PUT':
@@ -165,6 +164,50 @@ def get_update_and_delete_follower(request, id_author, id_follower):
         follower_object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+@api_view(['GET'])
+def get_followings(request, id_author):
+    """
+    Get all followings of a single profile
+    """
+    author = get_object_or_404(Author, id=id_author)
+    followings = author.following.all()
+
+    followings_set = set()
+    for following_object in followings:
+        followings_set.add(following_object.followed_user)
+
+    serializer = AuthorSerializer(followings_set, context={'request': request}, many=True)
+    response = {
+        "type": "followings",
+        "items": serializer.data,
+    }
+    return Response(response)
+
+
+@api_view(['GET'])
+def get_friends(request, id_author):
+    """
+    Get all friends of a single profile
+    """
+    author = get_object_or_404(Author, id=id_author)
+    following = author.following.all()
+    followers = author.followers.all()
+
+    # for my following, check if they are also in my followers
+    friends = following.filter(followed_user__in=followers.values_list('follower', flat=True))    
+    print(friends)
+
+    friends_set = set()
+    for friend_object in friends:
+        friends_set.add(friend_object.followed_user)
+
+    serializer = AuthorSerializer(friends_set, context={'request': request}, many=True)
+    response = {
+        "type": "friends",
+        "items": serializer.data,
+    }
+    return Response(response)
 
 
 @api_view(['GET'])
