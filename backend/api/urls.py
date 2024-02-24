@@ -35,7 +35,7 @@ urlpatterns = [
 
    # custom apis for follow requests? needed? Not sure
    path("authors/<uuid:id>/followrequests", views.get_received_follow_requests, name="get_received_follow_requests"),
-   path("authors/<uuid:id_author>/followrequests/<uuid:id_sender>", views.get_and_delete_follow_request, name="get_and_delete_a_follow_request"),
+   path("authors/<uuid:id_author>/followrequests/<uuid:id_sender>", views.get_create_delete_and_accept_follow_request, name="get_and_delete_a_follow_request"),
 
    # apis for posts
    path("authors/<uuid:id_author>/posts/", views.get_and_create_post, name="get_and_create_post"),

@@ -33,6 +33,7 @@ class Follower(models.Model):
     class Meta:
         # to ensure that a user can only follow another user once
         unique_together = ('follower', 'followed_user')
+        ordering = ['-created_at']
 
     def __str__(self):
         return f'{self.follower.display_name} follows {self.followed_user.display_name}'
@@ -45,6 +46,7 @@ class FollowRequest(models.Model):
 
     class Meta:
         unique_together = ('from_user', 'to_user')
+        ordering = ['-created_at']
 
     def __str__(self):
         return f'{self.from_user.display_name} sent a follow request to {self.to_user.display_name}'
