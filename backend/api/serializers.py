@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import Author, Post, Comment, Like
+from .models import Author, Post, Comment, Like, Inbox, FollowRequest
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -58,12 +58,12 @@ class AuthorSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
-        data['id'] = f"{request.build_absolute_uri('/authors/')}{instance.id}"
+        data['id'] = f"{request.build_absolute_uri('/api/authors/')}{instance.id}"
         return data
 
     def get_url(self, obj):
         request = self.context.get('request')
-        url = f"{request.build_absolute_uri('/authors/')}{obj.id}"
+        url = f"{request.build_absolute_uri('/api/authors/')}{obj.id}"
         return url
 
     def get_host(self, obj):
@@ -91,6 +91,17 @@ class FollowRequestSerializer(serializers.Serializer):
 
     def get_summary(self, obj):
         return f'{obj.from_user.display_name} sent a follow request to {obj.to_user.display_name}'
+    
+    def create(self, obj):
+        from_user_data = AuthorSerializer(obj.from_user, context=self.context).data.get('id')
+        to_user_data = AuthorSerializer(obj.to_user, context=self.context).data.get('id')
+
+        # Create FollowRequest instance
+        follow_request = FollowRequest.objects.create(
+            from_user=from_user_data,
+            to_user=to_user_data
+        )
+        return follow_request
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -105,9 +116,8 @@ class PostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
-        base_url = request.get_host()
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
-        current_url = f"{base_url}/api/authors/{instance.author.id}/posts"
+        current_url = f"{request.build_absolute_uri('/')}api/authors/{instance.author.id}/posts"
         data['id'] = f"{current_url}/{instance.id}"
         data["comments"] = f"{current_url}/{instance.id}/comments"
         return data
@@ -122,7 +132,7 @@ class CommentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
-        current_url = f"{request.get_host()}/api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments"
+        current_url = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments"
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
         data["id"] = f"{current_url}/{instance.id}"
         return data
@@ -130,16 +140,46 @@ class CommentSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = [ 'type', 'summary', 'author', 'post', 'comment']
+        fields = [ 'type', 'summary', 'author', 'post', 'comment', 'object']
         read_only_fields = ['type']
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
+        request = self.context.get('request')
         if instance.comment:
-            data["object"] = instance.comment.id
+            if data['object'] == None or data['object'] == '':
+                data["object"] = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments/{instance.comment.id}"
+            if data['summary'] == None or data['summary'] == '':
+                data['summary'] = f"{instance.author.display_name} liked the comment"
         elif instance.post:
-            data["object"] = instance.post.id
+            if data['object'] == None or data['object'] == '':
+                data["object"] = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}"
+            if data['summary'] == None or data['summary'] == '':
+                data['summary'] = f"{instance.author.display_name} liked the post"
         else:
             data["object"] = None
         return data
+
+class InboxSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inbox
+        fields = ['author', 'item','published']
+        read_only_fields = ['type', 'published']
+    
+    def to_representation(self, instance):
+        # data = super().to_representation(instance)
+        # data["item"] = instance.item
+        # check if the item type is a post or a comment
+        # if instance.item.get('type') == 'post':
+        #     data["item"] = PostSerializer(instance.item, context=self.context).data
+        # elif instance.item.get('type') == 'comment':
+        #     data["item"] = CommentSerializer(instance.item, context=self.context).data
+        # elif instance.item.get('type') == 'like':
+        #     data["item"] = LikeSerializer(instance.item, context=self.context).data
+        # elif instance.item.get('type') == 'follow':
+        #     data["item"] = FollowRequestSerializer(instance.item, context=self.context).data
+        # else:
+        #     data["item"] = instance.item
+
+        return instance.item

@@ -1,6 +1,6 @@
 import "./NewPost.css";
 import React from "react";
-import MakePostCard from "./MakePostCard";
+import MakePostCard from "../components/MakePostCard";
 
 const NewPost = () => {
 	const handlePostSubmit = (postData) => {

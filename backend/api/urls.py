@@ -1,9 +1,24 @@
 from django.urls import path
 from . import views
-
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
 app_name = "api"
-
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Snack-Overflow-team API",
+      default_version='v1',
+      description="API description"
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
 urlpatterns = [
+    # swagger urls
+    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/schema', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('swagger/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
     path("login/", views.UserLogin.as_view(), name="login"),
     path("register/", views.UserRegister.as_view(), name="register"),
     path("logout/", views.UserLogout.as_view(), name="logout"),
@@ -32,7 +47,7 @@ urlpatterns = [
     path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
 
     # apis for inbox
-    # path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
+    path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
 
     # custom urls
     path("publicPosts/", views.get_all_public_posts, name="get_all_public_posts"),
