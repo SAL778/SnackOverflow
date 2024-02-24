@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useInsertionEffect, useState } from "react";
 import dummyimage from "../assets/smiley.jpg";
 import dummyimage2 from "../assets/snack-logo.png";
 import defaultPFP from "../assets/Default_pfp.jpg";
@@ -9,16 +9,27 @@ import { useAuth } from "../utils/Auth.jsx";
 
 function Profile() {
 
+
+	const owner = true; //TO BE USED LATER FOR IMPLENETING DIFFERENCES BETWEEN OWN PROFILE VS OTHER USER PROFILES
 	const auth = useAuth();
+	
+	console.log("TEST AUTH LOOOOOOOOOOK", auth);
+
 
 	const [authProfile, setAuthProfile] = useState([])
+	const [followers, setFollowers] = useState([])
+	const [followings, setFollowings] = useState([])
+	const [authPosts, setAuthPosts] = useState([])
+	const [authFollowReqs, setAuthFollowReqs] = useState([])
+
+	//BEGIN AUTHOR FETCH
 	useEffect(() => {
 
 		getRequest(`authors/${auth.userId}`)
         .then((data) => {
             //console.log('GET author Request Data:', data);
 			//console.log('GET author Request Data Attribute:', data.displayName);
-			setAuthProfile(data)
+			setAuthProfile(data);
         })
         .catch((error) => {
             console.log('ERROR: ', error.message);
@@ -27,39 +38,45 @@ function Profile() {
 	}, []);
 
 	console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
-	//END REQUEST	
+	//END AUTHOR FETCH	
 
-	const profile = [
-		{
-			id: 1,
-			host:"http://127.0.0.1:5173/",
-			username: "Dummy One",
-			imageSrc: dummyimage2,
-			github: "http://github.com/", //JUST LINKS TO BASE GITHUB PAGE FOR TESTING
-			}
-	]
+	//BEGIN AUTHOR FOLLOWERS FETCH
+	useEffect(() => {
 
-	console.log("TEST: NORMAL PROFILE DATA:", profile);
+		getRequest(`authors/${auth.userId}/followers`)
+        .then((data) => {
+            console.log('GET followers Request Data:', data);
+			setFollowers(data);
+        })
+        .catch((error) => {
+            console.log('ERROR: ', error.message);
+        });
 
-	const profile2 = [
-		{
-			id: 2,
-			host:"http://127.0.0.1:5173/",
-			username: "Dummy Twooo",
-			imageSrc: dummyimage,
-			github: "http://github.com/", //JUST LINKS TO BASE GITHUB PAGE FOR TESTING
-			}
-	]
+	}, []);
+	
+	console.log('TEST followers OUT OF REQUEST:', followers);
 
-	const profile3 = [
-		{
-			id: 3,
-			host:"http://127.0.0.1:5173/",
-			username: "Dummy Tree",
-			imageSrc: dummyimage,
-			github: "http://github.com/", //JUST LINKS TO BASE GITHUB PAGE FOR TESTING
-			}
-	]
+	//END AUTHOR FOLLOWERS FETCH
+
+
+
+	//BEGIN AUTHOR FOLLOWREQS FETCH
+	useEffect(() => {
+
+		getRequest(`authors/${auth.userId}/followrequests`)
+        .then((data) => {
+            console.log('GET followers Request Data:', data);
+			setAuthFollowReqs(data);
+        })
+        .catch((error) => {
+            console.log('ERROR: ', error.message);
+        });
+
+	}, []);
+
+	console.log('TEST followReqs OUT OF REQUEST:', authFollowReqs);
+
+
 
 	const profile4 = [
 		{
@@ -88,12 +105,10 @@ function Profile() {
 	const [showReqs, setShowReqs] = useState(false);
 
 	return (
-		
-	<div className="my-4 mx-56">
-		{profile.map((profile) => (
-
 		//Current User/Author, uses data from initial fetch.
 		//NOTE: CURRENTLY USES DEFAULT IMAGE NO MATTER WHAT CAUSE STILL NOT SURE HOW THOSE WILL GO
+	<div className="my-4 mx-56">
+
 		<ProfileCard  
 			key={authProfile.id}
 			host={authProfile.host}
@@ -101,9 +116,6 @@ function Profile() {
 			imageSrc={defaultPFP}
 			github={authProfile.github}
 		/>
-		
-		))}
-
 
 		<div class="flex flex-initial flex-col h-56 grid grid-cols-5 gap-14 content-center">
 				<button onClick={()=> {setShowFollowers(true); setShowFollowing(false); setShowFriends(false); setShowPosts(false); setShowReqs(false); }} 
@@ -131,47 +143,23 @@ function Profile() {
 		
 
 			<div class="overflow-y-scroll h-96 max-h-screen">
+
 				{ showFollowers &&
-				<div class="space-y-6">
-					{profile2.map((profile) => (
-
-						<ProfileCard  
-							key={profile.id}
-							host={profile.host}
-							username={profile.username}
-							imageSrc={profile.imageSrc}
-							github={profile.github}
-						/>
-
-					))}
-
-					{profile3.map((profile) => (
-
-						<ProfileCard  
-							key={profile.id}
-							host={profile.host}
-							username={profile.username}
-							imageSrc={profile.imageSrc}
-							github={profile.github}
-						/>
-
-					))}
-
+					<div class="space-y-6">
+						{
+						followers['items'].map((follower) => (
+							<ProfileCard
+								key={follower.id}
+								host={follower.host}
+								username={follower.displayName}
+								imageSrc={dummyimage}
+								github={follower.github}
+								//buttontype = {"Follower"}
+							/>
+						))}
 				
-					{profile4.map((profile) => (
-
-						<ProfileCard  
-							key={profile.id}
-							host={profile.host}
-							username={profile.username}
-							imageSrc={profile.imageSrc}
-							github={profile.github}
-						/>
-
-					))}
-
-				</div>
-					}
+					</div>
+				}
 
 				{ showFollowing &&
 
@@ -185,6 +173,8 @@ function Profile() {
 					username={profile.username}
 					imageSrc={profile.imageSrc}
 					github={profile.github}
+					buttontype = {"Following"}
+					authId = {auth.userId}
 				/>
 
 				))}
@@ -192,7 +182,29 @@ function Profile() {
 				
 				</div>
 
-								}
+				}
+
+			{showReqs && 
+
+				<div class="space-y-6">
+					{
+					authFollowReqs['items'].map((request) => (
+						<ProfileCard
+						key={request["actor"].id}
+						host={request["actor"].host}
+						username={request["actor"].displayName}
+						imageSrc={dummyimage}
+						github={request["actor"].github}
+						buttontype = {"Request"}
+						authId = {auth.userId}
+						/>
+					))}
+
+				</div>
+
+			}
+
+				
 
 			</div>
 

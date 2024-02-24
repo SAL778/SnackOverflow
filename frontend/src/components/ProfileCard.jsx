@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 
-function ProfileCard({id, host, username, imageSrc, github}) {
+function ProfileCard({id, host, username, imageSrc, github, buttontype, authId}) {
 
 	return (
 		<div>
@@ -10,6 +10,27 @@ function ProfileCard({id, host, username, imageSrc, github}) {
 
         		<div className="flex flex-col justify-between p-4 leading-normal">
         			<h5 className="mb-2 text-2xl font-bold tracking-tight text-black-900 dark:text-black">{username}</h5>
+                    {
+                        buttontype === "Following" &&
+                            <button onClick={()=> {;}} 
+				            class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500">
+					        Unfollow
+				            </button>
+                    }
+                    
+                    {
+                        buttontype === "Request" &&
+                        <div className="flex flex-col space-y-1">
+                        <button onClick={()=> {;}} 
+                        class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500">
+                        Accept
+                        </button>
+                        <button onClick={()=> {;}} 
+                        class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500">
+                        Decline
+                        </button>
+                        </div>
+                    }
       			</div>
     		</a>
 
