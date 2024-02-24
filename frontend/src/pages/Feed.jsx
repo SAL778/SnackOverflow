@@ -13,10 +13,13 @@ function Feed() {
 	const [posts, setPosts] = useState([]);
 
 	useEffect(() => {
-		getRequest(`authors/${auth.userId}/posts`)
+		getRequest(`authors/${auth.userId}/posts`) // post id is not being used?
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
-				setPosts(data.items);
+				const sortedPosts = data.items.sort(
+					(a, b) => new Date(b.published) - new Date(a.published)
+				);
+				setPosts(sortedPosts);
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);

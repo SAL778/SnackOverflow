@@ -4,7 +4,7 @@ import React, { useState } from "react";
 const MakePostCard = ({ onSubmit, onCancel }) => {
 	const [title, setTitle] = useState("");
 	const [postType, setPostType] = useState("");
-	const [description, setDescription] = useState("");
+	const [content, setContent] = useState("");
 	const [isMarkdown, setIsMarkdown] = useState(false);
 	const [images, setImages] = useState([]);
 
@@ -23,12 +23,18 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 		const postData = {
 			title, // the title of the post, sent as a string
 			postType, // Friends, Public, Unlisted
-			description, // the content of the post, sent as a string (for both, markdown and plain text)
-			isMarkdown, // true if the description is in markdown format
+			content, // the content of the post, sent as a string (for both, markdown and plain text)
+			isMarkdown, // true if the content is in markdown format
 			images, // an array of image files to be uploaded with the post (if any)
 		};
 
 		onSubmit(postData);
+	};
+	const handleCancel = (event) => {
+		event.preventDefault();
+		onCancel();
+		setTitle(""); // Clear the fields
+		setContent(""); // Clear the fields
 	};
 
 	return (
@@ -68,7 +74,7 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 						</div>
 					</div>
 					<div className="form-group">
-						<label>Description:</label>
+						<label>content:</label>
 						<div
 							className="toggle-switch"
 							style={{
@@ -92,8 +98,8 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 							</button>
 						</div>
 						<textarea
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
+							value={content}
+							onChange={(e) => setContent(e.target.value)}
 							placeholder="Post content goes here..."
 						/>
 					</div>
@@ -102,10 +108,18 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 						<input type="file" multiple onChange={handleImageUpload} />
 					</div>
 					<div className="form-actions">
-						<button type="button" className="cancel-button" onClick={onCancel}>
+						<button
+							type="button"
+							className="cancel-button"
+							onClick={handleCancel}
+						>
 							Cancel
 						</button>
-						<button type="submit" className="submit-button">
+						<button
+							type="submit"
+							className="submit-button"
+							onClick={handleSubmit}
+						>
 							Post
 						</button>
 					</div>
