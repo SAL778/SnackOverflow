@@ -33,4 +33,26 @@ async function postRequest(apiEndpoint, postData) {
   }
 }
 
-export { getRequest, postRequest };
+// Function to make a DELETE request
+async function deleteRequest(apiEndpoint) {
+  try {
+    const response = await client.delete(apiEndpoint, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    console.error(`Error making DELETE request to ${apiEndpoint}: `, error.message);
+    throw new Error(error.message);
+  }
+}
+
+// Function to make a PUT request
+async function putRequest(apiEndpoint) {
+  try {
+    const response = await client.put(apiEndpoint, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    console.error(`Error making PUT request to ${apiEndpoint}: `, error.message);
+    throw new Error(error.message);
+  }
+}
+
+export { getRequest, postRequest, deleteRequest, putRequest };
