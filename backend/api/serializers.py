@@ -103,6 +103,7 @@ class FollowRequestSerializer(serializers.Serializer):
         )
         return follow_request
 
+
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post

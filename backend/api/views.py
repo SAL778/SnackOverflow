@@ -225,16 +225,48 @@ def get_received_follow_requests(request, id):
     }
     return Response(response)
 
-@api_view(['GET', 'DELETE'])
-def get_and_delete_follow_request(request, id_author, id_sender):
+
+@api_view(['GET', 'DELETE', 'PUT', 'POST'])
+def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
     """
-    Get or delete a single received follow request
+    Get, create, delete or accept a received follow request
     """
-    # TODO: Not working
     if request.method == 'GET':
         follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
         serializer = FollowRequestSerializer(follow_request, context={'request': request})
         return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        # create a new follow request
+        author = Author.objects.filter(id=id_sender)
+
+        if author.exists() and author.count() == 1:
+            follow_request, created = FollowRequest.objects.get_or_create(from_user_id=id_sender, to_user_id=id_author)
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    elif request.method == 'PUT':
+        # friend request accepted => create a new follower and delete the follow request
+        # confirm the follow request exists
+        follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
+
+        author = Author.objects.filter(id=id_sender)
+
+        if author.exists() and author.count() == 1:
+            follower, created = Follower.objects.get_or_create(follower_id=id_sender, followed_user_id=id_author)
+            follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
+            follow_request.delete()
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    elif request.method == 'DELETE':
+        # friend request declined
+        follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
+        follow_request.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 #custom uris for getting all public posts
 @api_view(['GET'])
