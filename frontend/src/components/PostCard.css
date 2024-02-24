@@ -4,8 +4,8 @@
 	padding: 20px;
 	border-radius: 8px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	width: 1000px; /* Fixed width */
-	height: 800px; /* Fixed height */
+	width: 800px; /* Fixed width */
+	height: 500px; /* Fixed height */
 	display: flex;
 	flex-direction: column;
 }
@@ -18,7 +18,7 @@
 }
 
 .username {
-	font-weight: bold;
+	font-weight: 500;
 	color: #000;
 	text-decoration: none;
 	font-size: 24px;
@@ -42,11 +42,11 @@
 	display: block;
 }
 
-.post-description {
-	flex-grow: 1; /* Description takes up remaining space */
+.post-content {
+	flex-grow: 1; /* Content takes up remaining space */
 	overflow-y: auto; /* Scroll if content is too long */
 	margin: 20px 0 10px 0; /* Margin for spacing */
-	max-height: 400px; /* Fixed max-height for the description */
+	max-height: 400px; /* Fixed max-height for the content */
 }
 
 .post-footer {

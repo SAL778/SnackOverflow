@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
 import "./PostCard.css";
 
-function PostCard({ username, title, date, imageSrc, description }) {
-	const [likes, setLikes] = useState(420); // DUMMY DATA
+function PostCard({ username, title, date, imageSrc, content }) {
+	const [likes, setLikes] = useState(0); // DUMMY DATA
 
 	const handleLike = () => {
 		setLikes((prevLikes) => prevLikes + 1);
@@ -12,13 +12,13 @@ function PostCard({ username, title, date, imageSrc, description }) {
 	return (
 		<div className="post-card">
 			<a href="/profile" className="username">
-				{username}
+				User: {username}
 			</a>
 			<h1 className="post-header">{title}</h1>
-			<span className="post-date">{date}</span>
+			<span className="post-date">Date: {date}</span>
 			{imageSrc && <img src={imageSrc} alt="Post" />}
-			<div className="post-description">
-				<p>{description}</p>
+			<div className="post-content">
+				<p>{content}</p>
 			</div>
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
