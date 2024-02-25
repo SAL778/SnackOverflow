@@ -1,8 +1,6 @@
 import "./Feed.css";
 import React from "react";
 import PostCard from "../components/PostCard.jsx";
-// import temp_image1 from "../assets/snack-logo.png";
-// import temp_image2 from "../assets/snoop.jpg";
 import { getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { useEffect, useState } from "react";
@@ -13,14 +11,14 @@ function Feed() {
 	const [posts, setPosts] = useState([]);
 
 	useEffect(() => {
-		getRequest(`authors/${auth.userId}/posts`) // current authors posts
-			//getRequest(`friendsFollowerPosts/`) // posts from friends and followers
+		//getRequest(`authors/${auth.userId}/posts`) // current authors posts
+		getRequest(`friendsFollowerPosts/`) // posts from friends and followers
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
-				// const sortedPosts = data.items.sort(
-				// 	(a, b) => new Date(b.published) - new Date(a.published)
-				// );
-				// setPosts(sortedPosts);
+				const sortedPosts = data.items.sort(
+					(a, b) => new Date(b.published) - new Date(a.published)
+				);
+				setPosts(sortedPosts);
 				setPosts(data.items);
 			})
 			.catch((error) => {
@@ -42,6 +40,7 @@ function Feed() {
 						username={post.author.displayName}
 						title={post.title}
 						date={formattedDate}
+						description={post.description}
 						content={post.content}
 					/>
 				);

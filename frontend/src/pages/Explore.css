@@ -1,0 +1,9 @@
+.explore-container {
+	display: flex;
+	flex-direction: column;
+	margin: 0 0 0 120px;
+	padding: 20px;
+	min-height: 100vh; /* Minimum height of 100% of the viewport height */
+	width: 100%; /* spans the full width */
+	overflow-y: auto; /* Body can scroll */
+}

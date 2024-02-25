@@ -2,13 +2,24 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
 import { deleteRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
-import { Pen, Trash } from "@phosphor-icons/react";
+import { Pencil, Trash } from "@phosphor-icons/react";
 import "./PostCard.css";
 
-function PostCard({ username, title, date, imageSrc, content, profilePage, setAuthPosts, authPosts, postId}) {
+function PostCard({
+	username,
+	title,
+	date,
+	imageSrc,
+	description,
+	content,
+	profilePage,
+	setAuthPosts,
+	authPosts,
+	postId,
+}) {
 	const [likes, setLikes] = useState(0); // DUMMY DATA
 	const auth = useAuth();
-	
+
 	const handleLike = () => {
 		setLikes((prevLikes) => prevLikes + 1);
 	};
@@ -18,8 +29,8 @@ function PostCard({ username, title, date, imageSrc, content, profilePage, setAu
 				console.log("Post deleted successfully");
 				if (!setAuthPosts) {
 					// this is done from the posts individual page so redirect to profile page
-					return
-				};
+					return;
+				}
 				var newAuthPosts = authPosts.filter((post) => post.id !== postId);
 				setAuthPosts(newAuthPosts);
 			})
@@ -33,22 +44,31 @@ function PostCard({ username, title, date, imageSrc, content, profilePage, setAu
 	};
 
 	return (
-		<div className={profilePage? "post-card-profile-page":"post-card"}>
-			{profilePage && 
+		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
+			{profilePage && (
 				<div className="post-edit-delete">
-					<button onClick={handleEdit}><Pen size={32}/></button>
-					<button onClick={handleDelete}><Trash size={32}/></button>
+					<button onClick={handleEdit} style={{ marginRight: "10px" }}>
+						<Pencil size={32} />
+					</button>
+					<button onClick={handleDelete}>
+						<Trash size={32} color="red" />
+					</button>
 				</div>
-			}
-			{ !profilePage &&
+			)}
+			{!profilePage && (
 				<a href="/profile" className="username">
 					User: {username}
 				</a>
-			}
+			)}
 
 			<h1 className="post-header">{title}</h1>
 			<span className="post-date">Date: {date}</span>
 			{imageSrc && <img src={imageSrc} alt="Post" />}
+			<p className="post-description">
+				Description:
+				<br />
+				{description}
+			</p>
 			<div className="post-content">
 				<p>{content}</p>
 			</div>

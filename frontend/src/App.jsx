@@ -9,7 +9,6 @@ import Feed from "./pages/Feed.jsx";
 import Explore from "./pages/Explore.jsx";
 import NewPost from "./pages/NewPost.jsx";
 import Login from "./pages/Login.jsx";
-import Welcome from "./pages/Welcome.jsx";
 import PrivateRoute from "./utils/PrivateRoute.jsx";
 import { AuthProvider, useAuth } from "./utils/Auth.jsx";
 import Signup from "./pages/Signup.jsx";
@@ -31,14 +30,6 @@ function App() {
 					<Route path="/signup" element={<Signup />} />
 
 					<Route
-						path="/"
-						element={
-							<PrivateRoute>
-								<Welcome />
-							</PrivateRoute>
-						}
-					/>
-					<Route
 						path="/profile"
 						element={
 							<PrivateRoute>
@@ -47,9 +38,17 @@ function App() {
 						}
 					/>
 					<Route
+						path="/"
+						element={
+							<PrivateRoute>
+								<Feed />
+							</PrivateRoute>
+						}
+					/>
+					<Route
 						path="/feed"
 						element={
-							<PrivateRoute>								
+							<PrivateRoute>
 								<Feed />
 							</PrivateRoute>
 						}
@@ -57,7 +56,7 @@ function App() {
 					<Route
 						path="/explore"
 						element={
-							<PrivateRoute>								
+							<PrivateRoute>
 								<Explore />
 							</PrivateRoute>
 						}
