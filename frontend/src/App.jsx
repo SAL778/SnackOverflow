@@ -15,38 +15,67 @@ import { AuthProvider, useAuth } from "./utils/Auth.jsx";
 import Signup from "./pages/Signup.jsx";
 
 function App() {
-
 	const auth = useAuth();
 
 	return (
 		<Router>
 			<div className="flex h-screen w-screen flex-col md:flex-row md:overflow-hidden bg-gray-200">
-				{
-					auth.user ? 
-						<div className="flex-none md:w-60">
-							<Navigation />
-						</div> 
-					: null
-				}
-				
+				{auth.user ? (
+					<div className="flex-none md:w-60">
+						<Navigation />
+					</div>
+				) : null}
+
 				<Routes>
-				    <Route path="/login" element={<Login />} />
+					<Route path="/login" element={<Login />} />
 					<Route path="/signup" element={<Signup />} />
 
-					<Route path="/" element={ <PrivateRoute> < Welcome /> </PrivateRoute> }/>
-					<Route path="/profile" element={<PrivateRoute> <Profile /> </PrivateRoute> } />
-					<Route path="/feed" element={ <PrivateRoute> <Feed /> </PrivateRoute>} />
-					<Route path="/explore" element={ <PrivateRoute> <Explore /> </PrivateRoute>} />
-					<Route path="/newpost" element={ <PrivateRoute> <NewPost /> </PrivateRoute>} />
-
-
+					<Route
+						path="/"
+						element={
+							<PrivateRoute>
+								{" "}
+								<Welcome />{" "}
+							</PrivateRoute>
+						}
+					/>
+					<Route
+						path="/profile"
+						element={
+							<PrivateRoute>
+								{" "}
+								<Profile />{" "}
+							</PrivateRoute>
+						}
+					/>
+					<Route
+						path="/feed"
+						element={
+							<PrivateRoute>
+								{" "}
+								<Feed />{" "}
+							</PrivateRoute>
+						}
+					/>
+					<Route
+						path="/explore"
+						element={
+							<PrivateRoute>
+								{" "}
+								<Explore />{" "}
+							</PrivateRoute>
+						}
+					/>
+					<Route
+						path="/newpost"
+						element={
+							<PrivateRoute>
+								{" "}
+								<NewPost />{" "}
+							</PrivateRoute>
+						}
+					/>
 				</Routes>
-
-				{
-					auth.user ? <NotificationBar /> : null
-				}
-
-				
 			</div>
 		</Router>
 	);

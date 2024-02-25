@@ -8,4 +8,6 @@ function Explore() {
 	);
 }
 
+//getRequest(`publicposts`) // post id is not being used?
+
 export default Explore;
