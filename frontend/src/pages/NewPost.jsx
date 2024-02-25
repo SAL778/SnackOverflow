@@ -20,7 +20,8 @@ const NewPost = () => {
 		try {
 			const data = await postRequest(
 				`authors/${auth.userId}/posts/`,
-				JSON.stringify(dataToSend)
+				//JSON.stringify(dataToSend)
+				dataToSend
 			);
 			console.log("POST Request Data:", data);
 		} catch (error) {

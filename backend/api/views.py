@@ -397,9 +397,9 @@ def get_and_create_post(request, id_author):
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_400_BAD_REQUEST)
 
-        copyData = request.data.copy()
-        copyData = json.loads(copyData)
-        # print("Data: ",copyData, type(copyData))
+        copyData = dict(request.data)
+        #copyData = json.loads(copyData)
+        print("Data: ",copyData, type(copyData))
 
         if(copyData.get("origin") is None):
             copyData["origin"] = ""
