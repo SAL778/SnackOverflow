@@ -37,7 +37,7 @@
 	max-height: 400px; /* Fixed max-height for the image */
 	width: 80%; /* Fixed width for the image */
 	/* max-width: 800px; Fixed max-width for the image */
-	object-fit: cover; /* This will ensure the image covers the area without stretching */
+	object-fit: cover;
 	margin: 0 auto 10px auto;
 	display: block;
 }
