@@ -77,3 +77,9 @@
 .post-footer button:focus {
 	outline: none;
 }
+
+.post-edit-delete{
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}

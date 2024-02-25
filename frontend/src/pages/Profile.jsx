@@ -100,7 +100,7 @@ function Profile() {
 		getRequest(`authors/${auth.userId}/posts`) // post id is not being used?
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
-				setAuthPosts(data);
+				setAuthPosts(data.items);
 				console.log('TEST posts OUT OF REQUEST:', authPosts);
 			})
 			.catch((error) => {
@@ -236,7 +236,7 @@ function Profile() {
 					showPosts && 
 					<div class="space-y-6">
 						{
-						authPosts['items'].map((post) => {
+						authPosts.map((post) => {
 							const dates = new Date(post.published);
 							const formattedDate = `${dates.getFullYear()}-${String(
 								dates.getMonth() + 1
@@ -253,6 +253,9 @@ function Profile() {
 									description={post.description}
 									content={limitedContent}
 									profilePage={true}
+									setAuthPosts={setAuthPosts}
+									authPosts={authPosts}
+									postId={post.id}
 								/>
 							)
 						})}
