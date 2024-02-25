@@ -57,3 +57,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - https://www.youtube.com/watch?v=diB38AvVkHw
 - https://www.youtube.com/watch?v=Ae7nc1EGv-A
 - https://github.com/mui/material-ui/blob/v5.15.10/docs/data/material/getting-started/templates/sign-in/SignIn.js
+- https://github.com/heroku/heroku-buildpack-nodejs/issues/385
+- https://github.dev/TonyTony999/scrape_2/blob/master/package.json
+- https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
+- https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
+- https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root
