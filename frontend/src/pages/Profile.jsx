@@ -236,16 +236,26 @@ function Profile() {
 					showPosts && 
 					<div class="space-y-6">
 						{
-						authPosts['items'].map((post) => (
-							<PostCard
-								key={post.id}
-								username={post.username}
-								title={post.title}
-								date={post.published}
-								imageSrc={post.imageSrc}
-								description={post.description}
-							/>
-						))}
+						authPosts['items'].map((post) => {
+							const dates = new Date(post.published);
+							const formattedDate = `${dates.getFullYear()}-${String(
+								dates.getMonth() + 1
+							).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
+							
+							const limitedContent = post.content.length > 100 ? post.content.substring(0, 100) + "... See More" : post.content;
+							
+							return (
+								<PostCard
+									key={post.id}
+									username={post.author.displayName}
+									title={post.title}
+									date={formattedDate}
+									description={post.description}
+									content={limitedContent}
+									profilePage={true}
+								/>
+							)
+						})}
 					</div>
 				}
 
