@@ -1,7 +1,7 @@
 {
-    "name": "heroku-app",
+    "name": "heroku-build",
     "version": "0.1.0",
     "scripts": {
-      "postinstall": "npm install --prefix frontend && npm run build --prefix frontend"
+        "heroku-prebuild": "cd frontend && npm install && npm run build"
     }
 }

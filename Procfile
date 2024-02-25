@@ -1,1 +1,1 @@
-web: gunicorn backend.wsgi --chdir backend
+web: npm run heroku-prebuild && gunicorn backend.wsgi --chdir backend
