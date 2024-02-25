@@ -34,8 +34,7 @@ function App() {
 						path="/"
 						element={
 							<PrivateRoute>
-								{" "}
-								<Welcome />{" "}
+								<Welcome />
 							</PrivateRoute>
 						}
 					/>
@@ -43,26 +42,23 @@ function App() {
 						path="/profile"
 						element={
 							<PrivateRoute>
-								{" "}
-								<Profile />{" "}
+								<Profile />
 							</PrivateRoute>
 						}
 					/>
 					<Route
 						path="/feed"
 						element={
-							<PrivateRoute>
-								{" "}
-								<Feed />{" "}
+							<PrivateRoute>								
+								<Feed />
 							</PrivateRoute>
 						}
 					/>
 					<Route
 						path="/explore"
 						element={
-							<PrivateRoute>
-								{" "}
-								<Explore />{" "}
+							<PrivateRoute>								
+								<Explore />
 							</PrivateRoute>
 						}
 					/>
@@ -70,8 +66,7 @@ function App() {
 						path="/newpost"
 						element={
 							<PrivateRoute>
-								{" "}
-								<NewPost />{" "}
+								<NewPost />
 							</PrivateRoute>
 						}
 					/>
