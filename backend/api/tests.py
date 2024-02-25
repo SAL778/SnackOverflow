@@ -4,7 +4,6 @@ from django.urls import reverse
 import json
 
 from .models import Author, Post, Comment, Like, Inbox, FollowRequest, Follower
-from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, LikeSerializer, InboxSerializer, FollowRequestSerializer
 
 # Create your tests here.
 
