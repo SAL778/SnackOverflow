@@ -11,7 +11,7 @@ const NewPost = () => {
 	const handlePostSubmit = async (postData) => {
 		const dataToSend = {
 			title: postData.title,
-			description: postData.title,
+			description: postData.description,
 			contentType: postData.isMarkdown ? "text/markdown" : "text/plain",
 			content: postData.content,
 			visibility: postData.postType.toUpperCase(),

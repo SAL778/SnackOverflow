@@ -118,7 +118,7 @@ function Notifications() {
 		allNotifs.push(
 			<div
 				key="1"
-				className="flex flex-initial rounded-md shadow-md bg-gray-300/75 p-3 m-2"
+				className="flex flex-initial rounded-md shadow-md bg-gray-300/75 p-3 m-2 items-center justify-center"
 			>
 				<p className="text-sm">No Notifications.</p>
 			</div>
@@ -145,7 +145,12 @@ export default function NotificationBar() {
 					open={open}
 					anchor="right"
 					onClose={toggleDrawer(false)}
-					sx={{ width: "80%" }}
+					PaperProps={{
+						style: {
+							minWidth: "250px",
+							width: "auto",
+						},
+					}}
 				>
 					<Notifications />
 				</Drawer>

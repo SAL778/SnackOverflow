@@ -9,7 +9,16 @@
 	display: flex;
 	flex-direction: column;
 }
-
+.post-card-profile-page{
+	background: white;
+	margin: 24px;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	width: 800px; /* Fixed width */
+	display: flex;
+	flex-direction: column;
+}
 .post-header {
 	margin-bottom: 10px;
 	width: 100%;
@@ -47,6 +56,7 @@
 	overflow-y: auto; /* Scroll if content is too long */
 	margin: 20px 0 10px 0; /* Margin for spacing */
 	max-height: 400px; /* Fixed max-height for the content */
+	padding: 6px;
 }
 
 .post-footer {
@@ -66,4 +76,10 @@
 
 .post-footer button:focus {
 	outline: none;
+}
+
+.post-edit-delete{
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
 }

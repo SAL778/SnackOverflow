@@ -5,6 +5,7 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 	const [title, setTitle] = useState("");
 	const [postType, setPostType] = useState("");
 	const [content, setContent] = useState("");
+	const [description, setDescription] = useState("");
 	const [isMarkdown, setIsMarkdown] = useState(false);
 	const [images, setImages] = useState([]);
 
@@ -23,6 +24,7 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 		const postData = {
 			title, // the title of the post, sent as a string
 			postType, // Friends, Public, Unlisted
+			description, // the description of the post, sent as a string
 			content, // the content of the post, sent as a string (for both, markdown and plain text)
 			isMarkdown, // true if the content is in markdown format
 			images, // an array of image files to be uploaded with the post (if any)
@@ -35,6 +37,10 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 		onCancel();
 		setTitle(""); // Clear the fields
 		setContent(""); // Clear the fields
+		setDescription(""); // Clear the fields
+		setImages([]); // Clear the fields
+		setPostType(""); // Clear the fields
+		setIsMarkdown(false); // Clear the fields
 	};
 
 	return (
@@ -74,7 +80,17 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 						</div>
 					</div>
 					<div className="form-group">
-						<label>content:</label>
+						<label htmlFor="description">Description:</label>
+						<input
+							id="description"
+							type="text"
+							value={description}
+							onChange={(e) => setDescription(e.target.value)}
+							placeholder="Summerize your post here..."
+						/>
+					</div>
+					<div className="form-group">
+						<label>Content:</label>
 						<div
 							className="toggle-switch"
 							style={{
