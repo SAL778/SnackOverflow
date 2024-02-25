@@ -1,0 +1,7 @@
+{
+    "name": "heroku-build",
+    "version": "0.1.0",
+    "scripts": {
+        "heroku-prebuild": "cd frontend && npm install && npm run build"
+    }
+}

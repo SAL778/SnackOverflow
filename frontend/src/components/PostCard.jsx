@@ -1,24 +1,76 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
+import { deleteRequest } from "../utils/Requests.jsx";
+import { useAuth } from "../utils/Auth.jsx";
+import { Pencil, Trash } from "@phosphor-icons/react";
 import "./PostCard.css";
 
-function PostCard({ username, title, date, imageSrc, description }) {
-	const [likes, setLikes] = useState(420); // DUMMY DATA
+function PostCard({
+	username,
+	title,
+	date,
+	imageSrc,
+	description,
+	content,
+	profilePage,
+	setAuthPosts,
+	authPosts,
+	postId,
+}) {
+	const [likes, setLikes] = useState(0); // DUMMY DATA
+	const auth = useAuth();
 
 	const handleLike = () => {
 		setLikes((prevLikes) => prevLikes + 1);
 	};
+	const handleDelete = () => {
+		deleteRequest(`${postId}`) // why is it this url? It works but I don't know why figure it out
+			.then((response) => {
+				console.log("Post deleted successfully");
+				if (!setAuthPosts) {
+					// this is done from the posts individual page so redirect to profile page
+					return;
+				}
+				var newAuthPosts = authPosts.filter((post) => post.id !== postId);
+				setAuthPosts(newAuthPosts);
+			})
+			.catch((error) => {
+				console.error("Error deleting the post: ", error.message);
+			});
+	};
+	const handleEdit = () => {
+		// redirect to the edit post page
+		console.log("Edit post");
+	};
 
 	return (
-		<div className="post-card">
-			<a href="/profile" className="username">
-				{username}
-			</a>
+		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
+			{profilePage && (
+				<div className="post-edit-delete">
+					<button onClick={handleEdit} style={{ marginRight: "10px" }}>
+						<Pencil size={32} />
+					</button>
+					<button onClick={handleDelete}>
+						<Trash size={32} color="red" />
+					</button>
+				</div>
+			)}
+			{!profilePage && (
+				<a href="/profile" className="username">
+					User: {username}
+				</a>
+			)}
+
 			<h1 className="post-header">{title}</h1>
-			<span className="post-date">{date}</span>
+			<span className="post-date">Date: {date}</span>
 			{imageSrc && <img src={imageSrc} alt="Post" />}
-			<div className="post-description">
-				<p>{description}</p>
+			<p className="post-description">
+				Description:
+				<br />
+				{description}
+			</p>
+			<div className="post-content">
+				<p>{content}</p>
 			</div>
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
