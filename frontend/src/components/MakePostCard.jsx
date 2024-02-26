@@ -1,6 +1,8 @@
 // Component for creating a post card
 // It allows users to input a title, select a post type, add a description, choose between plain text or markdown content,
 // upload media files, and submit or cancel the post.
+import "./MakePostCard.css";
+import React, { useState } from "react";
 const MakePostCard = ({ onSubmit, onCancel }) => {
 	const [title, setTitle] = useState(""); // State for storing the title input value
 	const [postType, setPostType] = useState(""); // State for storing the selected post type
