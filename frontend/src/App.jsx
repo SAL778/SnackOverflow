@@ -38,6 +38,14 @@ function App() {
 						}
 					/>
 					<Route
+						path="/profile/:source"
+						element={
+							<PrivateRoute>
+								<Profile />
+							</PrivateRoute>
+						}
+					/>
+					<Route
 						path="/"
 						element={
 							<PrivateRoute>
