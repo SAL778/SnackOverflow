@@ -52,11 +52,11 @@ function ProfileCard({
 					"type": "Follow",
 					"actor":{
 						"type":"author",
-						"id":`http://127.0.0.1:5454/authors/${followerUUID}`,
+						"id":`http://127.0.0.1:5454/authors/${authorUUID}`,
 					},
 					"object":{
 						"type":"author",
-						"id":`http://127.0.0.1:5454/authors/${authorUUID}`,
+						"id":`http://127.0.0.1:5454/authors/${followerUUID}`,
 					}
 				}
 			]
