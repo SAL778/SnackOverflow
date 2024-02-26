@@ -10,9 +10,7 @@ function ProfileCard({key, url, host, username, imageSrc, github, buttontype, au
     //altId is a copy of authId that won't be considered/operated on
     //owner -- true if person viewing is the owner of the profile, false if not.
     //viewerId is the id of the person viewing the page, useful for distinguishing, used for displaying card of the actual owner.
-    
-    //setChangeProfile(!changeProfile)
-    //
+ 
 
     let cardUUID = "";
     const [showCard, setShowCard] = useState(true); //IF A FOLLOWER IS UNFOLLOWED OR REQUEST DEALT WITH, THIS WILL BE CHANGED AS TO NOT SHOW IT? HOPEFULLY?
@@ -25,50 +23,35 @@ function ProfileCard({key, url, host, username, imageSrc, github, buttontype, au
         cardUUID = altId //the user and author's ID
     }
 
-    //API METHOS BEGIN
+    //API METHODS BEGIN
 
     const follow = (authorUUID, followerUUID) => {
-        console.log("follow entered, new follower: ", followerUUID);
-        console.log("follow entered, author to follow: ", authorUUID);
             postRequest(`authors/${authorUUID}/followrequests/${followerUUID}`)
             .then((data) => {
-                console.log('PUT (CURIOUS WHAT THIS PUTS OUT):', data);
-                //window.location.reload();
+                console.log("Follow Req POSTed.")
+                
             })
             .catch((error) => {
                 console.log('ERROR: ', error.message);
             });
     
-        console.log("end unfollow");
     }
 
     const unfollow = (removerUUID, removeeUUID) => {
-        //need to DELETE the removee from the remover's following list
-        //need to DELETE the remover from the removee's follower list
-        //I believe it's coded as such so that just doing the 2nd will handle both?
-        console.log("unfollow entered, removee: ", removeeUUID);
-        console.log("unfollow entered, remover: ", removerUUID);
             deleteRequest(`authors/${removeeUUID}/followers/${removerUUID}`)
             .then((data) => {
-                console.log('DELETE (CURIOUS WHAT THIS PUTS OUT):', data);
+                console.log("DELETE");
                 setShowCard(false);
-                //window.location.reload();
             })
             .catch((error) => {
                 console.log('ERROR: ', error.message);
             });
-    
-        console.log("end unfollow");
     }
 
     const request = (authorUUID, requesterUUID, decision) => {
-
-        console.log("request entered, author: ", authorUUID);
-        console.log("request entered, requester: ", requesterUUID);
-        console.log("request entered, decision: ", decision);
         deleteRequest(`authors/${authorUUID}/followrequests/${requesterUUID}`)
             .then((data) => {
-                console.log('REJECT REQUEST (CURIOUS WHAT THIS PUTS OUT):', data);
+                console.log('Reject Request:', data);
             })
             .catch((error) => {
                 console.log('ERROR: ', error.message);
@@ -77,7 +60,7 @@ function ProfileCard({key, url, host, username, imageSrc, github, buttontype, au
         if(decision === true){ //accepting new follower
             putRequest(`authors/${authorUUID}/followers/${requesterUUID}`)
                 .then((data) => {
-                    console.log('PUT ACCEPTED, DATA:', data);
+                    console.log('Request Accepted, PUT DATA:', data);
                 })
                  .catch((error) => {
                     console.log('ERROR: ', error.message);
@@ -87,9 +70,6 @@ function ProfileCard({key, url, host, username, imageSrc, github, buttontype, au
         } else { //declining new follower
             setShowCard(false);
         }
-            
-    
-        console.log("end followrequest");
     }
 
 

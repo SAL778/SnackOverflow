@@ -35,17 +35,14 @@ function Profile() {
 	}
 
 	let profileUUID = auth.userId;
-	let owner = true; //TO BE USED LATER FOR IMPLENETING DIFFERENCES BETWEEN OWN PROFILE VS OTHER USER PROFILES
-						//WHEN IMPLEMENTED, ADJUST buttontypes to: owner ? "Text" : "" 
-						//SHOULD PROBABLY REFACTOR CODE TO NOT HAVE TO CHANGE auth.userId DIRECTLY
-	
+	let owner = true; 	
 
 	if(source === undefined){
-		console.log("No source, should just portray logged-in user profile as default");
+		console.log("No source, portay profile as logged-in user");
 		profileUUID = auth.userId; //redundant but explicit
 		owner = true; //redundant but explicit
 
-	} else if (source === profileUUID){ //TEST CASE SHOULD PROBABLY BE REMOVED AT SOME POINT
+	} else if (source === profileUUID){ 
 		console.log("Accessing Own Profile.")
 		profileUUID = auth.userId; //redundant but explicit
 		owner = true; //redundant but explicit
@@ -55,19 +52,12 @@ function Profile() {
 		owner = false;		
 	}
 	
-	
-	console.log("TEST AUTH LOOOOOOOOOOK", auth);
-	console.log("TEST SOURCE LOOOOOOOOOOK", source);
-	console.log("TEST PROFILEUUID LOOOOOOOOOOK", profileUUID);
-
-
 	//BEGIN AUTHOR FETCH
 
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}`)
         .then((data) => {
-            //console.log('GET author Request Data:', data);
-			//console.log('GET author Request Data Attribute:', data.displayName);
+            console.log('GET author Request Data:', data);
 			setAuthProfile(data);
         })
         .catch((error) => {
@@ -76,6 +66,7 @@ function Profile() {
 
 	}, [changeProfile]);
 	console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
+	
 	//END AUTHOR FETCH
 
 	//BEGIN AUTHOR FOLLOWERS FETCH
@@ -264,7 +255,7 @@ function Profile() {
 					</div>
 				)}
 
-				{showFollowing && (
+				{showFollowing && 
 					<div class="space-y-6">
 
 						{followings['items'].map((following) => (
@@ -285,10 +276,10 @@ function Profile() {
 							/>
 						))}
 					</div>
-				)}
 				}
+				
 
-				{showFriends &&
+				{showFriends && 
 
 					<div class="space-y-6">
 
@@ -333,11 +324,11 @@ function Profile() {
 							/>
 						))}
 					</div>
-				)}
-
+				}
+				
 				{showPosts && (
 					<div class="space-y-6">
-						{authPosts.map((post) => {
+						{authPosts['items'].map((post) => {
 							const dates = new Date(post.published);
 							const formattedDate = `${dates.getFullYear()}-${String(
 								dates.getMonth() + 1
