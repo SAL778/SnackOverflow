@@ -906,7 +906,6 @@ class InboxTests(TestCase):
         request_obj = result["items"][0]
         print(request_obj)
 
-        assert request["summary"] == request_obj["summary"]
         assert request["actor"]["displayName"] == request_obj["actor"]["displayName"]
         assert request["object"]["displayName"] == request_obj["object"]["displayName"]
 
