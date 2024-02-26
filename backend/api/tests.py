@@ -161,7 +161,7 @@ class PostCreation(TestCase):
 
         # retrieve author info
         author = Author.objects.get(display_name="test user")
-        # create the object internally (not with api)
+        # create the object 
         post = create_post("test title", '', '', "test description", "text/plain", "test content", author, "0", "", "PUBLIC" )
 
         # pull posts from endpoint
@@ -182,58 +182,57 @@ class PostCreation(TestCase):
         assert post_object["comments"] != ""
         assert post_object["id"] != ""
 
-    # def test_create_post_api(self):
-    #     """
-    #         tests post creation from the endpoint
-    #     """
-    #     user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-    #     self.client.post(reverse("api:register"), user)
-    #     self.client.post(reverse("api:login"), user)
+    def test_create_post_api(self):
+        """
+            tests post creation from the endpoint
+        """
+        user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user)
+        self.client.post(reverse("api:login"), user)
 
-    #     # retrieve author info
-    #     author_object = Author.objects.get(display_name="test user")
-    #     response = self.client.get(reverse("api:get_authors"))
-    #     result = json.loads(response.content)
-    #     author = result["items"][0]
+        # retrieve author info
+        author_object = Author.objects.get(display_name="test user")
+        response = self.client.get(reverse("api:get_authors"))
+        result = json.loads(response.content)
+        author = result["items"][0]
         
-    #     # create the object
-    #     post = {
-    #         "type": "post",
-    #         "id": "",
-    #         "title": "Test post to create",
-    #         "source": "",
-    #         "origin": "",
-    #         "description": "This post is an example",
-    #         "contentType": "text/plain",
-    #         "content": "this is an post with no comments",
-    #         "author": author,
-    #         "count": 0,
-    #         "comments": "",
-    #         "published": "",
-    #         "visibility": "PUBLIC"
-    #     }
-    #     response = self.client.post(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}), post)
-    #     self.assertEqual(response.status_code, 201)
+        # create the object
+        post = {
+            "type": "post",
+            "id": "",
+            "title": "Test post to create",
+            "source": "",
+            "origin": "",
+            "description": "This post is an example",
+            "contentType": "text/plain",
+            "content": "this is an post with no comments",
+            "author": author,
+            "count": 0,
+            "comments": "",
+            "published": "",
+            "visibility": "PUBLIC"
+        }
+        response = self.client.post(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}), json.dumps(post), content_type="application/json")
+        self.assertEqual(response.status_code, 201)
 
-    #     # pull posts from endpoint
-    #     response = self.client.get(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}))
-    #     self.assertEqual(response.status_code, 200)
-    #     retrieved = json.loads(response.content)
-    #     post_object = retrieved["items"][0]
-    #     print(post_object["author"])
+        # pull posts from endpoint
+        response = self.client.get(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        post_object = retrieved["items"][0]
 
-    #     # test to ensure some aspects remain the same between both post objects
-    #     assert post["title"] == post_object["title"]
-    #     assert post["content"] == post_object["content"]
-    #     assert post["description"] == post_object["description"]
-    #     assert post["contentType"] == post_object["contentType"]
-    #     assert post["visibility"] == post_object["visibility"]
-    #     # proper url has been serialized by backend for comments url
-    #     assert post_object["comments"] != ""
-    #     assert post_object["id"] != ""
-    #     # author has been properly assigned
-    #     assert post_object["author"]["displayName"] == author_object.display_name
-    #     assert post_object["author"]["github"] == author_object.github
+        # test to ensure some aspects remain the same between both post objects
+        assert post["title"] == post_object["title"]
+        assert post["content"] == post_object["content"]
+        assert post["description"] == post_object["description"]
+        assert post["contentType"] == post_object["contentType"]
+        assert post["visibility"] == post_object["visibility"]
+        # proper url has been serialized by backend for comments url
+        assert post_object["comments"] != ""
+        assert post_object["id"] != ""
+        # author has been properly assigned
+        assert post_object["author"]["displayName"] == author_object.display_name
+        assert post_object["author"]["github"] == author_object.github
         
     def test_create_markdown(self):
         """
@@ -393,7 +392,7 @@ class FeedTests(TestCase):
         post3 = create_post("test unlisted", '', '', "3 description", "text/plain", "test content", author, "0", "", "UNLISTED" )
         # this test currently fails if done in this order
         # created_posts = [post3, post2, post1]
-        #USE THIS UNLESS FIXED TO SHOW RECENT FIRST
+        #USE THIS UNLESS FIXED TO SHOW RECENT FIRST (FRONT END FIXES THIS BUT NOT BACK)
         created_posts = [post1, post2, post3]
 
         # pull posts from endpoint
@@ -418,7 +417,9 @@ class FeedTests(TestCase):
         self.client.post(reverse("api:login"), user1)
 
         # create a few posts
+        author1 = Author.objects.get(display_name="test user")
         author2 = Author.objects.get(display_name="test1 user1")
+        follower_user1 = create_follower(author1, author2)
         post1 = create_post("test title", '', '', "friends only", "text/plain", "test content", author2, "0", "", "FRIENDS" )
         post2 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
 
@@ -439,11 +440,56 @@ class FeedTests(TestCase):
         assert retrieved["comments"] != post2.comments
         assert retrieved["id"] != post2.id
     
-    # TODO:
-    # def test_feed_posts(self):
-        # test recent posts here
-    # TODO:
-    # def test_friends_only_posts(self):
+    def test_feed_posts(self):
+        # TODO
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+        self.client.post(reverse("api:login"), user1)
+
+
+        author2 = Author.objects.get(display_name="test1 user1")
+        post1 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
+        post1 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
+
+    def test_friends_only_posts(self):
+        """
+            test to see that you recieve friends only posts
+        """
+        # create users and login as user1
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+
+        # make each user a follower of each other
+        follower_user1 = create_follower(author1_obj, author2_obj)
+        follower_user2 = create_follower(author2_obj, author1_obj)
+
+        # make an post object for user 2
+        post1 = create_post("test public", '', '', "1 description", "text/plain", "test content", author2_obj, "0", "", "FRIENDS" )
+
+        # get the post from the endpoint
+        self.client.post(reverse("api:login"), user1)
+        response = self.client.get(reverse("api:get_all_friends_follows_posts"))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        retrieved = result["items"][0]
+
+        assert post1.title == retrieved["title"]
+        assert post1.content == retrieved["content"]
+        assert post1.description == retrieved["description"]
+        assert post1.contentType == retrieved["contentType"]
+        assert post1.visibility == retrieved["visibility"]
+        assert retrieved["author"]["displayName"] == author2_obj.display_name
+        assert retrieved["author"]["github"] == author2_obj.github
+        assert retrieved["comments"] != post1.comments
+        assert retrieved["id"] != post1.id
+
             
 class FollowingandFollowers(TestCase):
     def test_get_followers(self):
@@ -599,21 +645,106 @@ class RequestTests(TestCase):
         response = self.client.get(reverse("api:get_and_delete_a_follow_request", kwargs={"id_author":author2_obj.id, "id_sender": author1_obj.id}))
         self.assertEqual(response.status_code, 404)
 
-    # TODO:
-    # def test_making_friends(self):
-    #     """
-    #         make two users friends of each other
-    #     """
-    #     user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-    #     user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
-    #     self.client.post(reverse("api:register"), user1)
-    #     self.client.post(reverse("api:register"), user2)
+    def test_making_friends(self):
+        """
+            make two users friends of each other
+        """
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
 
-    # TODO
-#     def test_unmaking_friends(self):
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+
+        # make follow requests for each user to each other
+        request1 = create_follow_request(author1_obj, author2_obj)
+        request2 = create_follow_request(author2_obj, author1_obj)
+
+        # have both users accept the requests
+        self.client.post(reverse("api:login"), user2)
+        response = self.client.put(reverse("api:get_and_delete_a_follow_request", 
+                                     kwargs={"id_author":author2_obj.id, "id_sender": author1_obj.id}))
+        self.assertEqual(response.status_code, 201)
+
+        self.client.post(reverse("api:logout"))
+        self.client.post(reverse("api:login"), user1)
+        response = self.client.put(reverse("api:get_and_delete_a_follow_request", 
+                                     kwargs={"id_author":author1_obj.id, "id_sender": author2_obj.id}))
+        self.assertEqual(response.status_code, 201)
+        self.client.post(reverse("api:logout"))
+
+        # login as author 2 and view the friends list
+        self.client.post(reverse("api:login"), user2)
+        response = self.client.get(reverse("api:get_friends", kwargs={"id_author":author2_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        friend = result["items"][0]
+
+        # author 1 should be on the list
+        assert author1_obj.display_name == friend["displayName"]
+        assert author1_obj.github == friend["github"]
+        assert author1_obj.profile_image == friend["profileImage"]
+
+        # check for author 1
+        self.client.post(reverse("api:logout"))
+        self.client.post(reverse("api:login"), user1)
+        response = self.client.get(reverse("api:get_friends", kwargs={"id_author":author1_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        friend = result["items"][0]
+
+        # author 2 should be on the list
+        assert author2_obj.display_name == friend["displayName"]
+        assert author2_obj.github == friend["github"]
+        assert author2_obj.profile_image == friend["profileImage"]
+
+
+    def test_unmaking_friends(self):
         """
             remove a friend from your friends list
         """
+        # create users
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+
+        # make each user a follower of each other (friends)
+        follower_user1 = create_follower(author1_obj, author2_obj)
+        follower_user2 = create_follower(author2_obj, author1_obj)
+
+        # make author 1 unfollow author 2
+        self.client.post(reverse("api:login"), user2)
+        response = self.client.delete(reverse("api:get_update_and_delete_follower", 
+                                     kwargs={"id_author":author2_obj.id, "id_follower": author1_obj.id}))
+        self.assertEqual(response.status_code, 204)
+
+        # check friends list of author 2
+        response = self.client.get(reverse("api:get_friends", kwargs={"id_author":author2_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        assert len(result["items"]) == 0
+
+        # check friends list of author 1
+        response = self.client.get(reverse("api:get_friends", kwargs={"id_author":author1_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        assert len(result["items"]) == 0
+
+        # check followers of author 1
+        self.client.post(reverse("api:login"), user2)
+        response = self.client.get(reverse("api:get_followers", kwargs={"id":author1_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        follower = result["items"][0]
+
+        assert author2_obj.display_name == follower["displayName"]
+        assert author2_obj.github == follower["github"]
+        assert author2_obj.profile_image == follower["profileImage"]
 
     def test_follow(self):
         """
@@ -711,9 +842,51 @@ class RequestTests(TestCase):
         assert len(result["items"]) == 0
 
 
-# class InboxTests(TestCase):
-#     # TODO: these two test inbox api
-#     def test_notifications_follow_requests(self):
+class InboxTests(TestCase):
+    def test_notifications_follow_requests(self):
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+        self.client.post(reverse("api:login"), user2)
+
+        # get author information
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        response = self.client.get(reverse("api:get_authors"))
+        result = json.loads(response.content)
+        users = result["items"]
+        author1 = users[0]
+        author2= users[1]
+
+        request = {
+            "type": "follow",
+            "summary": "someone wants to follow you",
+            "actor": author1,
+            "object": author2
+        }
+
+        inbox = {
+            "type": "inbox",
+            "author": author2["id"],
+            "published": "",
+            "items": [request,]
+        }
+
+        # send the follow request to the inbox
+        response = self.client.post(reverse("api:get_and_post_inbox", kwargs={"id_author":author2_obj.id}), json.dumps(inbox), content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+
+        response = self.client.get(reverse("api:get_and_post_inbox", kwargs={"id_author":author2_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        request_obj = result["items"][0]
+        print(request_obj)
+
+        assert request["summary"] == request_obj["summary"]
+        assert request["actor"]["displayName"] == request_obj["actor"]["displayName"]
+        assert request["object"]["displayName"] == request_obj["object"]["displayName"]
+
 
     # TODO: no likes for part 1
     # def test_notifications_likes(self):
