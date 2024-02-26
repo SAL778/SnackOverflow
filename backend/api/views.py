@@ -7,11 +7,25 @@ from django.contrib.auth import login, logout
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication
-import requests, json
+from django.views import View
+from django.http import HttpResponse, HttpResponseNotFound
+import requests, json, os
 from django.core.paginator import Paginator
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
 # Create your views here.
+# Add this CBV
+class Assets(View):
+
+    def get(self, _request, filename):
+        path = os.path.join(os.path.dirname(__file__), 'static', filename)
+
+        if os.path.isfile(path):
+            with open(path, 'rb') as file:
+                return HttpResponse(file.read(), content_type='application/javascript')
+        else:
+            return HttpResponseNotFound()
+        
 class UserRegister(APIView):
     """
     Register a new user
