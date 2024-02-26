@@ -17,6 +17,10 @@ const theme = createTheme({
 	},
 });
 
+// This signup page has a few components/functionality taken from this base template written by Material UI SAS and their contributors:
+// https://github.com/mui/material-ui/tree/v5.15.11/docs/data/material/getting-started/templates/sign-up
+// Accessed 2024-02-26
+
 function Signup() {
 	const auth = useAuth();
 	const navigate = useNavigate();
