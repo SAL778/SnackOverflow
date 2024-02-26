@@ -43,7 +43,7 @@ function Notifications() {
 		// building the feed for all the objects in the inbox
 		for (let object of inbox) {
 			const keyIndex = inbox.indexOf(object);
-			if (object.type === followType) {
+			if (object.type.toLowerCase() === followType) {
 				var author = object.actor;
 				allNotifs.push(
 					// TODO: these a elements need to be changed to Link elements
