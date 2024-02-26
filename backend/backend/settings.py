@@ -49,7 +49,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -148,8 +148,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend/build/static'),
-    os.path.join(BASE_DIR, '../frontend/dist/assets'),
+    # os.path.join(BASE_DIR, '../frontend/build/static'),
+    os.path.join(BASE_DIR, '../frontend/dist/static'),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -159,5 +159,5 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# django_on_heroku.settings(locals())
-django_on_heroku.settings(locals(), staticfiles=False)
+django_on_heroku.settings(locals()) # does not work locally but works on heroku
+# django_on_heroku.settings(locals(), staticfiles=False) # does not work works but works on locally
