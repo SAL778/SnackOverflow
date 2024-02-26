@@ -132,7 +132,7 @@ function Profile() {
 				github={authProfile.github}
 			/>
 
-			<div class="flex flex-initial flex-col h-56 grid grid-cols-5 gap-14 content-center">
+			<div className="flex-initial flex-col h-56 grid-cols-5 gap-14 content-center">
 				<button
 					onClick={() => {
 						setShowFollowers(true);
