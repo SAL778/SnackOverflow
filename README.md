@@ -62,3 +62,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
 - https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
 - https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root
+- https://www.youtube.com/watch?v=fbIFdWj8PsY - Utilized this youtube video to understand how to implement swagger documentation with custom descriptions
+- GitHub-Co-pilot helped write the descriptions of the functions for swagger documentation used in views.py (Inside the backend folder)
+- https://dev.to/mdrhmn/deploying-react-django-app-using-heroku-2gfa - Utilized this document to understand how to deploy the app. Some of the code was used in settings.py (backend folder)
+- https://vonkunesnewton.medium.com/understanding-static-files-in-django-heroku-1b8d2f003977 - Utilized this document to debug the deployment and serve static files
