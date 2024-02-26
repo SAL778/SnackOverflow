@@ -39,6 +39,7 @@ function Explore() {
 						title={post.title}
 						date={formattedDate}
 						description={post.description}
+						contentType={post.contentType}
 						content={post.content}
 					/>
 				);

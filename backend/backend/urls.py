@@ -24,6 +24,7 @@ urlpatterns = [
     path('login/', TemplateView.as_view(template_name='index.html'), name='index'),
     path('signup/', TemplateView.as_view(template_name='index.html'), name='index'),
     path('profile/', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('profile/<str:source>/', TemplateView.as_view(template_name='index.html'), name='index'),
     path('feed/', TemplateView.as_view(template_name='index.html'), name='index'),
     path('explore/', TemplateView.as_view(template_name='index.html'), name='index'),
     path('newpost/', TemplateView.as_view(template_name='index.html'), name='index'),

@@ -398,7 +398,7 @@ def get_and_create_post(request, id_author):
 
         copyData = dict(request.data)
         #copyData = json.loads(copyData)
-        print("Data: ",copyData, type(copyData))
+        #print("Data: ",copyData, type(copyData))
 
         if(copyData.get("origin") is None):
             copyData["origin"] = ""

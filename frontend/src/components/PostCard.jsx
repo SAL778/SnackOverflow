@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"; //can be used later to link to the user
 import { deleteRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { Pencil, Trash } from "@phosphor-icons/react";
+import ReactMarkdown from "react-markdown";
 import "./PostCard.css";
 
 function PostCard({
@@ -11,6 +12,7 @@ function PostCard({
 	date,
 	imageSrc,
 	description,
+	contentType,
 	content,
 	profilePage,
 	setAuthPosts,
@@ -70,7 +72,11 @@ function PostCard({
 				{description}
 			</p>
 			<div className="post-content">
-				<p>{content}</p>
+				{contentType === "text/markdown" ? (
+					<ReactMarkdown>{content}</ReactMarkdown>
+				) : (
+					<p>{content}</p>
+				)}
 			</div>
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
@@ -85,7 +91,7 @@ function PostCard({
 
 export default PostCard;
 
-// from ChatGPT: rendering markdown as html in react:
+// from ChatGPT: rendering markdown in react:
 // prompt: "How do I render markdown content in React? Steps to use the markdown correctly instead of treating it as text."  5:15 a.m. 22/02/2024
 
 // import marked from 'marked'; // Assuming you're using the 'marked' library
