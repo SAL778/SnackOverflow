@@ -171,7 +171,7 @@ function Profile() {
 				//change={changeProfile}
 			/>
 
-			<div class="flex flex-initial flex-col h-56 grid grid-cols-5 gap-14 content-center">
+			<div className="flex-initial flex-col h-56 grid-cols-5 gap-14 content-center">
 				<button
 					onClick={() => {
 						setShowFollowers(true);
@@ -346,6 +346,7 @@ function Profile() {
 									title={post.title}
 									date={formattedDate}
 									description={post.description}
+									contentType={post.contentType}
 									content={limitedContent}
 									profilePage={true}
 									setAuthPosts={setAuthPosts}

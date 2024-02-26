@@ -5,11 +5,11 @@
 	border-radius: 8px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	width: 800px; /* Fixed width */
-	height: 500px; /* Fixed height */
+	height: 80000px; /* Fixed height */
 	display: flex;
 	flex-direction: column;
 }
-.post-card-profile-page{
+.post-card-profile-page {
 	background: white;
 	margin: 24px;
 	padding: 20px;
@@ -78,8 +78,41 @@
 	outline: none;
 }
 
-.post-edit-delete{
+.post-edit-delete {
 	display: flex;
 	justify-content: flex-end;
 	align-items: center;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+	color: #333; /* color for headings */
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
+.post-content p {
+	line-height: 1.6;
+}
+
+.post-content a {
+	color: #0066cc; /* link color */
+	text-decoration: underline;
+}
+
+.post-content ul,
+.post-content ol {
+	padding-left: 20px; /* list indentation */
+}
+
+.post-content blockquote {
+	border-left: 4px solid #ccc; /* blockquote style */
+	padding-left: 16px;
+	color: #666;
+	margin-left: 0;
+	margin-right: 0;
 }
