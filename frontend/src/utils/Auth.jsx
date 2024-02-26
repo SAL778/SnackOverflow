@@ -1,3 +1,8 @@
+// This file has been adapred from the following source:
+// - https://dev.to/dayvster/use-react-context-for-auth-288g
+// - https://medium.com/@remind.stephen.to.do.sth/hands-on-guide-to-secure-react-routes-with-authentication-context-971f37ede990
+// Accessed 2024-02-22
+
 import { createContext, useState, useContext, useEffect } from 'react';
 import axios from "axios";
 
