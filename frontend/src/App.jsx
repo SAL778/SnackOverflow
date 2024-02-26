@@ -28,47 +28,12 @@ function App() {
 				<Routes>
 					<Route path="/login" element={<Login />} />
 					<Route path="/signup" element={<Signup />} />
-
-					<Route
-						path="/profile"
-						element={
-							<PrivateRoute>
-								<Profile />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/"
-						element={
-							<PrivateRoute>
-								<Feed />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/feed"
-						element={
-							<PrivateRoute>
-								<Feed />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/explore"
-						element={
-							<PrivateRoute>
-								<Explore />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/newpost"
-						element={
-							<PrivateRoute>
-								<NewPost />
-							</PrivateRoute>
-						}
-					/>
+					<Route path="/" element={ <PrivateRoute> < Welcome /> </PrivateRoute> }/>
+					<Route path="/profile" element={<PrivateRoute> <Profile /> </PrivateRoute> } />
+					<Route path="/profile/:source" element={<PrivateRoute> <Profile /> </PrivateRoute> } />
+					<Route path="/feed" element={ <PrivateRoute> <Feed /> </PrivateRoute>} />
+					<Route path="/explore" element={ <PrivateRoute> <Explore /> </PrivateRoute>} />
+					<Route path="/newpost" element={ <PrivateRoute> <NewPost /> </PrivateRoute>} />
 				</Routes>
 			</div>
 		</Router>
