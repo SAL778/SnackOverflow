@@ -40,25 +40,6 @@ async function postRequest(apiEndpoint, postData) {
 	}
 }
 
-// // Function to make a POST request
-// async function postRequest(apiEndpoint, postData) {
-// 	try {
-// 		const response = await client.post(apiEndpoint, JSON.stringify(postData), {
-// 			headers: {
-// 				"Content-Type": "application/json",
-// 			},
-// 			withCredentials: true,
-// 		});
-// 		return response.data;
-// 	} catch (error) {
-// 		console.error(
-// 			`Error making POST request to ${apiEndpoint}: `,
-// 			error.message
-// 		);
-// 		throw new Error(error.message);
-// 	}
-// }
-
 // Function to make a DELETE request
 async function deleteRequest(apiEndpoint) {
 	try {

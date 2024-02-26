@@ -38,6 +38,8 @@ class UserRegister(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
+# Accessed 2024-02-22
 class UserLogin(APIView):
     """
     Login a user
@@ -61,6 +63,8 @@ class UserLogin(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
+# Accessed 2024-02-22
 class UserLogout(APIView):
     """
     Logout a user
@@ -79,7 +83,8 @@ class UserLogout(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-# will be removed
+# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
+# Accessed 2024-02-22
 class UserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
@@ -174,7 +179,6 @@ def get_followers(request, id):
     author = get_object_or_404(Author, id=id)
     followers = author.followers.all()
 
-    # better way to do this?
     followers_set = set()
     for follower_object in followers:
         followers_set.add(follower_object.follower)
@@ -986,7 +990,8 @@ def get_and_post_inbox(request, id_author):
             try:
                 newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
                 newFollowRequest.save()
-                requestData["item"] = item
+                serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
+                requestData["item"] = dict(serializer.data)
             except Exception as e:
                 return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

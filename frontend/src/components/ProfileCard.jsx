@@ -44,7 +44,24 @@ function ProfileCard({
 	//API METHODS BEGIN
 
 	const follow = (authorUUID, followerUUID) => {
-		postRequest(`authors/${authorUUID}/followrequests/${followerUUID}`)
+		var dataToSend = {		
+			"type":"inbox",
+			"author":`http://127.0.0.1:5454/authors/${authorUUID}`,
+			"items":[
+				{		
+					"type": "Follow",
+					"actor":{
+						"type":"author",
+						"id":`http://127.0.0.1:5454/authors/${authorUUID}`,
+					},
+					"object":{
+						"type":"author",
+						"id":`http://127.0.0.1:5454/authors/${followerUUID}`,
+					}
+				}
+			]
+		}
+		postRequest(`authors/${authorUUID}/inbox`, dataToSend)
 			.then((data) => {
 				console.log("Follow Req POSTed.");
 			})
