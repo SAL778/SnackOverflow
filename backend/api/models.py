@@ -39,6 +39,8 @@ class Follower(models.Model):
         return f'{self.follower.display_name} follows {self.followed_user.display_name}'
 
 
+# took inspiration from: https://medium.com/analytics-vidhya/add-friends-with-689a2fa4e41d
+# and https://stackoverflow.com/questions/58794639/how-to-make-follower-following-system-with-django-model 
 class FollowRequest(models.Model):
     from_user = models.ForeignKey(Author, related_name='sent_follow_requests', on_delete=models.CASCADE)
     to_user = models.ForeignKey(Author, related_name='received_follow_requests', on_delete=models.CASCADE)

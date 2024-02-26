@@ -3,6 +3,8 @@ from django.contrib.auth import authenticate
 from .models import Author, Post, Comment, Like, Inbox, FollowRequest
 
 
+# Adapted from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/serializers.py
+# Accessed 2024-02-22
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(max_length=128, write_only=True)
@@ -13,6 +15,9 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid credentials')
         return user
 
+
+# Adapted from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/serializers.py
+# Accessed 2024-02-22
 class UserRegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     password = serializers.CharField()
