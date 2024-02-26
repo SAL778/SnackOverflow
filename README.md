@@ -56,13 +56,16 @@ Then you can at backend/ `python manage.py runserver` to see the server work pro
 For testing, you can use `python manage.py test` to get all the tests running. 
 
 ## Resources
+- Django Serializers: https://www.django-rest-framework.org/api-guide/serializers/
 - https://stackoverflow.com/questions/58794639/how-to-make-follower-following-system-with-django-model
 - https://medium.com/analytics-vidhya/add-friends-with-689a2fa4e41d
-- https://www.youtube.com/watch?v=diB38AvVkHw
-- https://www.youtube.com/watch?v=Ae7nc1EGv-A
-- https://github.com/mui/material-ui/blob/v5.15.10/docs/data/material/getting-started/templates/sign-in/SignIn.js
-- https://github.com/heroku/heroku-buildpack-nodejs/issues/385
-- https://github.dev/TonyTony999/scrape_2/blob/master/package.json
-- https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
-- https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
-- https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root
+- DjangoAuthentication: https://www.youtube.com/watch?v=diB38AvVkHw
+- DjangoAuthentication: https://github.com/dotja/authentication_app_react_django_rest/tree/main
+- Custom User Model: https://www.youtube.com/watch?v=Ae7nc1EGv-A
+- Custom User Model: https://github.com/veryacademy/YT-Django-Theory-Create-Custom-User-Models-Admin-Testing
+- Sign-in page template: https://github.com/mui/material-ui/blob/v5.15.10/docs/data/material/getting-started/templates/sign-in/SignIn.js
+- For deployment: https://github.com/heroku/heroku-buildpack-nodejs/issues/385
+- For deployment: https://github.dev/TonyTony999/scrape_2/blob/master/package.json
+- For deployment: https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
+- For deployment: https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
+- For deployment: https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root

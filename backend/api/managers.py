@@ -2,6 +2,8 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
 
+# Adapted from: https://github.com/veryacademy/YT-Django-Theory-Create-Custom-User-Models-Admin-Testing/blob/master/users/models.py
+# Accessed 2024-02-22
 class CustomAuthorManager(BaseUserManager):
     def create_user(self, email, display_name, password=None, **other_fields):
         if not email:
