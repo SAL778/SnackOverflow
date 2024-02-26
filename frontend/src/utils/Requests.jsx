@@ -6,7 +6,8 @@ axios.defaults.xsrfHeaderName = "X-CSRFToken";
 axios.defaults.withCredentials = true;
 
 const client = axios.create({
-	baseURL: "https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com/api/",
+	baseURL:
+		"https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com/api/",
 	// can add headers here
 });
 

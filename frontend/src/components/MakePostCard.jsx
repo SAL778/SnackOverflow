@@ -1,5 +1,6 @@
 import "./MakePostCard.css";
 import React, { useState } from "react";
+import Alert from "@mui/material/Alert";
 
 const MakePostCard = ({ onSubmit, onCancel }) => {
 	const [title, setTitle] = useState("");
@@ -8,6 +9,7 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 	const [description, setDescription] = useState("");
 	const [isMarkdown, setIsMarkdown] = useState(false);
 	const [images, setImages] = useState([]);
+	const [showValidationError, setShowValidationError] = useState(false);
 
 	const handlePostTypeClick = (type) => {
 		setPostType(type);
@@ -19,6 +21,14 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
+
+		if (!title.trim() || !content.trim() || !postType.trim()) {
+			setShowValidationError(true);
+			setTimeout(() => setShowValidationError(false), 3000); // Hide alert after 3 seconds
+			return;
+		}
+
+		setShowValidationError(false);
 
 		//postData object
 		const postData = {
@@ -45,6 +55,9 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 
 	return (
 		<div style={{ margin: "0px 0px 50px 200px" }}>
+			{showValidationError && (
+				<Alert severity="error">Fields Missing. Please Check Again.</Alert>
+			)}
 			<div className="make-post-card">
 				<form onSubmit={handleSubmit}>
 					<div className="form-group">
