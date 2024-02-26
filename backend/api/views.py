@@ -7,11 +7,30 @@ from django.contrib.auth import login, logout
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication
-import requests, json
+from django.views import View
+from django.http import HttpResponse, HttpResponseNotFound
+import requests, json, os
 from django.core.paginator import Paginator
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
 # Create your views here.
+# Add this CBV
+class Assets(View):
+
+    def get(self, _request, filename):
+        path = os.path.join(os.path.dirname(__file__), 'static', filename)
+        print(filename)
+        if os.path.isfile(path):
+            # check filename extension
+            if filename.endswith('.css'):
+                with open(path, 'rb') as file:
+                    return HttpResponse(file.read(), content_type='text/css')
+            elif filename.endswith('.js'):
+                with open(path, 'rb') as file:
+                    return HttpResponse(file.read(), content_type='application/javascript')
+        else:
+            return HttpResponseNotFound()
+        
 class UserRegister(APIView):
     """
     Register a new user
@@ -242,6 +261,7 @@ def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
 
         if author.exists() and author.count() == 1:
             follow_request, created = FollowRequest.objects.get_or_create(from_user_id=id_sender, to_user_id=id_author)
+            # send it to the inbox of the author
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
