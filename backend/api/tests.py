@@ -297,40 +297,6 @@ class PostCreation(TestCase):
         assert post_object["comments"] != ""
         assert post_object["id"] != ""
 
-    def test_get_all_author_posts_visibility(self):
-        """
-            tests to see if the user can see their own posts regardless of visibility
-        """
-        user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        self.client.post(reverse("api:register"), user)
-        self.client.post(reverse("api:login"), user)
-
-        # retrieve author info and create posts through model creation, oldest post to most recent
-        author = Author.objects.get(display_name="test user")
-        post1 = create_post("test public", '', '', "1 description", "text/plain", "test content", author, "0", "", "PUBLIC" )
-        post2 = create_post("test friends", '', '', "2 description", "text/plain", "test content", author, "0", "", "FRIENDS" )
-        post3 = create_post("test unlisted", '', '', "3 description", "text/plain", "test content", author, "0", "", "UNLISTED" )
-        # this test currently fails if done in this order
-        # created_posts = [post3, post2, post1]
-        #USE THIS UNLESS FIXED TO SHOW RECENT FIRST
-        created_posts = [post1, post2, post3]
-
-        # pull posts from endpoint
-        response = self.client.get(reverse("api:get_and_create_post", kwargs={"id_author": author.id}))
-        self.assertEqual(response.status_code, 200)
-        retrieved = json.loads(response.content)
-        posts = retrieved["items"]
-
-        for i in range(len(posts)):
-            assert created_posts[i].title == posts[i]["title"]
-            assert created_posts[i].visibility == posts[i]["visibility"]
-
-    def test_get_other_author_posts_visibility(self):
-        """
-            test to see if an users can only see public posts on another author's page
-        """
-        print()
-
     def test_get_specific_text_post(self):
         """
             test to get post information from the post url (not including image post)
@@ -411,6 +377,68 @@ class FeedTests(TestCase):
             assert created_posts[i].title == posts[i]["title"]
             assert created_posts[i].visibility == posts[i]["visibility"]
             assert posts[i]["visibility"] == "PUBLIC"
+
+    def test_get_all_author_posts_visibility(self):
+        """
+            tests to see if the user can see their own posts regardless of visibility
+        """
+        user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user)
+        self.client.post(reverse("api:login"), user)
+
+        # retrieve author info and create posts through model creation, oldest post to most recent
+        author = Author.objects.get(display_name="test user")
+        post1 = create_post("test public", '', '', "1 description", "text/plain", "test content", author, "0", "", "PUBLIC" )
+        post2 = create_post("test friends", '', '', "2 description", "text/plain", "test content", author, "0", "", "FRIENDS" )
+        post3 = create_post("test unlisted", '', '', "3 description", "text/plain", "test content", author, "0", "", "UNLISTED" )
+        # this test currently fails if done in this order
+        # created_posts = [post3, post2, post1]
+        #USE THIS UNLESS FIXED TO SHOW RECENT FIRST
+        created_posts = [post1, post2, post3]
+
+        # pull posts from endpoint
+        response = self.client.get(reverse("api:get_and_create_post", kwargs={"id_author": author.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        posts = retrieved["items"]
+
+        for i in range(len(posts)):
+            assert created_posts[i].title == posts[i]["title"]
+            assert created_posts[i].visibility == posts[i]["visibility"]
+
+    def test_get_other_author_posts_visibility(self):
+        """
+            test to see if an users can only see public posts on another author's page
+        """
+        # create users and login as user1
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+        self.client.post(reverse("api:login"), user1)
+
+        # create a few posts
+        author2 = Author.objects.get(display_name="test1 user1")
+        post1 = create_post("test title", '', '', "friends only", "text/plain", "test content", author2, "0", "", "FRIENDS" )
+        post2 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
+
+        response = self.client.get(reverse("api:get_and_create_post", kwargs={"id_author": author2.id}))
+        self.assertEqual(response.status_code, 200)
+        posts = json.loads(response.content)
+        retrieved = posts["items"][0]
+
+        # only one post returned, check contents to public post
+        assert len(posts["items"]) == 1
+        assert post2.title == retrieved["title"]
+        assert post2.content == retrieved["content"]
+        assert post2.description == retrieved["description"]
+        assert post2.contentType == retrieved["contentType"]
+        assert post2.visibility == retrieved["visibility"]
+        assert retrieved["author"]["displayName"] == author2.display_name
+        assert retrieved["author"]["github"] == author2.github
+        assert retrieved["comments"] != post2.comments
+        assert retrieved["id"] != post2.id
+    
     # TODO:
     # def test_feed_posts(self):
         # test recent posts here
@@ -571,6 +599,7 @@ class RequestTests(TestCase):
         response = self.client.get(reverse("api:get_and_delete_a_follow_request", kwargs={"id_author":author2_obj.id, "id_sender": author1_obj.id}))
         self.assertEqual(response.status_code, 404)
 
+    # TODO:
     # def test_making_friends(self):
     #     """
     #         make two users friends of each other
@@ -580,7 +609,11 @@ class RequestTests(TestCase):
     #     self.client.post(reverse("api:register"), user1)
     #     self.client.post(reverse("api:register"), user2)
 
+    # TODO
 #     def test_unmaking_friends(self):
+        """
+            remove a friend from your friends list
+        """
 
     def test_follow(self):
         """
