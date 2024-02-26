@@ -5,6 +5,7 @@ import { useAuth } from "../utils/Auth.jsx";
 import { Pencil, Trash } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import "./PostCard.css";
+import Alert from "@mui/material/Alert";
 
 function PostCard({
 	username,
@@ -21,6 +22,7 @@ function PostCard({
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY DATA
 	const auth = useAuth();
+	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 
 	const handleLike = () => {
 		setLikes((prevLikes) => prevLikes + 1);
@@ -29,6 +31,8 @@ function PostCard({
 		deleteRequest(`${postId}`) // why is it this url? It works but I don't know why figure it out
 			.then((response) => {
 				console.log("Post deleted successfully");
+				setShowDeleteAlert(true); // Show "Post Deleted" alert
+				setTimeout(() => setShowDeleteAlert(false), 3000); // Hide alert after 3 seconds
 				if (!setAuthPosts) {
 					// this is done from the posts individual page so redirect to profile page
 					return;
@@ -47,6 +51,25 @@ function PostCard({
 
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
+			{showDeleteAlert && (
+				<Alert
+					severity="success"
+					style={{
+						position: "absolute",
+						zIndex: 2,
+						width: "200px",
+						height: "200px",
+						marginBottom: "200px",
+						marginLeft: "200px",
+						display: "flex",
+						flexDirection: "column",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					Post Deleted
+				</Alert>
+			)}
 			{profilePage && (
 				<div className="post-edit-delete">
 					<button onClick={handleEdit} style={{ marginRight: "10px" }}>
