@@ -1,4 +1,9 @@
-import React, { useEffect, useInsertionEffect, useState, forceUpdate } from "react";
+import React, {
+	useEffect,
+	useInsertionEffect,
+	useState,
+	forceUpdate,
+} from "react";
 import dummyimage from "../assets/smiley.jpg";
 import dummyimage2 from "../assets/snack-logo.png";
 import defaultPFP from "../assets/Default_pfp.jpg";
@@ -6,22 +11,20 @@ import ProfileCard from "../components/ProfileCard.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { getRequest, postRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
-import { useParams } from "react-router-dom"
-import { Link } from 'react-router-dom';
+import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
 function Profile() {
-
-
-	const {source} = useParams();
+	const { source } = useParams();
 	const auth = useAuth();
-	
-	const [authProfile, setAuthProfile] = useState([])
-	const [followers, setFollowers] = useState([])
-	const [followings, setFollowings] = useState([])
-	const [friends, setFriends] = useState([])
-	const [authPosts, setAuthPosts] = useState([])
-	const [authFollowReqs, setAuthFollowReqs] = useState([])
+
+	const [authProfile, setAuthProfile] = useState([]);
+	const [followers, setFollowers] = useState([]);
+	const [followings, setFollowings] = useState([]);
+	const [friends, setFriends] = useState([]);
+	const [authPosts, setAuthPosts] = useState([]);
+	const [authFollowReqs, setAuthFollowReqs] = useState([]);
 
 	const [showFollowers, setShowFollowers] = useState(false);
 	const [showFollowing, setShowFollowing] = useState(false);
@@ -32,111 +35,103 @@ function Profile() {
 	const [changeProfile, setChangeProfile] = useState(false);
 	const flipChangeProfile = (change) => {
 		setChangeProfile(!change);
-	}
+	};
 
 	let profileUUID = auth.userId;
-	let owner = true; 	
+	let owner = true;
 
-	if(source === undefined){
+	if (source === undefined) {
 		console.log("No source, portay profile as logged-in user");
 		profileUUID = auth.userId; //redundant but explicit
 		owner = true; //redundant but explicit
-
-	} else if (source === profileUUID){ 
-		console.log("Accessing Own Profile.")
+	} else if (source === profileUUID) {
+		console.log("Accessing Own Profile.");
 		profileUUID = auth.userId; //redundant but explicit
 		owner = true; //redundant but explicit
 	} else {
 		//ASSUMING THAT THE SOURCE IS VALID
 		profileUUID = source;
-		owner = false;		
+		owner = false;
 	}
-	
+
 	//BEGIN AUTHOR FETCH
 
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}`)
-        .then((data) => {
-            console.log('GET author Request Data:', data);
-			setAuthProfile(data);
-        })
-        .catch((error) => {
-            console.log('ERROR: ', error.message);
-        });
-
+			.then((data) => {
+				console.log("GET author Request Data:", data);
+				setAuthProfile(data);
+			})
+			.catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
 	}, [changeProfile]);
 	console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
-	
+
 	//END AUTHOR FETCH
 
 	//BEGIN AUTHOR FOLLOWERS FETCH
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/followers`)
-        .then((data) => {
-            console.log('GET followers Request Data:', data);
-			setFollowers(data);
-        })
-        .catch((error) => {
-            console.log('ERROR: ', error.message);
-        });
-
+			.then((data) => {
+				console.log("GET followers Request Data:", data);
+				setFollowers(data);
+			})
+			.catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
 	}, [showFollowers, changeProfile]);
-	
-	console.log('TEST followers OUT OF REQUEST:', followers);
+
+	console.log("TEST followers OUT OF REQUEST:", followers);
 
 	//END AUTHOR FOLLOWERS FETCH
 
 	//BEGIN AUTHOR FOLLOWINGS FETCH
 
 	useEffect(() => {
-
 		getRequest(`authors/${profileUUID}/followings`)
-        .then((data) => {
-            console.log('GET followings Request Data:', data);
-			setFollowings(data);
-        })
-        .catch((error) => {
-            console.log('ERROR: ', error.message);
-        });
-
+			.then((data) => {
+				console.log("GET followings Request Data:", data);
+				setFollowings(data);
+			})
+			.catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
 	}, [showFollowing, changeProfile]);
 
-		//END AUTHOR FOLLOWINGS FETCH
-		
+	//END AUTHOR FOLLOWINGS FETCH
+
 	console.log("TEST: AUTHOR followings DATA:", followings);
 
 	//BEGIN AUTHOR FRIENDS FETCH
 
 	useEffect(() => {
-
 		getRequest(`authors/${profileUUID}/friends`)
-        .then((data) => {
-            console.log('GET friends Request Data:', data);
-			setFriends(data);
-        })
-        .catch((error) => {
-            console.log('ERROR: ', error.message);
-        });
-
+			.then((data) => {
+				console.log("GET friends Request Data:", data);
+				setFriends(data);
+			})
+			.catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
 	}, [showFriends, changeProfile]);
 
-		//END AUTHOR FOLLOWINGS FETCH
-		
+	//END AUTHOR FOLLOWINGS FETCH
+
 	console.log("TEST: AUTHOR friends DATA:", friends);
-  
+
 	//END AUTHOR FOLLOWERS FETCH
 
 	//BEGIN AUTHOR FOLLOWREQS FETCH
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/followrequests`)
-        .then((data) => {
-            console.log('GET followers Request Data:', data);
-			setAuthFollowReqs(data);
-        })
-        .catch((error) => {
-            console.log('ERROR: ', error.message);
-        });
-
+			.then((data) => {
+				console.log("GET followers Request Data:", data);
+				setAuthFollowReqs(data);
+			})
+			.catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
 	}, [showReqs, changeProfile]);
 
 	//console.log('TEST followReqs OUT OF REQUEST:', authFollowReqs);
@@ -164,7 +159,7 @@ function Profile() {
 				imageSrc={defaultPFP}
 				github={authProfile.github}
 				buttontype={"Follow"}
-				altId = {profileUUID}
+				altId={profileUUID}
 				owner={owner}
 				viewerId={auth.userId}
 				//changeProfileFunc={flipChangeProfile}
@@ -244,10 +239,10 @@ function Profile() {
 								host={follower.host}
 								username={follower.displayName}
 								imageSrc={dummyimage}
-								authId = {profileUUID}
+								authId={profileUUID}
 								github={follower.github}
 								owner={owner}
-								//buttontype = {"Follower"} //not necessary, no button 
+								//buttontype = {"Follower"} //not necessary, no button
 								changeProfileFunc={flipChangeProfile}
 								change={changeProfile}
 							/>
@@ -255,20 +250,18 @@ function Profile() {
 					</div>
 				)}
 
-				{showFollowing && 
+				{showFollowing && (
 					<div class="space-y-6">
-
-						{followings['items'].map((following) => (
-
-							<ProfileCard  
+						{followings["items"].map((following) => (
+							<ProfileCard
 								key={following.id}
 								url={following.url}
 								host={following.host}
 								username={following.displayName}
 								imageSrc={dummyimage}
 								github={following.github}
-								buttontype = {"Following"}
-								authId = {profileUUID}
+								buttontype={"Following"}
+								authId={profileUUID}
 								owner={owner}
 								viewerId={auth.userId}
 								changeProfileFunc={flipChangeProfile}
@@ -276,36 +269,29 @@ function Profile() {
 							/>
 						))}
 					</div>
-				}
-				
+				)}
 
-				{showFriends && 
-
+				{showFriends && (
 					<div class="space-y-6">
-
-						{friends['items'].map((friend) => (
-
-							<ProfileCard  
+						{friends["items"].map((friend) => (
+							<ProfileCard
 								key={friend.id}
 								url={friend.url}
 								host={friend.host}
 								username={friend.displayName}
 								imageSrc={dummyimage}
 								github={friend.github}
-								authId = {profileUUID}
+								authId={profileUUID}
 								owner={owner}
 								viewerId={auth.userId}
 								changeProfileFunc={flipChangeProfile}
 								change={changeProfile}
-						/>
-
+							/>
 						))}
-
 					</div>
+				)}
 
-				}
-
-				{showReqs && 
+				{showReqs && (
 					<div class="space-y-6">
 						{authFollowReqs["items"].map((request) => (
 							<ProfileCard
@@ -315,8 +301,8 @@ function Profile() {
 								username={request["actor"].displayName}
 								imageSrc={dummyimage}
 								github={request["actor"].github}
-								buttontype = {"Request"}
-								authId = {profileUUID}
+								buttontype={"Request"}
+								authId={profileUUID}
 								owner={owner}
 								viewerId={auth.userId}
 								changeProfileFunc={flipChangeProfile}
@@ -324,11 +310,11 @@ function Profile() {
 							/>
 						))}
 					</div>
-				}
-				
+				)}
+
 				{showPosts && (
 					<div class="space-y-6">
-						{authPosts['items'].map((post) => {
+						{authPosts["items"].map((post) => {
 							const dates = new Date(post.published);
 							const formattedDate = `${dates.getFullYear()}-${String(
 								dates.getMonth() + 1
