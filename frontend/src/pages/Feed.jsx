@@ -1,60 +1,52 @@
 import "./Feed.css";
 import React from "react";
 import PostCard from "../components/PostCard.jsx";
-import temp_image1 from "../assets/snack-logo.png";
-import temp_image2 from "../assets/snoop.jpg";
-import { getRequest, postRequest } from "../utils/Requests.jsx";
+import { getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
+import { useEffect, useState } from "react";
+import NotificationBar from "../components/Notifbar.jsx";
 
 function Feed() {
-    const auth = useAuth();
+	const auth = useAuth();
+	const [posts, setPosts] = useState([]);
 
-	// DUMMY DATA
-	const posts = [
-		{
-			id: 1,
-			username: "Melon Musk",
-			title: "Introducing Snack Overflow!",
-			date: "Feb 19th 2024",
-			imageSrc: temp_image1,
-			description:
-				"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras at massa porta, venenatis turpis consectetur, ultricies velit. Nunc urna ex, condimentum tempor nisl in, accumsan feugiat magna. Ut eros ex, blandit quis dapibus ac, condimentum eu diam. Donec leo sem, tempor quis finibus vel, consequat eget massa. Sed mattis at leo quis vulputate. Quisque et ligula elementum, porttitor odio non, varius quam. Nulla suscipit nibh in turpis venenatis laoreet. Ut luctus eros diam, in posuere mauris rhoncus eget. Vivamus lacinia turpis sem, eu mollis massa lobortis ut. Curabitur cursus eros erat, ac placerat nibh ullamcorper pharetra. Donec gravida vulputate orci, bibendum auctor eros molestie id. Nulla purus leo, dictum ac pharetra sed, lacinia nec ex. Nam sollicitudin, erat quis pellentesque tincidunt, lectus massa lacinia odio, venenatis lacinia nunc nunc semper libero. Praesent tempus rhoncus tempus. Nam mollis eleifend risus a malesuada. Quisque vitae erat in elit hendrerit dignissim nec eu turpis. Aliquam et justo eget erat gravida luctus. Suspendisse potenti. Ut quis sapien tincidunt, facilisis lectus ac, auctor ligula. Morbi mauris metus, ultricies quis sapien eget, dictum blandit neque. Proin at auctor risus, eu aliquet enim. Sed a pharetra nibh, quis vehicula tellus.",
-		},
-		{
-			id: 2,
-			username: "John Doe",
-			title: "Another Post",
-			date: "Feb 20th 2024",
-			imageSrc: temp_image2,
-			description:
-				"This is another post for testing purposes... Snoop Doggy Dogg, my homie!",
-		},
-		// more posts go here:
-	];
-
-    // will probably need to be inside a useEffect???
-    // example of how to make a request to the server
-    // auth.userId ==> current signed in user id
-    getRequest(`authors/${auth.userId}/posts`)
-        .then((data) => {
-            console.log('GET posts Request Data:', data);
-        })
-        .catch((error) => {
-            console.log('ERROR: ', error.message);
-        });
+	useEffect(() => {
+		//getRequest(`authors/${auth.userId}/posts`) // current authors posts
+		getRequest(`friendsFollowerPosts/`) // posts from friends and followers
+			.then((data) => {
+				console.log("GET posts Request Data:", data);
+				const sortedPosts = data.items.sort(
+					(a, b) => new Date(b.published) - new Date(a.published)
+				);
+				setPosts(sortedPosts);
+				setPosts(data.items);
+			})
+			.catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
+	}, []);
 
 	return (
 		<div className="feed-container">
-			{posts.map((post) => (
-				<PostCard
-					key={post.id}
-					username={post.username}
-					title={post.title}
-					date={post.date}
-					imageSrc={post.imageSrc}
-					description={post.description}
-				/>
-			))}
+			{posts.map((post) => {
+				const dates = new Date(post.published);
+				const formattedDate = `${dates.getFullYear()}-${String(
+					dates.getMonth() + 1
+				).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
+
+				return (
+					<PostCard
+						key={post.id}
+						username={post.author.displayName}
+						title={post.title}
+						date={formattedDate}
+						description={post.description}
+						contentType={post.contentType}
+						content={post.content}
+					/>
+				);
+			})}
+			{auth.user ? <NotificationBar /> : null}
 		</div>
 	);
 }

@@ -48,8 +48,12 @@ pnpm dev
 # or
 bun dev
 ```
+Open [http://localhost:8000](http://localhost:8000) with your browser to see the result.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+For running the django server, have an venv set up at root and install all packages with pip using requirements.txt.
+To have static files served locally, go to the frontend/ folder, install all packages with `npm i` and run `npm run build` to build a dist/folder.
+Then you can at backend/ `python manage.py runserver` to see the server work properly.
+For testing, you can use `python manage.py test` to get all the tests running. 
 
 ## Resources
 - https://stackoverflow.com/questions/58794639/how-to-make-follower-following-system-with-django-model
@@ -57,3 +61,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - https://www.youtube.com/watch?v=diB38AvVkHw
 - https://www.youtube.com/watch?v=Ae7nc1EGv-A
 - https://github.com/mui/material-ui/blob/v5.15.10/docs/data/material/getting-started/templates/sign-in/SignIn.js
+- https://github.com/heroku/heroku-buildpack-nodejs/issues/385
+- https://github.dev/TonyTony999/scrape_2/blob/master/package.json
+- https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
+- https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
+- https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root

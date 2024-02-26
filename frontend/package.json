@@ -1,6 +1,7 @@
 {
 	"name": "react-test",
 	"private": true,
+	"homepage": ".",
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
@@ -15,10 +16,12 @@
 		"@mui/icons-material": "^5.15.10",
 		"@mui/material": "^5.15.10",
 		"@phosphor-icons/react": "^2.0.15",
+		"autoprefixer": "^10.4.17",
 		"axios": "^1.6.7",
 		"commonmark": "^0.31.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
+		"react-markdown": "^9.0.1",
 		"react-router-dom": "^6.22.1"
 	},
 	"devDependencies": {

@@ -7,11 +7,30 @@ from django.contrib.auth import login, logout
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication
-import requests, json
+from django.views import View
+from django.http import HttpResponse, HttpResponseNotFound
+import requests, json, os
 from django.core.paginator import Paginator
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
 # Create your views here.
+# Add this CBV
+class Assets(View):
+
+    def get(self, _request, filename):
+        path = os.path.join(os.path.dirname(__file__), 'static', filename)
+        print(filename)
+        if os.path.isfile(path):
+            # check filename extension
+            if filename.endswith('.css'):
+                with open(path, 'rb') as file:
+                    return HttpResponse(file.read(), content_type='text/css')
+            elif filename.endswith('.js'):
+                with open(path, 'rb') as file:
+                    return HttpResponse(file.read(), content_type='application/javascript')
+        else:
+            return HttpResponseNotFound()
+        
 class UserRegister(APIView):
     """
     Register a new user
@@ -60,7 +79,6 @@ class UserLogout(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-# will be removed
 class UserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
@@ -147,7 +165,6 @@ def get_update_and_delete_follower(request, id_author, id_follower):
     if request.method == 'GET':
         follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
         serializer = AuthorSerializer(follower_object.follower, context={'request': request})
-        # must return True or False??
         return Response(serializer.data)
 
     elif request.method == 'PUT':
@@ -166,6 +183,50 @@ def get_update_and_delete_follower(request, id_author, id_follower):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@api_view(['GET'])
+def get_followings(request, id_author):
+    """
+    Get all followings of a single profile
+    """
+    author = get_object_or_404(Author, id=id_author)
+    followings = author.following.all()
+
+    followings_set = set()
+    for following_object in followings:
+        followings_set.add(following_object.followed_user)
+
+    serializer = AuthorSerializer(followings_set, context={'request': request}, many=True)
+    response = {
+        "type": "followings",
+        "items": serializer.data,
+    }
+    return Response(response)
+
+
+@api_view(['GET'])
+def get_friends(request, id_author):
+    """
+    Get all friends of a single profile
+    """
+    author = get_object_or_404(Author, id=id_author)
+    following = author.following.all()
+    followers = author.followers.all()
+
+    # for my following, check if they are also in my followers
+    friends = following.filter(followed_user__in=followers.values_list('follower', flat=True))    
+    print(friends)
+
+    friends_set = set()
+    for friend_object in friends:
+        friends_set.add(friend_object.followed_user)
+
+    serializer = AuthorSerializer(friends_set, context={'request': request}, many=True)
+    response = {
+        "type": "friends",
+        "items": serializer.data,
+    }
+    return Response(response)
+
 
 @api_view(['GET'])
 def get_received_follow_requests(request, id):
@@ -182,16 +243,49 @@ def get_received_follow_requests(request, id):
     }
     return Response(response)
 
-@api_view(['GET', 'DELETE'])
-def get_and_delete_follow_request(request, id_author, id_sender):
+
+@api_view(['GET', 'DELETE', 'PUT', 'POST'])
+def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
     """
-    Get or delete a single received follow request
+    Get, create, delete or accept a received follow request
     """
-    # TODO: Not working
     if request.method == 'GET':
         follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
         serializer = FollowRequestSerializer(follow_request, context={'request': request})
         return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        # create a new follow request
+        author = Author.objects.filter(id=id_sender)
+
+        if author.exists() and author.count() == 1:
+            follow_request, created = FollowRequest.objects.get_or_create(from_user_id=id_sender, to_user_id=id_author)
+            # send it to the inbox of the author
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    elif request.method == 'PUT':
+        # friend request accepted => create a new follower and delete the follow request
+        # confirm the follow request exists
+        follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
+
+        author = Author.objects.filter(id=id_sender)
+
+        if author.exists() and author.count() == 1:
+            follower, created = Follower.objects.get_or_create(follower_id=id_sender, followed_user_id=id_author)
+            follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
+            follow_request.delete()
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    elif request.method == 'DELETE':
+        # friend request declined
+        follow_request = get_object_or_404(FollowRequest, from_user_id=id_sender, to_user_id=id_author)
+        follow_request.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 #custom uris for getting all public posts
 @api_view(['GET'])
@@ -322,7 +416,9 @@ def get_and_create_post(request, id_author):
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_400_BAD_REQUEST)
 
-        copyData = request.data.copy()
+        copyData = dict(request.data)
+        #copyData = json.loads(copyData)
+        #print("Data: ",copyData, type(copyData))
 
         if(copyData.get("origin") is None):
             copyData["origin"] = ""
@@ -363,6 +459,7 @@ def get_and_create_post(request, id_author):
                 print("unlisted post")
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("Here:",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #TODO: not sure what this endpoint means

@@ -4,12 +4,21 @@
 	padding: 20px;
 	border-radius: 8px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	width: 1000px; /* Fixed width */
-	height: 800px; /* Fixed height */
+	width: 800px; /* Fixed width */
+	height: 80000px; /* Fixed height */
 	display: flex;
 	flex-direction: column;
 }
-
+.post-card-profile-page {
+	background: white;
+	margin: 24px;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	width: 800px; /* Fixed width */
+	display: flex;
+	flex-direction: column;
+}
 .post-header {
 	margin-bottom: 10px;
 	width: 100%;
@@ -18,7 +27,7 @@
 }
 
 .username {
-	font-weight: bold;
+	font-weight: 500;
 	color: #000;
 	text-decoration: none;
 	font-size: 24px;
@@ -37,16 +46,17 @@
 	max-height: 400px; /* Fixed max-height for the image */
 	width: 80%; /* Fixed width for the image */
 	/* max-width: 800px; Fixed max-width for the image */
-	object-fit: cover; /* This will ensure the image covers the area without stretching */
+	object-fit: cover;
 	margin: 0 auto 10px auto;
 	display: block;
 }
 
-.post-description {
-	flex-grow: 1; /* Description takes up remaining space */
+.post-content {
+	flex-grow: 1; /* Content takes up remaining space */
 	overflow-y: auto; /* Scroll if content is too long */
 	margin: 20px 0 10px 0; /* Margin for spacing */
-	max-height: 400px; /* Fixed max-height for the description */
+	max-height: 400px; /* Fixed max-height for the content */
+	padding: 6px;
 }
 
 .post-footer {
@@ -66,4 +76,43 @@
 
 .post-footer button:focus {
 	outline: none;
+}
+
+.post-edit-delete {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+	color: #333; /* color for headings */
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
+.post-content p {
+	line-height: 1.6;
+}
+
+.post-content a {
+	color: #0066cc; /* link color */
+	text-decoration: underline;
+}
+
+.post-content ul,
+.post-content ol {
+	padding-left: 20px; /* list indentation */
+}
+
+.post-content blockquote {
+	border-left: 4px solid #ccc; /* blockquote style */
+	padding-left: 16px;
+	color: #666;
+	margin-left: 0;
+	margin-right: 0;
 }

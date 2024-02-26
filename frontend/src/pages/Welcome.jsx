@@ -2,7 +2,7 @@ import React from "react";
 import { useAuth } from "../utils/Auth.jsx";
 
 function Welcome() {
-    const auth = useAuth();
+	const auth = useAuth();
 
 	return (
 		<div>
