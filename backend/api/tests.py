@@ -417,9 +417,7 @@ class FeedTests(TestCase):
         self.client.post(reverse("api:login"), user1)
 
         # create a few posts
-        author1 = Author.objects.get(display_name="test user")
         author2 = Author.objects.get(display_name="test1 user1")
-        follower_user1 = create_follower(author1, author2)
         post1 = create_post("test title", '', '', "friends only", "text/plain", "test content", author2, "0", "", "FRIENDS" )
         post2 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
 
@@ -441,17 +439,26 @@ class FeedTests(TestCase):
         assert retrieved["id"] != post2.id
     
     def test_feed_posts(self):
-        # TODO
+        """
+            test getting personalized feed in order
+        """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
         self.client.post(reverse("api:login"), user1)
 
-
+        author1 = Author.objects.get(display_name="test1 user1")
         author2 = Author.objects.get(display_name="test1 user1")
+        follwer = create_follower(author1, author2)
         post1 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
         post1 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
+
+        # this needs to be finished
+        response = self.client.get(reverse("api:get_all_friends_follows_posts"))
+        self.assertEqual(response.status_code, 200)
+        posts = json.loads(response.content)
+
 
     def test_friends_only_posts(self):
         """
@@ -493,6 +500,9 @@ class FeedTests(TestCase):
             
 class FollowingandFollowers(TestCase):
     def test_get_followers(self):
+        """
+            test getting followers
+        """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
@@ -516,6 +526,9 @@ class FollowingandFollowers(TestCase):
         assert author1_obj.profile_image == follower["profileImage"]
 
     def test_get_following(self):
+        """
+            test getting following
+        """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
@@ -539,6 +552,9 @@ class FollowingandFollowers(TestCase):
         assert author2_obj.profile_image == followee["profileImage"]
         
     def test_get_friends(self):
+        """
+            test getting friends
+        """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
@@ -818,6 +834,10 @@ class RequestTests(TestCase):
         assert author2_obj.display_name == request_return["object"]["displayName"]
 
     def test_unfollow(self):
+        """
+            test unfollowing an user
+        """
+
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
@@ -844,6 +864,9 @@ class RequestTests(TestCase):
 
 class InboxTests(TestCase):
     def test_notifications_follow_requests(self):
+        """
+            test getting follow requests in the inbox
+        """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
