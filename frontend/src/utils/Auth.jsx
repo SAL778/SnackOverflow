@@ -1,3 +1,8 @@
+// This file has been adapred from the following source:
+// - https://dev.to/dayvster/use-react-context-for-auth-288g
+// - https://medium.com/@remind.stephen.to.do.sth/hands-on-guide-to-secure-react-routes-with-authentication-context-971f37ede990
+// Accessed 2024-02-22
+
 import { createContext, useState, useContext, useEffect } from 'react';
 import axios from "axios";
 
@@ -31,12 +36,6 @@ export const AuthProvider = ({ children }) => {
                 setUserId(uuid);
                 localStorage.setItem('userId', uuid);
 
-                console.log("inside useEffect");
-                console.log(response.data);
-                console.log(response.data.user.displayName);
-                console.log("-----------------");
-
-
             } catch (error) {
                 setUser(null);
                 setIsLoggedIn(false);
@@ -56,11 +55,6 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user', response.data.email);
             localStorage.setItem('isLoggedIn', 'true');
 
-            console.log("login");
-            console.log(isLoggedIn);
-            console.log("User: " + user);
-            console.log(response.data);
-            console.log("-----------------");
             return new Promise((resolve) => {
                 resolve(true);
             });
@@ -84,12 +78,6 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('userId');
             localStorage.setItem('isLoggedIn', 'false');
 
-            console.log("logout");
-            console.log(isLoggedIn);
-            console.log(user);
-            console.log(response.data);
-            console.log("-----------------");
-
         } catch (error) {
             console.error("Error logging out:", error);
         }
@@ -105,11 +93,6 @@ export const AuthProvider = ({ children }) => {
                 profile_image: profileimage
             });
 
-            console.log("register");
-            console.log(isLoggedIn);
-            console.log(response.data);
-            console.log("-----------------");
-            // return true;
             return new Promise((resolve) => {
                 resolve(true);
             });

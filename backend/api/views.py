@@ -30,7 +30,10 @@ class Assets(View):
                     return HttpResponse(file.read(), content_type='application/javascript')
         else:
             return HttpResponseNotFound()
-        
+
+
+# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
+# Accessed 2024-02-22
 class UserRegister(APIView):
     """
     Register a new user
@@ -48,6 +51,8 @@ class UserRegister(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
+# Accessed 2024-02-22
 class UserLogin(APIView):
     """
     Login a user
@@ -66,6 +71,8 @@ class UserLogin(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
+# Accessed 2024-02-22
 class UserLogout(APIView):
     """
     Logout a user
@@ -79,6 +86,8 @@ class UserLogout(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
+# Accessed 2024-02-22
 class UserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
@@ -86,6 +95,7 @@ class UserView(APIView):
     def get(self, request):
         serializer = AuthorSerializer(request.user, context={'request': request})
         return Response({'user': serializer.data}, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def get_authors(request):
@@ -144,7 +154,6 @@ def get_followers(request, id):
     author = get_object_or_404(Author, id=id)
     followers = author.followers.all()
 
-    # better way to do this?
     followers_set = set()
     for follower_object in followers:
         followers_set.add(follower_object.follower)
