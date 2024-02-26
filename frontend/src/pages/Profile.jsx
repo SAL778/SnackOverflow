@@ -140,7 +140,7 @@ function Profile() {
 		getRequest(`authors/${profileUUID}/posts`) // post id is not being used?
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
-				setAuthPosts(data);
+				setAuthPosts(data.items);
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);
@@ -314,7 +314,7 @@ function Profile() {
 
 				{showPosts && (
 					<div class="space-y-6">
-						{authPosts["items"].map((post) => {
+						{authPosts.map((post) => {
 							const dates = new Date(post.published);
 							const formattedDate = `${dates.getFullYear()}-${String(
 								dates.getMonth() + 1

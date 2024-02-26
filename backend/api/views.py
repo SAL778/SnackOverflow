@@ -262,7 +262,6 @@ def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
         if author.exists() and author.count() == 1:
             follow_request, created = FollowRequest.objects.get_or_create(from_user_id=id_sender, to_user_id=id_author)
             # send it to the inbox of the author
-            
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
