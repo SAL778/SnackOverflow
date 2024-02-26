@@ -263,6 +263,7 @@ function Profile() {
 									title={post.title}
 									date={formattedDate}
 									description={post.description}
+									contentType={post.contentType}
 									content={limitedContent}
 									profilePage={true}
 									setAuthPosts={setAuthPosts}
