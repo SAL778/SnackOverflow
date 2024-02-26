@@ -1,11 +1,32 @@
 import "./NewPost.css";
 import React from "react";
 import MakePostCard from "../components/MakePostCard";
+import { getRequest, postRequest } from "../utils/Requests.jsx";
+import { useAuth } from "../utils/Auth.jsx";
+// import { useEffect, useState } from "react";
 
 const NewPost = () => {
-	const handlePostSubmit = (postData) => {
-		// Post data to the server
-		console.log("Post data to send:", postData);
+	const auth = useAuth();
+
+	const handlePostSubmit = async (postData) => {
+		const dataToSend = {
+			title: postData.title,
+			description: postData.description,
+			contentType: postData.isMarkdown ? "text/markdown" : "text/plain",
+			content: postData.content,
+			visibility: postData.postType.toUpperCase(),
+		};
+
+		try {
+			const data = await postRequest(
+				`authors/${auth.userId}/posts/`,
+				//JSON.stringify(dataToSend)
+				dataToSend
+			);
+			console.log("POST Request Data:", data);
+		} catch (error) {
+			console.log("ERROR: ", error);
+		}
 	};
 
 	const handleCancel = () => {

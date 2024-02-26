@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
 function Profile() {
 
+
 	const {source} = useParams();
 	const auth = useAuth();
 	
@@ -21,7 +22,7 @@ function Profile() {
 	const [friends, setFriends] = useState([])
 	const [authPosts, setAuthPosts] = useState([])
 	const [authFollowReqs, setAuthFollowReqs] = useState([])
-					
+
 	const [showFollowers, setShowFollowers] = useState(false);
 	const [showFollowing, setShowFollowing] = useState(false);
 	const [showFriends, setShowFriends] = useState(false);
@@ -63,7 +64,6 @@ function Profile() {
 	//BEGIN AUTHOR FETCH
 
 	useEffect(() => {
-
 		getRequest(`authors/${profileUUID}`)
         .then((data) => {
             //console.log('GET author Request Data:', data);
@@ -75,14 +75,11 @@ function Profile() {
         });
 
 	}, [changeProfile]);
-	
-
 	console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
-	//END AUTHOR FETCH	
+	//END AUTHOR FETCH
 
 	//BEGIN AUTHOR FOLLOWERS FETCH
 	useEffect(() => {
-
 		getRequest(`authors/${profileUUID}/followers`)
         .then((data) => {
             console.log('GET followers Request Data:', data);
@@ -135,11 +132,11 @@ function Profile() {
 		//END AUTHOR FOLLOWINGS FETCH
 		
 	console.log("TEST: AUTHOR friends DATA:", friends);
-
+  
+	//END AUTHOR FOLLOWERS FETCH
 
 	//BEGIN AUTHOR FOLLOWREQS FETCH
 	useEffect(() => {
-
 		getRequest(`authors/${profileUUID}/followrequests`)
         .then((data) => {
             console.log('GET followers Request Data:', data);
@@ -168,9 +165,7 @@ function Profile() {
 		//Current User/Author, uses data from initial fetch.
 		//NOTE: CURRENTLY USES DEFAULT IMAGE NO MATTER WHAT CAUSE STILL NOT SURE HOW THOSE WILL GO
 		<div className="my-4 mx-56">
-
-						
-			<ProfileCard  
+			<ProfileCard
 				key={authProfile.id}
 				url={authProfile.url}
 				host={authProfile.host}
@@ -186,36 +181,72 @@ function Profile() {
 			/>
 
 			<div class="flex flex-initial flex-col h-56 grid grid-cols-5 gap-14 content-center">
-					<button onClick={()=> {setShowFollowers(true); setShowFollowing(false); setShowFriends(false); setShowPosts(false); setShowReqs(false); }} 
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500">
-						Followers
-					</button>
-					<button onClick={()=> {setShowFollowers(false); setShowFollowing(true); setShowFriends(false); setShowPosts(false); setShowReqs(false);}} 
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500">
-						Following
-					</button>
-					<button onClick={()=> {setShowFollowers(false); setShowFollowing(false); setShowFriends(true); setShowPosts(false); setShowReqs(false); }} 
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500">
-						Friends
-					</button>
-					<button onClick={()=> {setShowFollowers(false); setShowFollowing(false); setShowFriends(false); setShowPosts(true); setShowReqs(false); }} 
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500">
-						Posts
-					</button>
-					<button onClick={()=> {setShowFollowers(false); setShowFollowing(false); setShowFriends(false); setShowPosts(false); setShowReqs(true); }} 
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500">
-						Follow Requests
-					</button>
+				<button
+					onClick={() => {
+						setShowFollowers(true);
+						setShowFollowing(false);
+						setShowFriends(false);
+						setShowPosts(false);
+						setShowReqs(false);
+					}}
+					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
+				>
+					Followers
+				</button>
+				<button
+					onClick={() => {
+						setShowFollowers(false);
+						setShowFollowing(true);
+						setShowFriends(false);
+						setShowPosts(false);
+						setShowReqs(false);
+					}}
+					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
+				>
+					Following
+				</button>
+				<button
+					onClick={() => {
+						setShowFollowers(false);
+						setShowFollowing(false);
+						setShowFriends(true);
+						setShowPosts(false);
+						setShowReqs(false);
+					}}
+					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
+				>
+					Friends
+				</button>
+				<button
+					onClick={() => {
+						setShowFollowers(false);
+						setShowFollowing(false);
+						setShowFriends(false);
+						setShowPosts(true);
+						setShowReqs(false);
+					}}
+					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
+				>
+					Posts
+				</button>
+				<button
+					onClick={() => {
+						setShowFollowers(false);
+						setShowFollowing(false);
+						setShowFriends(false);
+						setShowPosts(false);
+						setShowReqs(true);
+					}}
+					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
+				>
+					Follow Requests
+				</button>
 			</div>
-			
-			
 
 			<div class="overflow-y-scroll h-96 max-h-screen">
-
-				{ showFollowers &&
+				{showFollowers && (
 					<div class="space-y-6">
-						{
-						followers['items'].map((follower) => (
+						{followers["items"].map((follower) => (
 							<ProfileCard
 								key={follower.id}
 								url={follower.url}
@@ -230,12 +261,10 @@ function Profile() {
 								change={changeProfile}
 							/>
 						))}
-				
 					</div>
-				}
+				)}
 
-				{ showFollowing &&
-
+				{showFollowing && (
 					<div class="space-y-6">
 
 						{followings['items'].map((following) => (
@@ -254,12 +283,9 @@ function Profile() {
 								changeProfileFunc={flipChangeProfile}
 								change={changeProfile}
 							/>
-
 						))}
-						
-					
 					</div>
-
+				)}
 				}
 
 				{showFriends &&
@@ -289,10 +315,8 @@ function Profile() {
 				}
 
 				{showReqs && 
-
 					<div class="space-y-6">
-						{
-						authFollowReqs['items'].map((request) => (
+						{authFollowReqs["items"].map((request) => (
 							<ProfileCard
 								key={request["actor"].id}
 								url={request["actor"].url}
@@ -308,32 +332,41 @@ function Profile() {
 								change={changeProfile}
 							/>
 						))}
-
 					</div>
+				)}
 
-				}
-
-				{
-					showPosts && 
+				{showPosts && (
 					<div class="space-y-6">
-						{
-						authPosts['items'].map((post) => (
-							<PostCard
-								key={post.id}
-								username={post.username}
-								title={post.title}
-								date={post.published}
-								imageSrc={post.imageSrc}
-								description={post.description}
-							/>
-						))}
+						{authPosts.map((post) => {
+							const dates = new Date(post.published);
+							const formattedDate = `${dates.getFullYear()}-${String(
+								dates.getMonth() + 1
+							).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
+
+							const limitedContent =
+								post.content.length > 100
+									? post.content.substring(0, 100) + "... See More"
+									: post.content;
+
+							return (
+								<PostCard
+									key={post.id}
+									username={post.author.displayName}
+									title={post.title}
+									date={formattedDate}
+									description={post.description}
+									content={limitedContent}
+									profilePage={true}
+									setAuthPosts={setAuthPosts}
+									authPosts={authPosts}
+									postId={post.id}
+								/>
+							);
+						})}
 					</div>
-				}
-
+				)}
 			</div>
-
 		</div>
-		
 	);
 }
 
@@ -342,13 +375,13 @@ export default Profile;
 //	<div>
 // {profile.map((profile) => (
 
-// 		<ProfileCard  
+// 		<ProfileCard
 // 			key={profile.id}
 // 			host={profile.host}
 // 			username={profile.username}
 // 			imageSrc={profile.imageSrc}
 // 			github={profile.github}
 // 		/>
-		
+
 // ))}
 // </div>

@@ -1,14 +1,14 @@
 import React from "react";
 import logo from "../assets/snack-logo.png";
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
 import { Button, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { orange } from "@mui/material/colors";
 import { useAuth } from "../utils/Auth.jsx";
-import Alert from '@mui/material/Alert';
-import CheckIcon from '@mui/icons-material/Check';
+import Alert from "@mui/material/Alert";
+import CheckIcon from "@mui/icons-material/Check";
 import { useNavigate } from "react-router-dom";
 
 const theme = createTheme({
@@ -18,7 +18,6 @@ const theme = createTheme({
 });
 
 function Signup() {
-
 	const auth = useAuth();
 	const navigate = useNavigate();
 	const [error, setError] = React.useState(null);
@@ -28,17 +27,22 @@ function Signup() {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
 		console.log({
-			email: data.get('email'),
-			password: data.get('password'),
-			displayname: data.get('display_name'),
-			github: data.get('github'),
-			profileimage: data.get('profile_image')
+			email: data.get("email"),
+			password: data.get("password"),
+			displayname: data.get("display_name"),
+			github: data.get("github"),
+			profileimage: data.get("profile_image"),
 		});
 
 		// attempt to log in user after submission of information to server
 		try {
-			const response = await auth.register(data.get('email'), data.get('password'),
-				data.get('display_name'), data.get('github'), data.get('profile_image'));
+			const response = await auth.register(
+				data.get("email"),
+				data.get("password"),
+				data.get("display_name"),
+				data.get("github"),
+				data.get("profile_image")
+			);
 			setError(null);
 			setData(response);
 			console.log(response);
@@ -52,28 +56,25 @@ function Signup() {
 		}
 	};
 
-
 	return (
 		<ThemeProvider theme={theme}>
 			<div className="flex flex-col h-screen w-screen items-center justify-center bg-gray-200 p-5">
 				{/* alerts show up if there is an error or successful registration */}
-				{
-				error && 
-				<Alert severity="error">
-					An error occured when registering. Please try again.
-				</Alert>
-				}
-				{
-				data && 
-				<Alert icon={<CheckIcon fontSize="inherit" />} severity="success">
-					Registration was successful! Redirecting to sign in page...
-				</Alert>
-				}
+				{error && (
+					<Alert severity="error">
+						An error occured when registering. Please try again.
+					</Alert>
+				)}
+				{data && (
+					<Alert icon={<CheckIcon fontSize="inherit" />} severity="success">
+						Registration was successful! Redirecting to sign in page...
+					</Alert>
+				)}
 				<Box
 					className="flex flex-initial flex-col items-center justify-center bg-white rounded-md shadow-md h-fit w-3/12 p-2"
 					component="form"
 					sx={{
-						'& .MuiTextField-root': { m: 1, width: '25ch' },
+						"& .MuiTextField-root": { m: 1, width: "25ch" },
 					}}
 					noValidate
 					onSubmit={handleSubmit}

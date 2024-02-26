@@ -1,4 +1,3 @@
-
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import logo from "../assets/snack-logo.png";
 // import { Link } from "react-router-dom";
@@ -12,7 +11,7 @@ import {
 import { useAuth } from "../utils/Auth.jsx";
 
 // The navigation and links components are adapted and modified from the "Learning Next.js" tutorial written by
-// Vercel inc. and their contributors. Both links below are the source component pages from the repository which showcases the finished 
+// Vercel inc. and their contributors. Both links below are the source component pages from the repository which showcases the finished
 // example webpage after the tutorial is completed. Accessed 2024-02-22
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/sidenav.tsx
 // https://github.com/vercel/next-learn/blob/main/dashboard/final-example/app/ui/dashboard/nav-links.tsx
@@ -65,21 +64,20 @@ function Links() {
 }
 
 export default function Navigation() {
-
-    const auth = useAuth();
+	const auth = useAuth();
 	const navigate = useNavigate();
 
-    const handleLogout = async (e) => {
-        e.preventDefault();
-        await auth.logout();
-        navigate("/login");
-    };
+	const handleLogout = async (e) => {
+		e.preventDefault();
+		await auth.logout();
+		navigate("/login");
+	};
 
 	return (
 		<div className="flex h-full flex-col px-3 py-4">
 			<Link
 				className="mb-2 flex h-20 items-end rounded-md bg-white p-4 shadow-md"
-				to="/"
+				to="/feed"
 			>
 				<div>
 					<img
@@ -94,7 +92,10 @@ export default function Navigation() {
 			<div className="flex grow flex-row justify-between space-x-2 shadow-md md:flex-col md:space-x-0">
 				<Links />
 				<div className="hidden h-auto w-full grow bg-white md:block"></div>
-				<button onClick={handleLogout} className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3">
+				<button
+					onClick={handleLogout}
+					className="flex h-[48px] w-full grow items-center rounded-md justify-center gap-2 bg-white shadow-md p-3 text-sm font-medium hover:bg-orange-200 hover:text-orange-800 md:flex-none md:justify-start md:p-2 md:px-3"
+				>
 					<SignOut style={{ width: "24px", height: "24px" }} />
 					<div className="hidden md:block">Sign Out</div>
 				</button>
