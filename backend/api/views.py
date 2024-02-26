@@ -11,29 +11,10 @@ from django.views import View
 from django.http import HttpResponse, HttpResponseNotFound
 import requests, json, os
 from django.core.paginator import Paginator
+from drf_yasg.utils import swagger_auto_schema
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
-# Create your views here.
-# Add this CBV
-class Assets(View):
 
-    def get(self, _request, filename):
-        path = os.path.join(os.path.dirname(__file__), 'static', filename)
-        print(filename)
-        if os.path.isfile(path):
-            # check filename extension
-            if filename.endswith('.css'):
-                with open(path, 'rb') as file:
-                    return HttpResponse(file.read(), content_type='text/css')
-            elif filename.endswith('.js'):
-                with open(path, 'rb') as file:
-                    return HttpResponse(file.read(), content_type='application/javascript')
-        else:
-            return HttpResponseNotFound()
-
-
-# The following class from: https://github.com/dotja/authentication_app_react_django_rest/blob/main/backend/user_api/views.py
-# Accessed 2024-02-22
 class UserRegister(APIView):
     """
     Register a new user
@@ -41,6 +22,12 @@ class UserRegister(APIView):
 
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_summary="Register a new user",
+        operation_description="Register a new user on the server. The user will be able to login and use the server's features. It will return the user's data.",
+        request_body=UserRegisterSerializer,
+        responses={201: "Created", 400: "Bad Request"},
+    )
     def post(self, request):
         # clean_data = custom_validation(request.data)
         serializer = UserRegisterSerializer(data=request.data)
@@ -60,7 +47,12 @@ class UserLogin(APIView):
 
     permission_classes = [permissions.AllowAny]
     authentication_classes = (SessionAuthentication,)
-
+    @swagger_auto_schema(
+        operation_summary="Login a user",
+        operation_description="Login a user on the server. The user will be able to use the server's features. It will return the user's data.",
+        request_body=UserLoginSerializer,
+        responses={200: "Ok", 400: "Bad Request"},
+    )
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -81,6 +73,11 @@ class UserLogout(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = ()
 
+    @swagger_auto_schema(
+        operation_summary="Logout a user",
+        operation_description="Logout a user from the server. It deletes the user's session cookie.",
+        responses={200: "Ok", 400: "Bad Request"},
+    )
     def post(self, request):
         logout(request)
         return Response(status=status.HTTP_200_OK)
@@ -92,11 +89,21 @@ class UserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
     ##
+    @swagger_auto_schema(
+        operation_summary="get the user",   
+        operation_description="Returns the user data.",
+        responses={200: "Ok"},
+    )
     def get(self, request):
         serializer = AuthorSerializer(request.user, context={'request': request})
         return Response({'user': serializer.data}, status=status.HTTP_200_OK)
 
-
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the authors",   
+        operation_description="Returns all the authors on the server. Paginated.",
+        responses={200: "Ok", 403: "Authentication credentials weren't provided", 500: "Internal Server Error"},
+)
 @api_view(['GET'])
 def get_authors(request):
     """
@@ -127,6 +134,19 @@ def get_authors(request):
     response["items"] = serializer.data
     return Response(response)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets the authors with the given id",   
+        operation_description="Returns the author with the id. The author has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="post",
+        operation_summary="creates an authors on the server",   
+        operation_description="It creates an author on the server. If the author exists then it will throw an error. It will return the author's data.",
+        request_body=AuthorSerializer,
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET', 'POST'])
 def get_and_update_author(request, id):
     """
@@ -145,7 +165,12 @@ def get_and_update_author(request, id):
             return Response(serializer.data)
 
         return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
-
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the followers of the author with the given id",   
+        operation_description="Returns all the followers of the author with the given id. The author has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_followers(request, id):
     """
@@ -164,7 +189,27 @@ def get_followers(request, id):
         "items": serializer.data,
     }
     return Response(response)
-
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets the specific follower with id_follower of the author with the given id_author",   
+        operation_description="Returns the specific follower with id_follower of the author with the given id_author. \
+        The author has to be in the server and the follower has to be in the server as well. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="put",
+        operation_summary="updates the specific follower with id_follower of the author with the given id_author",   
+        operation_description="Updates and Returns the specific follower with id_follower of the author with the given id_author. \
+        The author has to be in the server and the follower has to be in the server as well. Otherwise it will return a 404 error.",
+        responses={201: "Created",  400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="delete",
+        operation_summary="deletes the specific follower with id_follower of the author with the given id_author",   
+        operation_description="Deletes the specific follower with id_follower of the author with the given id_author. \
+        The author has to be in the server and the follower has to be in the server as well. Otherwise it will return a 404 error.",
+        responses={204: "No Content",  400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET', 'PUT', 'DELETE'])
 def get_update_and_delete_follower(request, id_author, id_follower):
     """
@@ -191,7 +236,12 @@ def get_update_and_delete_follower(request, id_author, id_follower):
         follower_object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the followings of the author with the given id",
+        operation_description="Returns all the followings of the author with the given id. The author has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_followings(request, id_author):
     """
@@ -211,7 +261,13 @@ def get_followings(request, id_author):
     }
     return Response(response)
 
-
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the friends of the author with the given id",
+        operation_description="Returns all the friends of the author with the given id. The author has to be in the server. Otherwise it will return a 404 error.\
+            Friends are the people who follow the author and the author follows them back.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_friends(request, id_author):
     """
@@ -236,7 +292,12 @@ def get_friends(request, id_author):
     }
     return Response(response)
 
-
+@swagger_auto_schema(
+        method="get",        
+        operation_summary="gets all the follow requests of the author with the given id",
+        operation_description="Returns all the follow requests of the author with the given id. The author has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_received_follow_requests(request, id):
     """
@@ -252,7 +313,36 @@ def get_received_follow_requests(request, id):
     }
     return Response(response)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets the specific follow request with id_sender of the author with the given id_author",
+        operation_description="Returns the specific follow request with id_sender of the author with the given id_author. \
+        The follow request has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="post",
+        operation_summary="creates a follow request for the author with the given id_author and the sender with the given id_sender",
+        operation_description="Creates a follow request for the author with the given id_author and the sender with the given id_sender. \
+        The author and the sender have to be in the server. Otherwise it will return a 404 error.",
+        responses={201: "Created", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="put",
+        operation_summary="accepts the specific follow request with id_sender of the author with the given id_author",
+        operation_description="Accepts the specific follow request with id_sender of the author with the given id_author. \
+        The follow request has to be in the server. Otherwise it will return a 404 error. \
+        It will also delete the follow request and create a follower.",
+        responses={201: "Created", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
 
+        method="delete",
+        operation_summary="declines the specific follow request with id_sender of the author with the given id_author",
+        operation_description="Declines the specific follow request with id_sender of the author with the given id_author. \
+        The follow request has to be in the server. Otherwise it will return a 404 error. It will delete the follow request object since it has been decliend",
+        responses={204: "No Content", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET', 'DELETE', 'PUT', 'POST'])
 def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
     """
@@ -297,6 +387,12 @@ def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
 
 
 #custom uris for getting all public posts
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all public posts",
+        operation_description="Returns all the public posts on the server. Paginated (Optional).",
+        responses={200: "Ok", 400: "Bad Request"},
+)
 @api_view(['GET'])
 def get_all_public_posts(request):
     """
@@ -325,6 +421,13 @@ def get_all_public_posts(request):
             return Response(response)
 
 #custom uris for getting all the posts of everyone I am following
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the posts of everyone the author is following and the author is friends with",
+        operation_description="Returns all the public posts of all the people the author is following and the friends only post of the people the author is friends with. Paginated (Optional).\
+            The author has to be authenticated. Otherwise it will return a 401 error.",
+        responses={200: "Ok", 401: "Unauthorized", 400: "Bad Request"},
+)
 @api_view(['GET'])
 def get_all_friends_follows_posts(request):
     """
@@ -369,6 +472,24 @@ def get_all_friends_follows_posts(request):
                 }
                 return Response(response)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the posts of the author with the given id",
+        operation_description="Returns all the posts of the author with the given id. The author has to be in the server. Otherwise it will return a 404 error. Paginated (Optional).\
+            If the user making the request is the same same as the author then it will return all the posts. Otherwise it will return only the public posts.\
+            If the user making the request is a friend of the author then it will return all the public and friends only posts.\
+            If the user is not authenticated then it will return only the public posts.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="post",
+        operation_summary="creates a post for the author with the given id",
+        operation_description="Creates a post for the author with the given id. The author has to be in the server. Otherwise it will return a 404 error.\
+            The user making the request has to be the same as the author. Otherwise it will return a 401 error. \
+            If the body of the post is incorrect then it will return a 400 error. This will also send the created post to the appropriate inboxes.",
+        request_body=PostSerializer,
+        responses={201: "Created", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
+)
 @api_view(['GET', 'POST'])
 def get_and_create_post(request, id_author):
     """
@@ -423,19 +544,19 @@ def get_and_create_post(request, id_author):
 
     if request.method == 'POST':
         if userId != id_author:
-            return Response({"detail":"Can't create post for another user"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        copyData = dict(request.data)
-        #copyData = json.loads(copyData)
-        #print("Data: ",copyData, type(copyData))
+        requestData = dict(request.data)
+        #requestData = json.loads(requestData)
+        #print("Data: ",requestData, type(requestData))
 
-        if(copyData.get("origin") is None):
-            copyData["origin"] = ""
+        if(requestData.get("origin") is None):
+            requestData["origin"] = ""
 
-        if(copyData.get("source") is None):
-            copyData["source"] = ""
+        if(requestData.get("source") is None):
+            requestData["source"] = ""
 
-        serializer = PostSerializer(data=copyData, context={'request': request})
+        serializer = PostSerializer(data=requestData, context={'request': request})
 
         if serializer.is_valid():
             serializer.save(author=author)
@@ -449,8 +570,8 @@ def get_and_create_post(request, id_author):
                 followers = Follower.objects.filter(followed_user__id=id_author)
                 for follower in followers:
                     # check if the follower is in another server and if it is then send the request
-                    copyData["author"] = follower.follower.id
-                    inboxSerializer = InboxSerializer(data=copyData, context={'request': request})
+                    requestData["author"] = follower.follower.id
+                    inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
                     if inboxSerializer.is_valid():
                         inboxSerializer.save()
             elif postType == "FRIENDS":
@@ -458,8 +579,8 @@ def get_and_create_post(request, id_author):
                 for follower in followers:
                     followerObject = Follower.objects.filter(follower__id=id_author, followed_user__id=follower.follower.id).first()
                     if followerObject is not None:
-                        copyData["author"] = follower.follower.id
-                        inboxSerializer = InboxSerializer(data=copyData, context={'request': request})
+                        requestData["author"] = follower.follower.id
+                        inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
                         if inboxSerializer.is_valid():
                             inboxSerializer.save()
                 # what if the follower is in another server, how do we know its a friend?
@@ -472,43 +593,77 @@ def get_and_create_post(request, id_author):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #TODO: not sure what this endpoint means
-@api_view(['GET'])
-def get_image(request, id_author, id_post):
-    """
-    Get the image of a single post
-    """
-    user = request.user
-    if(isinstance(user, Author)):
-        userId = user.id
-    else:
-        userId = None
+# @swagger_auto_schema(
+#         method="get",
+#         operation_summary="gets the image of the post with the given id_post",
+#         operation_description="Returns the image of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error.",
+#         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+# )
+# @api_view(['GET'])
+# def get_image(request, id_author, id_post):
+#     """
+#     Get the image of a single post
+#     """
+#     user = request.user
+#     if(isinstance(user, Author)):
+#         userId = user.id
+#     else:
+#         userId = None
 
-    post = get_object_or_404(Post, id=id_post)
-    if post.contentType.startswith("image"):
-        try:
-            response = requests.get(post.image)
-            response.raise_for_status()
-            image_content = response.content
-        except requests.exceptions.RequestException as e:
-            return Response({'error': f'Error fetching image: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#     post = get_object_or_404(Post, id=id_post)
+#     if post.contentType.startswith("image"):
+#         try:
+#             response = requests.get(post.image)
+#             response.raise_for_status()
+#             image_content = response.content
+#         except requests.exceptions.RequestException as e:
+#             return Response({'error': f'Error fetching image: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        if post.visibility == "PUBLIC" or userId == id_author:
-            return Response(image_content, status=status.HTTP_200_OK)
+#         if post.visibility == "PUBLIC" or userId == id_author:
+#             return Response(image_content, status=status.HTTP_200_OK)
 
-        elif post.visibility == "FRIENDS":
-            if userId is None:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-            follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
-            following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
-            if follower and following:
-                return Response(image_content, status=status.HTTP_200_OK)
-            else:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+#         elif post.visibility == "FRIENDS":
+#             if userId is None:
+#                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+#             follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
+#             following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
+#             if follower and following:
+#                 return Response(image_content, status=status.HTTP_200_OK)
+#             else:
+#                 return Response(status=status.HTTP_404_NOT_FOUND)
 
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+#     else:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets the specific post with id_post of the author with the given id_author",
+        operation_description="Returns the specific post with id_post of the author with the given id_author. \
+        The post has to be in the server. Otherwise it will return a 404 error. \
+        If the user making the request is the same same as the author then it will return the post. \
+        If the user making the request is a friend of the author then it will return the post if its visibility is FRIENDS or PUBLIC. \
+        If the post is FRIENDS then the user has to be authenticated. Otherwise it will return a 401 error.",
+        responses={200: "Ok", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="put",
+        operation_summary="updates the specific post with id_post of the author with the given id_author",
+        operation_description="Updates and Returns the specific post with id_post of the author with the given id_author. \
+        The post has to be in the server. Otherwise it will return a 404 error. \
+        The user making the request has to be the same as the author. Otherwise it will return a 401 error. \
+        If the body of the post is incorrect then it will return a 400 error.",
+        request_body=PostSerializer,
+        responses={200: "Ok", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="delete",
+        operation_summary="deletes the specific post with id_post of the author with the given id_author",
+        operation_description="Deletes the specific post with id_post of the author with the given id_author. \
+        The post has to be in the server. Otherwise it will return a 404 error. \
+        The user making the request has to be the same as the author. Otherwise it will return a 401 error.",
+        responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
+)
 @api_view(['GET', 'PUT', 'DELETE'])
 def get_update_and_delete_specific_post(request, id_author, id_post):
     """
@@ -556,6 +711,21 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # comments
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the comments of the post with the given id_post",
+        operation_description="Returns all the comments of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error. Paginated (Optional).",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="post",
+        operation_summary="creates a comment for the post with the given id_post",
+        operation_description="Creates a comment for the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error. \
+        The user making the request has to be authenticated. Otherwise it will return a 401 error. \
+        If the body of the comment is incorrect then it will return a 400 error. This will also send the created comment to the appropriate inboxes.",
+        request_body=CommentSerializer,
+        responses={201: "Created", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
+)
 @api_view(['GET', 'POST'])
 def get_and_create_comment(request, id_author, id_post):
     """
@@ -594,21 +764,21 @@ def get_and_create_comment(request, id_author, id_post):
             return Response({"details":"can't create a comment anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
         commentAuthor = get_object_or_404(Author, id=userId)
 
-        commentData = request.data.copy()
-        commentData["author"] = commentAuthor.id
-        commentData["post"] = post.id
+        requestData = request.data.copy()
+        requestData["author"] = commentAuthor.id
+        requestData["post"] = post.id
 
-        serializer = CommentSerializer(data=commentData, context={'request': request})
+        serializer = CommentSerializer(data=requestData, context={'request': request})
 
         if serializer.is_valid():
             serializer.save()
             # send comment in inbox of post author
-            commentDataInbox = commentData.copy()
-            commentDataInbox["author"] = str(commentAuthor.id)
-            commentDataInbox["post"] = str(post.id)
+            inboxCommentData = requestData.copy()
+            inboxCommentData["author"] = str(commentAuthor.id)
+            inboxCommentData["post"] = str(post.id)
             commentInbox = {
                 "author": str(post.author.id),
-                "item": commentDataInbox
+                "item": inboxCommentData
             }
             print(commentInbox)
             inboxSerializer = InboxSerializer(data=commentInbox, context={'request': request})
@@ -619,6 +789,12 @@ def get_and_create_comment(request, id_author, id_post):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary = "gets all the likes of the post with the given id_post",
+        operation_description="Returns all the likes of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_post_likes(request, id_author, id_post):
     """
@@ -633,6 +809,12 @@ def get_post_likes(request, id_author, id_post):
     }
     return Response(response)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the likes of the comment with the given id_comment",
+        operation_description="Returns all the likes of the comment with the given id_comment. The comment has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_comment_likes(request, id_author, id_post, id_comment):
     """
@@ -647,6 +829,12 @@ def get_comment_likes(request, id_author, id_post, id_comment):
     }
     return Response(response)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the likes of the author with the given id_author",
+        operation_description="Returns all the likes of the author with the given id_author. The author has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_liked(request, id_author):
     """
@@ -661,6 +849,29 @@ def get_liked(request, id_author):
     }
     return Response(response)
 
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets all the items in the inbox of the author with the given id_author",
+        operation_description="Returns all the items in the inbox of the author with the given id_author. The author has to be in the server. Otherwise it will return a 404 error. Paginated (Optional).\
+            if the user is not authenticated then it will return a 401 error.",
+        responses={200: "Ok", 401: "Unauthorized", 400: "Bad Request", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="post",
+        operation_summary="creates a new item in the inbox of the author with the given id_author",
+        operation_description="Creates a new item in the inbox of the author with the given id_author. The author has to be in the server. Otherwise it will return a 404 error. \
+        The post call must have items field and it can only be a follow, like, post, or comment. \
+        If the body of the item is incorrect then it will return a 400 error.",
+        request_body=InboxSerializer,
+        responses={201: "Created", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
+)
+@swagger_auto_schema(
+        method="delete",
+        operation_summary="deletes all the items in the inbox of the author with the given id_author",
+        operation_description="Deletes all the items in the inbox of the author with the given id_author. The author has to be in the server. Otherwise it will return a 404 error. \
+        The user making the request has to be the same as the author. Otherwise it will return a 401 error.",
+        responses={204: "No Content", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
+)
 @api_view(['GET', 'POST', 'DELETE'])
 def get_and_post_inbox(request, id_author):
     """
@@ -700,9 +911,9 @@ def get_and_post_inbox(request, id_author):
     if request.method == 'POST':
         if userId is None:
             return Response({"details":"Can't post to inbox anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
-        copyData = request.data.copy()
-        copyData["author"] = author.id
-        items = copyData.get("items")
+        requestData = request.data.copy()
+        requestData["author"] = author.id
+        items = requestData.get("items")
         if not (isinstance(items, list)):
             items = [items]
         item = items[0]
@@ -744,7 +955,7 @@ def get_and_post_inbox(request, id_author):
 
             if likeSerializer.is_valid():
                 likeSerializer.save()
-                copyData["item"] = item
+                requestData["item"] = item
             else:
                 return Response(likeSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -780,7 +991,7 @@ def get_and_post_inbox(request, id_author):
                 newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
                 newFollowRequest.save()
                 serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
-                copyData["item"] = dict(serializer.data)
+                requestData["item"] = dict(serializer.data)
             except Exception as e:
                 return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -790,9 +1001,9 @@ def get_and_post_inbox(request, id_author):
             if postId is None:
                 return Response({"details":"post id is required"}, status=status.HTTP_400_BAD_REQUEST)
             try:
-                # if the post is in our host do this else put the post in the copyData item
+                # if the post is in our host do this else put the post in the requestData item
                 post = Post.objects.get(id=postId)
-                copyData["item"] = item
+                requestData["item"] = item
             except Post.DoesNotExist:
                 return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -805,7 +1016,7 @@ def get_and_post_inbox(request, id_author):
             try:
                 comment = Comment.objects.get(id=commentId)
                 item["post"] = str(comment.post.id)
-                copyData["item"] = item
+                requestData["item"] = item
                 # if the author of the post is not in our domain send the request, else just add the comment to the inbox
             except Comment.DoesNotExist:
                 return Response({"details":"comment does not exist"}, status=status.HTTP_400_BAD_REQUEST)
@@ -815,7 +1026,7 @@ def get_and_post_inbox(request, id_author):
         
         # create the inbox item
 
-        inboxSerializer = InboxSerializer(data=copyData, context={'request': request})
+        inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
         if inboxSerializer.is_valid():
             inboxSerializer.save()
             return Response(inboxSerializer.data, status=status.HTTP_201_CREATED)

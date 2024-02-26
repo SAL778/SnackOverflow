@@ -59,6 +59,20 @@ For testing, you can use `python manage.py test` to get all the tests running.
 - Django Serializers: https://www.django-rest-framework.org/api-guide/serializers/
 - https://stackoverflow.com/questions/58794639/how-to-make-follower-following-system-with-django-model
 - https://medium.com/analytics-vidhya/add-friends-with-689a2fa4e41d
+<<<<<<< HEAD
+- https://www.youtube.com/watch?v=diB38AvVkHw
+- https://www.youtube.com/watch?v=Ae7nc1EGv-A
+- https://github.com/mui/material-ui/blob/v5.15.10/docs/data/material/getting-started/templates/sign-in/SignIn.js
+- https://github.com/heroku/heroku-buildpack-nodejs/issues/385
+- https://github.dev/TonyTony999/scrape_2/blob/master/package.json
+- https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
+- https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
+- https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root
+- https://www.youtube.com/watch?v=fbIFdWj8PsY - Utilized this youtube video to understand how to implement swagger documentation with custom descriptions
+- GitHub-Co-pilot helped write the descriptions of the functions for swagger documentation used in views.py (Inside the backend folder)
+- https://dev.to/mdrhmn/deploying-react-django-app-using-heroku-2gfa - Utilized this document to understand how to deploy the app. Some of the code was used in settings.py (backend folder)
+- https://vonkunesnewton.medium.com/understanding-static-files-in-django-heroku-1b8d2f003977 - Utilized this document to debug the deployment and serve static files
+=======
 - DjangoAuthentication: https://www.youtube.com/watch?v=diB38AvVkHw
 - DjangoAuthentication: https://github.com/dotja/authentication_app_react_django_rest/tree/main
 - Custom User Model: https://www.youtube.com/watch?v=Ae7nc1EGv-A
@@ -69,3 +83,4 @@ For testing, you can use `python manage.py test` to get all the tests running.
 - For deployment: https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
 - For deployment: https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
 - For deployment: https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root
+>>>>>>> 2024
