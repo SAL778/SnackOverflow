@@ -779,7 +779,8 @@ def get_and_post_inbox(request, id_author):
             try:
                 newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
                 newFollowRequest.save()
-                copyData["item"] = item
+                serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
+                copyData["item"] = dict(serializer.data)
             except Exception as e:
                 return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
