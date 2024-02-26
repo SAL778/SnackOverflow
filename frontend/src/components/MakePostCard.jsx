@@ -1,27 +1,30 @@
-import "./MakePostCard.css";
-import React, { useState } from "react";
-import Alert from "@mui/material/Alert";
-
+// Component for creating a post card
+// It allows users to input a title, select a post type, add a description, choose between plain text or markdown content,
+// upload media files, and submit or cancel the post.
 const MakePostCard = ({ onSubmit, onCancel }) => {
-	const [title, setTitle] = useState("");
-	const [postType, setPostType] = useState("");
-	const [content, setContent] = useState("");
-	const [description, setDescription] = useState("");
-	const [isMarkdown, setIsMarkdown] = useState(false);
-	const [images, setImages] = useState([]);
-	const [showValidationError, setShowValidationError] = useState(false);
+	const [title, setTitle] = useState(""); // State for storing the title input value
+	const [postType, setPostType] = useState(""); // State for storing the selected post type
+	const [content, setContent] = useState(""); // State for storing the content input value
+	const [description, setDescription] = useState(""); // State for storing the description input value
+	const [isMarkdown, setIsMarkdown] = useState(false); // State for tracking if the content is in markdown format
+	const [images, setImages] = useState([]); // State for storing the uploaded image files
+	const [showValidationError, setShowValidationError] = useState(false); // State for showing/hiding validation error message
 
+	// Function to handle the click event on post type buttons
 	const handlePostTypeClick = (type) => {
 		setPostType(type);
 	};
 
+	// Function to handle the file upload event for images
 	const handleImageUpload = (event) => {
 		setImages([...event.target.files]);
 	};
 
+	// Function to handle the form submission
 	const handleSubmit = (event) => {
 		event.preventDefault();
 
+		// Validate required fields
 		if (!title.trim() || !content.trim() || !postType.trim()) {
 			setShowValidationError(true);
 			setTimeout(() => setShowValidationError(false), 3000); // Hide alert after 3 seconds
@@ -30,36 +33,43 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 
 		setShowValidationError(false);
 
-		//postData object
+		// Create a postData object with the input values
 		const postData = {
-			title, // the title of the post, sent as a string
-			postType, // Friends, Public, Unlisted
-			description, // the description of the post, sent as a string
-			content, // the content of the post, sent as a string (for both, markdown and plain text)
-			isMarkdown, // true if the content is in markdown format
-			images, // an array of image files to be uploaded with the post (if any)
+			title,
+			postType,
+			description,
+			content,
+			isMarkdown,
+			images,
 		};
 
+		// Call the onSubmit function with the postData
 		onSubmit(postData);
 	};
+
+	// Function to handle the cancel button click event
 	const handleCancel = (event) => {
 		event.preventDefault();
+		// Clear all the fields and reset the states
 		onCancel();
-		setTitle(""); // Clear the fields
-		setContent(""); // Clear the fields
-		setDescription(""); // Clear the fields
-		setImages([]); // Clear the fields
-		setPostType(""); // Clear the fields
-		setIsMarkdown(false); // Clear the fields
+		setTitle("");
+		setContent("");
+		setDescription("");
+		setImages([]);
+		setPostType("");
+		setIsMarkdown(false);
 	};
 
 	return (
 		<div style={{ margin: "0px 0px 50px 200px" }}>
+			{/* validation error, fields cannot be empty. */}
 			{showValidationError && (
 				<Alert severity="error">Fields Missing. Please Check Again.</Alert>
 			)}
 			<div className="make-post-card">
+				{/* Form for creating a new post */}
 				<form onSubmit={handleSubmit}>
+					{/* Input field for the post title */}
 					<div className="form-group">
 						<label htmlFor="title">Title:</label>
 						<input
@@ -70,6 +80,7 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 							placeholder="Give your post a title..."
 						/>
 					</div>
+					{/* Buttons for selecting the post type */}
 					<div className="form-group">
 						<label>Post Type:</label>
 						<div
@@ -92,6 +103,7 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 							))}
 						</div>
 					</div>
+					{/* Input field for the post description */}
 					<div className="form-group">
 						<label htmlFor="description">Description:</label>
 						<input
@@ -99,9 +111,10 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 							type="text"
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
-							placeholder="Summerize your post here..."
+							placeholder="Summarize your post here..."
 						/>
 					</div>
+					{/* Textarea for the post content */}
 					<div className="form-group">
 						<label>Content:</label>
 						<div
@@ -132,10 +145,12 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 							placeholder="Post content goes here..."
 						/>
 					</div>
+					{/* Input for uploading media. Comes into effect later, Project Part 2 */}
 					<div className="form-group">
 						<label>Media:</label>
 						<input type="file" multiple onChange={handleImageUpload} />
 					</div>
+					{/* Buttons for canceling or submitting the form */}
 					<div className="form-actions">
 						<button
 							type="button"

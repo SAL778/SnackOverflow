@@ -45,7 +45,7 @@ function PostCard({
 			});
 	};
 	const handleEdit = () => {
-		// redirect to the edit post page
+		// redirect to the edit post page later
 		console.log("Edit post");
 	};
 
