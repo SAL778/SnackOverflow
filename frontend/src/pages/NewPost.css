@@ -1,9 +1,9 @@
 .new-post-page {
 	padding: 40px;
-	min-height: 100vh; /* full viewport height */
+	min-height: 100vh;
 	display: flex;
 	justify-content: center;
-	align-items: center;
+	overflow: auto;
 }
 
 /* media queries for responsiveness */
