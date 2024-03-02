@@ -137,10 +137,13 @@ function Profile() {
 	//console.log('TEST followReqs OUT OF REQUEST:', authFollowReqs);
 
 	useEffect(() => {
-		getRequest(`authors/${profileUUID}/posts`) // post id is not being used?
+		getRequest(`authors/${profileUUID}/posts`)
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
-				setAuthPosts(data.items);
+				const sortedPosts = data.items.sort(
+					(a, b) => new Date(b.published) - new Date(a.published)
+				); // Sort the posts by their published date in descending order
+				setAuthPosts(sortedPosts);
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);

@@ -2,6 +2,7 @@
 // It allows users to input a title, select a post type, add a description, choose between plain text or markdown content,
 // upload media files, and submit or cancel the post.
 import "./MakePostCard.css";
+import Alert from "@mui/material/Alert";
 import React, { useState } from "react";
 const MakePostCard = ({ onSubmit, onCancel }) => {
 	const [title, setTitle] = useState(""); // State for storing the title input value
