@@ -100,11 +100,6 @@ DATABASES = {
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# cookie settings
-# CSRF_COOKIE_SECURE = True  # Set to True if your site is served over HTTPS
-# CSRF_COOKIE_SAMESITE = 'None'  # Allow CSRF token cookie to be sent in cross-site requests
-# SESSION_COOKIE_SECURE = True  # Set to True if your site is served over HTTPS
-# SESSION_COOKIE_SAMESITE = 'None'  # Allow session cookie to be sent in cross-site requests
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
