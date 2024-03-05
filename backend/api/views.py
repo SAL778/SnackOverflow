@@ -6,12 +6,14 @@ from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegister
 from django.contrib.auth import login, logout
 from rest_framework import status, permissions
 from rest_framework.views import APIView
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from django.views import View
 from django.http import HttpResponse, HttpResponseNotFound
 import requests, json, os
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
+from django.contrib.auth import authenticate
+
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
 
@@ -46,6 +48,7 @@ class UserLogin(APIView):
     """
 
     permission_classes = [permissions.AllowAny]
+    # allow only session authentication for this view
     authentication_classes = (SessionAuthentication,)
     @swagger_auto_schema(
         operation_summary="Login a user",
@@ -55,10 +58,17 @@ class UserLogin(APIView):
     )
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
+
         if serializer.is_valid():
-            user = serializer.check_user(request.data)
-            login(request, user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            user = authenticate(email=request.data['email'], password=request.data['password'])
+
+            if not user:
+                return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                serializer = AuthorSerializer(user, data=request.data, context={'request': request}, partial=True)
+                if serializer.is_valid():
+                    login(request, user)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -87,8 +97,9 @@ class UserLogout(APIView):
 # Accessed 2024-02-22
 class UserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
+    # allow only session authentication for this view
     authentication_classes = (SessionAuthentication,)
-    ##
+    
     @swagger_auto_schema(
         operation_summary="get the user",   
         operation_description="Returns the user data.",
@@ -96,7 +107,7 @@ class UserView(APIView):
     )
     def get(self, request):
         serializer = AuthorSerializer(request.user, context={'request': request})
-        return Response({'user': serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(
         method="get",

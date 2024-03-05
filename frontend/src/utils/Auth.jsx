@@ -4,57 +4,53 @@
 // Accessed 2024-02-22
 
 import { createContext, useState, useContext, useEffect } from "react";
-import axios from "axios";
+import { getRequest, postRequest } from "./Requests.jsx";
 
 const AuthContext = createContext(null);
 
-// ensure the CSRF token is sent with requests
-axios.defaults.xsrfCookieName = "csrftoken";
-axios.defaults.xsrfHeaderName = "X-CSRFToken";
-axios.defaults.withCredentials = true;
-
-const client = axios.create({
-	baseURL: "https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com",
-	// can add headers here
-});
-
 export const AuthProvider = ({ children }) => {
-	const [user, setUser] = useState(localStorage.getItem("user") || null);
+	const [user, setUser] = useState(localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
 	const [isLoggedIn, setIsLoggedIn] = useState(
 		localStorage.getItem("isLoggedIn") === "true"
 	);
-	const [userId, setUserId] = useState(localStorage.getItem("userId") || null);
+	// const [userId, setUserId] = useState(localStorage.getItem("userId") || null);
 
 	// to determine if the user is logged in
-	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				const response = await client.get("/api/user/", {
-					withCredentials: true,
-				});
-				setUser(response.data.user.displayName);
-				setIsLoggedIn(true);
+	// useEffect(() => {
+	// 	const fetchData = async () => {
+	// 		try {
+	// 			const response = await getRequest("user/");
+	// 			console.log("User data:", response);
 
-				let parts = response.data.user.id.split("/");
-				let uuid = parts[parts.length - 1];
-				setUserId(uuid);
-				localStorage.setItem("userId", uuid);
-			} catch (error) {
-				setUser(null);
-				setIsLoggedIn(false);
-				console.error("Error fetching user data:", error);
-			}
-		};
-		fetchData();
-	}, [user]);
+	// 			setUser(response.displayName);
+	// 			setIsLoggedIn(true);
+
+	// 			let parts = response.id.split("/");
+	// 			let uuid = parts[parts.length - 1];
+	// 			setUserId(uuid);
+	// 			localStorage.setItem("userId", uuid);
+	// 		} catch (error) {
+	// 			setUser(null);
+	// 			setIsLoggedIn(false);
+	// 			console.error("Error fetching user data:", error);
+	// 		}
+	// 	};
+	// 	fetchData();
+	// }, [user]);
 
 	const login = async (email, password) => {
 		try {
-			const response = await client.post("/api/login/", { email, password });
-			setUser(response.data.email);
+			const response = await postRequest("login/", { email, password }, false);
+
+			setUser(response);
 			setIsLoggedIn(true);
 
-			localStorage.setItem("user", response.data.email);
+			console.log("User: ", user)
+
+			const userId = extractUUID(response.id);
+			response.id = userId;
+
+			localStorage.setItem("user", JSON.stringify(response));
 			localStorage.setItem("isLoggedIn", "true");
 
 			return new Promise((resolve) => {
@@ -70,14 +66,13 @@ export const AuthProvider = ({ children }) => {
 
 	const logout = async () => {
 		try {
-			const response = await client.post("/api/logout/", {
-				withCredentials: true,
-			});
+			const response = await postRequest("logout/", {});
+
 			setUser(null);
 			setIsLoggedIn(false);
 
 			localStorage.removeItem("user");
-			localStorage.removeItem("userId");
+			// localStorage.removeItem("userId");
 			localStorage.setItem("isLoggedIn", "false");
 		} catch (error) {
 			console.error("Error logging out:", error);
@@ -92,13 +87,13 @@ export const AuthProvider = ({ children }) => {
 		profileimage
 	) => {
 		try {
-			const response = await client.post("/api/register/", {
+			const response = await postRequest("register/", {
 				email: email,
 				password: password,
 				display_name: displayname,
 				github: github,
 				profile_image: profileimage,
-			});
+			}, false);
 
 			return new Promise((resolve) => {
 				resolve(true);
@@ -113,7 +108,7 @@ export const AuthProvider = ({ children }) => {
 
 	return (
 		<AuthContext.Provider
-			value={{ user, userId, isLoggedIn, login, logout, register }}
+			value={{ user, isLoggedIn, login, logout, register }}
 		>
 			{children}
 		</AuthContext.Provider>
@@ -123,3 +118,9 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
 	return useContext(AuthContext);
 };
+
+
+function extractUUID(url) {
+	let parts = url.split("/");
+	return parts[parts.length - 1];
+}
