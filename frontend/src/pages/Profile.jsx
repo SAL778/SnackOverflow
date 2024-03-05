@@ -37,16 +37,16 @@ function Profile() {
 		setChangeProfile(!change);
 	};
 
-	let profileUUID = auth.userId;
+	let profileUUID = auth.user.id;
 	let owner = true;
 
 	if (source === undefined) {
 		console.log("No source, portay profile as logged-in user");
-		profileUUID = auth.userId; //redundant but explicit
+		profileUUID = auth.user.id; //redundant but explicit
 		owner = true; //redundant but explicit
 	} else if (source === profileUUID) {
 		console.log("Accessing Own Profile.");
-		profileUUID = auth.userId; //redundant but explicit
+		profileUUID = auth.user.id; //redundant but explicit
 		owner = true; //redundant but explicit
 	} else {
 		//ASSUMING THAT THE SOURCE IS VALID
@@ -164,7 +164,7 @@ function Profile() {
 				buttontype={"Follow"}
 				altId={profileUUID}
 				owner={owner}
-				viewerId={auth.userId}
+				viewerId={auth.user.id}
 				//changeProfileFunc={flipChangeProfile}
 				//change={changeProfile}
 			/>
@@ -266,7 +266,7 @@ function Profile() {
 								buttontype={"Following"}
 								authId={profileUUID}
 								owner={owner}
-								viewerId={auth.userId}
+								viewerId={auth.user.id}
 								changeProfileFunc={flipChangeProfile}
 								change={changeProfile}
 							/>
@@ -286,7 +286,7 @@ function Profile() {
 								github={friend.github}
 								authId={profileUUID}
 								owner={owner}
-								viewerId={auth.userId}
+								viewerId={auth.user.id}
 								changeProfileFunc={flipChangeProfile}
 								change={changeProfile}
 							/>
@@ -307,7 +307,7 @@ function Profile() {
 								buttontype={"Request"}
 								authId={profileUUID}
 								owner={owner}
-								viewerId={auth.userId}
+								viewerId={auth.user.id}
 								changeProfileFunc={flipChangeProfile}
 								change={changeProfile}
 							/>

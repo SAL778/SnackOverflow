@@ -25,7 +25,7 @@ const NewPost = () => {
 
 		try {
 			const data = await postRequest(
-				`authors/${auth.userId}/posts/`,
+				`authors/${auth.user.id}/posts/`,
 				//JSON.stringify(dataToSend)
 				dataToSend
 			);

@@ -23,7 +23,7 @@ function Notifications() {
 
 	// update page with any notifications that are in the inbox
 	useEffect(() => {
-		getRequest(`authors/${auth.userId}/inbox`)
+		getRequest(`authors/${auth.user.id}/inbox`)
 			.then((data) => {
 				// console.log('GET inbox data:', data);
 				setNotifs(data);

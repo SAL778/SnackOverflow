@@ -14,7 +14,7 @@ function Feed() {
 	const [posts, setPosts] = useState([]);
 
 	useEffect(() => {
-		//getRequest(`authors/${auth.userId}/posts`) // current authors posts
+		//getRequest(`authors/${auth.user.id}/posts`) // current authors posts
 		getRequest(`friendsFollowerPosts/`) // posts from friends and followers
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
