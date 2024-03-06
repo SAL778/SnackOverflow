@@ -63,7 +63,16 @@ class UserLogin(APIView):
             user = authenticate(email=request.data['email'], password=request.data['password'])
 
             if not user:
-                return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+                # either the credentials are invalid or the user is inactive
+                user = Author.objects.filter(email=request.data['email']).first()
+
+                if user and user.check_password(request.data['password']):
+                    # user exists but is inactive
+                    assert user.is_active == False
+                    return Response({"detail": "User has not been activated yet."}, status=status.HTTP_403_FORBIDDEN)
+                else:
+                    return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            
             else:
                 serializer = AuthorSerializer(user, data=request.data, context={'request': request}, partial=True)
                 if serializer.is_valid():
