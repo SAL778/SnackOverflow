@@ -4,6 +4,7 @@ import axios from "axios";
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
 axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 
 let baseURL = "https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com/api/";
 
