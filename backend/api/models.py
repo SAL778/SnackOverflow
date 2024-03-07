@@ -28,12 +28,13 @@ class Author(AbstractBaseUser, PermissionsMixin):
         return self.display_name
 
     # Reference: https://www.sankalpjonna.com/learn-django/how-to-override-the-save-method-in-your-django-models
+    # Reference: https://stackoverflow.com/questions/907695/in-a-django-model-custom-save-method-how-should-you-identify-a-new-object
     # Accessed on: 2024-03-05
     def save(self, *args, **kwargs):
         isActive = os.getenv('IS_ACTIVE')
 
-        if not self.id:
-            # set is_active to isActive only when user is created
+        if self._state.adding:
+            # set is_active to isActive only when user is created, and not when updated
             if isActive and isActive.lower() == 'false':
                 self.is_active = False
             else:
