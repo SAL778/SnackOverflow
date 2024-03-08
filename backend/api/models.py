@@ -1,8 +1,10 @@
+from typing import Iterable
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from .managers import CustomAuthorManager
 import uuid
+import os
 
 class Author(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -24,6 +26,23 @@ class Author(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.display_name
+
+    # Reference: https://www.sankalpjonna.com/learn-django/how-to-override-the-save-method-in-your-django-models
+    # Reference: https://stackoverflow.com/questions/907695/in-a-django-model-custom-save-method-how-should-you-identify-a-new-object
+    # Accessed on: 2024-03-05
+    def save(self, *args, **kwargs):
+        isActive = os.getenv('IS_ACTIVE')
+
+        if self._state.adding:
+            # set is_active to isActive only when user is created, and not when updated
+            if isActive and isActive.lower() == 'false':
+                self.is_active = False
+            else:
+                self.is_active = True
+
+        super().save(*args, **kwargs)
+    
+    
 
 class Follower(models.Model):
     follower = models.ForeignKey(Author, related_name='following', on_delete=models.CASCADE)

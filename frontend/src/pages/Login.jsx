@@ -40,7 +40,12 @@ export default function Login() {
 			setError(null);
 			navigate("/feed");
 		} catch (error) {
-			setError(error);
+			if (error.message.includes("User has not been activated yet")) {
+				setError("Your account has not been activated. Please contact the administrator.");
+			} else{
+				setError("Invalid credentials. Please try again.");
+			}
+			
 		}
 	};
 
@@ -51,7 +56,7 @@ export default function Login() {
 			<Container component="main" maxWidth="xs">
 				{/* Error will display if unable to log in. */}
 				{error && (
-					<Alert severity="error">Invalid credentials. Please try again.</Alert>
+					<Alert severity="error">{error}</Alert>
 				)}
 				<CssBaseline />
 				<Box
