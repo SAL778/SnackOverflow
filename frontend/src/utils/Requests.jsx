@@ -43,7 +43,15 @@ async function postRequest(apiEndpoint, postData) {
 			`Error making POST request to ${apiEndpoint}: `,
 			error.message
 		);
-		throw new Error(error.message);
+		// check if the more specific error exists, top level axios error message does not
+		// provide enough detail for the problem for proper error notifications
+		const value = error?.response?.request?.responseText;
+		if (value !== undefined) {
+			throw new Error(value);
+		} else {
+			throw new Error(error.message);
+		}
+		
 	}
 }
 

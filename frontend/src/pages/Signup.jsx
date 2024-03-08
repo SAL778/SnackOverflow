@@ -30,14 +30,6 @@ function Signup() {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
-		console.log({
-			email: data.get("email"),
-			password: data.get("password"),
-			displayname: data.get("display_name"),
-			github: data.get("github"),
-			profileimage: data.get("profile_image"),
-		});
-
 		// attempt to log in user after submission of information to server
 		try {
 			const response = await auth.register(
@@ -128,7 +120,7 @@ function Signup() {
 						name="github"
 						label="GitHub Profile"
 						size="small"
-						helperText="Format: https://"
+						helperText="Format: https://github.com/user"
 					/>
 					<TextField
 						fullWidth
