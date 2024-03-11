@@ -120,7 +120,8 @@ CORS_ALLOW_HEADERS = (
     'X-Requested-With', 
     'GraphQL-Features',
     'X-Github-Next-Global-ID',
-    'X-GitHub-Api-Version'
+    'X-GitHub-Api-Version',
+    'If-None-Match'
 )
 
 CORS_EXPOSE_HEADERS = [

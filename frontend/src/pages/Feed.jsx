@@ -29,11 +29,14 @@ function Feed() {
 			.catch((error) => {
 				console.log("ERROR: ", error.message);
 			});
+		setTimeout(() => {
+			pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
+		}, 1000);
 	}, []);
-
-	setTimeout(() => {
-		pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
-	}, 1000);
+	// setTimeout(() => {
+	// 	pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
+	// }, 1000);
+	
 
 	return (
 		<div className="feed-container">
