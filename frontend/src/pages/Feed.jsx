@@ -5,6 +5,8 @@ import { getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { useEffect, useState } from "react";
 import NotificationBar from "../components/Notifbar.jsx";
+import {pollGithub} from "../utils/Github.jsx";
+
 
 // For the .map() method:
 // https://legacy.reactjs.org/docs/lists-and-keys.html
@@ -28,6 +30,10 @@ function Feed() {
 				console.log("ERROR: ", error.message);
 			});
 	}, []);
+
+	setTimeout(() => {
+		pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
+	}, 1000);
 
 	return (
 		<div className="feed-container">

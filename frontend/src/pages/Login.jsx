@@ -8,6 +8,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import {pollGithub} from "../utils/Github.jsx";
 
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../utils/Auth.jsx";
@@ -38,6 +39,10 @@ export default function Login() {
 		try {
 			await auth.login(data.get("email"), data.get("password"));
 			setError(null);
+			// auth = useAuth();
+			// setTimeout(() => {
+			// 	pollGithub(auth.user.github);
+			// }, 1000);
 			navigate("/feed");
 		} catch (error) {
 			if (error.message.includes("User has not been activated yet")) {
