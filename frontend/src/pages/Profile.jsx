@@ -137,6 +137,8 @@ function Profile() {
 	//console.log('TEST followReqs OUT OF REQUEST:', authFollowReqs);
 
 	useEffect(() => {
+		console.log("Requesting Posts...");
+		console.log("showPosts: ", showPosts);
 		getRequest(`authors/${profileUUID}/posts`)
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
@@ -213,6 +215,7 @@ function Profile() {
 						setShowFriends(false);
 						setShowPosts(true);
 						setShowReqs(false);
+						console.log("Posts Button Clicked");
 					}}
 					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
 				>
@@ -322,11 +325,12 @@ function Profile() {
 							const formattedDate = `${dates.getFullYear()}-${String(
 								dates.getMonth() + 1
 							).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
-
-							const limitedContent =
-								post.content.length > 100
+							let limitedContent = "";
+							if (post.content !== ""){
+								limitedContent = post.content.length > 100
 									? post.content.substring(0, 100) + "... See More"
 									: post.content;
+							}
 
 							return (
 								<PostCard
@@ -341,6 +345,7 @@ function Profile() {
 									setAuthPosts={setAuthPosts}
 									authPosts={authPosts}
 									postId={post.id}
+									imageSrc={post.image}
 								/>
 							);
 						})}

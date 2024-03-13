@@ -94,13 +94,17 @@ function PostCard({
 				<br />
 				{description}
 			</p>
-			<div className="post-content">
-				{contentType === "text/markdown" ? (
-					<ReactMarkdown>{content}</ReactMarkdown>
-				) : (
-					<p>{content}</p>
-				)}
-			</div>
+			{content &&
+				(
+					<div className="post-content">
+						{contentType === "text/markdown" ? (
+							<ReactMarkdown>{content}</ReactMarkdown>
+						) : (
+							<p>{content}</p>
+						)}
+					</div>
+				)
+			}
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
 				<div>

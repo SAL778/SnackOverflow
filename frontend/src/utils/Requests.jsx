@@ -32,12 +32,23 @@ async function getRequest(apiEndpoint) {
 }
 
 // Function to make a POST request
-async function postRequest(apiEndpoint, postData) {
+async function postRequest(apiEndpoint, postData, formData = false) {
 	try {
-		const response = await client.post(apiEndpoint, postData, {
-			withCredentials: true,
-		});
-		return response.data;
+		if (formData) {
+			const response = await client.post(apiEndpoint, postData, {
+				withCredentials: true,
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			});
+			return response.data;
+		}
+		else {
+			const response = await client.post(apiEndpoint, postData, {
+				withCredentials: true,
+			});
+			return response.data;
+		}
 	} catch (error) {
 		console.error(
 			`Error making POST request to ${apiEndpoint}: `,
