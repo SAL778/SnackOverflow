@@ -328,6 +328,8 @@ function Profile() {
 									? post.content.substring(0, 100) + "... See More"
 									: post.content;
 
+							const postId = post.id.split("/").slice(-1)[0]; // extract the post's id
+
 							return (
 								<PostCard
 									key={post.id}
@@ -340,7 +342,7 @@ function Profile() {
 									profilePage={true}
 									setAuthPosts={setAuthPosts}
 									authPosts={authPosts}
-									postId={post.id}
+									postId={postId}
 								/>
 							);
 						})}
@@ -352,17 +354,3 @@ function Profile() {
 }
 
 export default Profile;
-
-//	<div>
-// {profile.map((profile) => (
-
-// 		<ProfileCard
-// 			key={profile.id}
-// 			host={profile.host}
-// 			username={profile.username}
-// 			imageSrc={profile.imageSrc}
-// 			github={profile.github}
-// 		/>
-
-// ))}
-// </div>
