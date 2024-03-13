@@ -19,8 +19,9 @@ function PostCard({
 	setAuthPosts,
 	authPosts,
 	postId,
+	authorId,
 }) {
-	const [likes, setLikes] = useState(0); // DUMMY DATA
+	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 
@@ -81,12 +82,15 @@ function PostCard({
 				</div>
 			)}
 			{!profilePage && (
-				<a href="/profile" className="username">
+				<Link to={`/profile/${authorId}`} className="username">
 					User: {username}
-				</a>
+				</Link>
 			)}
 
-			<h1 className="post-header">{title}</h1>
+			{/* <h1 className="post-header">{title}</h1> */}
+			<h1 className="post-header">
+				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
+			</h1>
 			<span className="post-date">Date: {date}</span>
 			{imageSrc && <img src={imageSrc} alt="Post" />}
 			<p className="post-description">

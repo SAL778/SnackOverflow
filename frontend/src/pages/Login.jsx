@@ -41,11 +41,12 @@ export default function Login() {
 			navigate("/feed");
 		} catch (error) {
 			if (error.message.includes("User has not been activated yet")) {
-				setError("Your account has not been activated. Please contact the administrator.");
-			} else{
+				setError(
+					"Your account has not been activated. Please contact the administrator."
+				);
+			} else {
 				setError("Invalid credentials. Please try again.");
 			}
-			
 		}
 	};
 
@@ -55,9 +56,7 @@ export default function Login() {
 		<ThemeProvider theme={theme}>
 			<Container component="main" maxWidth="xs">
 				{/* Error will display if unable to log in. */}
-				{error && (
-					<Alert severity="error">{error}</Alert>
-				)}
+				{error && <Alert severity="error">{error}</Alert>}
 				<CssBaseline />
 				<Box
 					className="bg-white rounded-md shadow-md p-5"
