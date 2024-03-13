@@ -71,8 +71,9 @@ async function makeGithubPost(data, displayName, userId) {
     }
 }
 
-async function pollGithub(github, displayName, userId, interval) {
+async function pollGithub(github, displayName, userId) {
     // get the username from the github field
+    const timeout = 300000;
     const username = github.split("/")[3];
     if (username !== undefined && github.split("/")[2] === "github.com" && username !== "") {
         // fetch from the github server and check to see if any changes are made
@@ -89,8 +90,8 @@ async function pollGithub(github, displayName, userId, interval) {
         if (localStorage.getItem("isLoggedIn")=== "true") {
             console.log("should trigger multiple times until logged out");
             setTimeout(() => {
-                pollGithub(github, displayName, userId, interval);
-            }, interval);
+                pollGithub(github, displayName, userId);
+            }, timeout);
         }
         
     }
