@@ -89,7 +89,7 @@ async function pollGithub(github, displayName, userId, interval) {
         if (localStorage.getItem("isLoggedIn")=== "true") {
             console.log("should trigger multiple times until logged out");
             setTimeout(() => {
-                pollGithub(github, displayName, userId)
+                pollGithub(github, displayName, userId, interval);
             }, interval);
         }
         

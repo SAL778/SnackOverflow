@@ -33,6 +33,7 @@ function Feed() {
 		if (localStorage.getItem("polling") === "false") {
 			localStorage.setItem("polling", "true");
 			// polling will run every 5 minutes until the user logs out
+			console.log("polling triggered");
 			setTimeout(() => {
 				pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
 			}, 300000);
