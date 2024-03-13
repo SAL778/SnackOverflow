@@ -28,14 +28,17 @@ function Feed() {
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);
-			});
-		setTimeout(() => {
-			pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
-		}, 1000);
+			})
+		// start polling if the browser has not done so already
+		if (localStorage.getItem("polling") === "false") {
+			localStorage.setItem("polling", "true");
+			// polling will run every 5 minutes until the user logs out
+			setTimeout(() => {
+				pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
+			}, 300000);
+		}
+		
 	}, []);
-	// setTimeout(() => {
-	// 	pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
-	// }, 1000);
 	
 
 	return (

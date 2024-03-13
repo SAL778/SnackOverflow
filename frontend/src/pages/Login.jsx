@@ -39,10 +39,6 @@ export default function Login() {
 		try {
 			await auth.login(data.get("email"), data.get("password"));
 			setError(null);
-			// auth = useAuth();
-			// setTimeout(() => {
-			// 	pollGithub(auth.user.github);
-			// }, 1000);
 			navigate("/feed");
 		} catch (error) {
 			if (error.message.includes("User has not been activated yet")) {

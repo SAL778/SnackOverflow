@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 import django_on_heroku
 from dotenv import load_dotenv
-from corsheaders.defaults import default_headers
+from corsheaders.defaults import default_headers, default_methods
 
 
 # Load environment variables from .env file for local development
@@ -107,13 +107,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = (
-    "DELETE",
-    "GET",
-    "PATCH",
-    "POST",
-    "PUT",
+    *default_methods,
 )
 
+# add more headers here for cors
 CORS_ALLOW_HEADERS = (
     *default_headers,
     "X-GitHub-OTP",
@@ -124,6 +121,7 @@ CORS_ALLOW_HEADERS = (
     'If-None-Match'
 )
 
+# add more headers here for cors
 CORS_EXPOSE_HEADERS = [
     "ETag",
     "Link", 
