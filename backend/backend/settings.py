@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import django_on_heroku
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers, default_methods
 
 
 # Load environment variables from .env file for local development
@@ -104,6 +105,43 @@ DATABASES = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = (
+    *default_methods,
+)
+
+# add more headers here for cors
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "X-GitHub-OTP",
+    'X-Requested-With', 
+    'GraphQL-Features',
+    'X-Github-Next-Global-ID',
+    'X-GitHub-Api-Version',
+    'If-None-Match'
+)
+
+# add more headers here for cors
+CORS_EXPOSE_HEADERS = [
+    "ETag",
+    "Link", 
+    "Location",
+    "Retry-After",
+    "X-GitHub-OTP",
+    "X-RateLimit-Limit",
+    "X-RateLimit-Remaining",
+    "X-RateLimit-Used",
+    "X-RateLimit-Resource",
+    "X-RateLimit-Reset",
+    "X-OAuth-Scopes",
+    "X-Accepted-OAuth-Scopes", 
+    "X-Poll-Interval",
+    "X-GitHub-Media-Type",
+    "X-GitHub-SSO",
+    "X-GitHub-Request-Id",
+    "Deprecation",
+    "Sunset"
+]
 
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:5173']
 

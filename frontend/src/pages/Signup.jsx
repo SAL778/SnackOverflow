@@ -32,6 +32,11 @@ function Signup() {
 		const data = new FormData(event.currentTarget);
 		// attempt to log in user after submission of information to server
 		try {
+			// check if it is has github in the github field
+			console.log(data.get("github").split("/")[3]);
+			if (data.get("github").slice(8,18) !== "github.com") {
+				throw new Error("Github field does not contain the github website.");
+			}
 			const response = await auth.register(
 				data.get("email"),
 				data.get("password"),
@@ -47,7 +52,11 @@ function Signup() {
 				navigate("/login");
 			}, 2000);
 		} catch (error) {
-			setError(error);
+			if (error.message.includes("Github")) {
+				setError("Please fill in a valid Github user URL.");
+			} else{
+				setError("An error occured when registering. Please try again.");
+			}
 			setData(null);
 		}
 	};
@@ -58,7 +67,7 @@ function Signup() {
 				{/* alerts show up if there is an error or successful registration */}
 				{error && (
 					<Alert severity="error">
-						An error occured when registering. Please try again.
+						{error}
 					</Alert>
 				)}
 				{data && (
