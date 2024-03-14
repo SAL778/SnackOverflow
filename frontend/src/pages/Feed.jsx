@@ -38,6 +38,11 @@ function Feed() {
 					dates.getMonth() + 1
 				).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
 				// String.padStart(2, "0") is used to ensure the month and day are always two digits long
+
+				const authorId = post.author.id.split("/").slice(-1)[0]; // extract the author's id
+
+				const postId = post.id.split("/").slice(-1)[0]; // extract the post's id
+
 				return (
 					<PostCard
 						key={post.id}
@@ -47,6 +52,10 @@ function Feed() {
 						description={post.description}
 						contentType={post.contentType}
 						content={post.content}
+						postId={postId}
+						authorId={authorId}
+						imageSrc={post.image}
+						postVisibility={post.visibility}
 					/>
 				);
 			})}

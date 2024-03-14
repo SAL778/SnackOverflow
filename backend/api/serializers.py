@@ -109,7 +109,8 @@ class PostSerializer(serializers.ModelSerializer):
         fields = [
             'type', 'id', 'title', 'source', 'origin', 'description', 'contentType',
             'content', 'author', 'count', 'comments', 'published',
-            'visibility', 'image'
+            'visibility', 'image', 
+            'image_url'
         ]
         read_only_fields = ['type', 'id', 'author', 'count', 'comments', 'published']
     
@@ -120,6 +121,8 @@ class PostSerializer(serializers.ModelSerializer):
         current_url = f"{request.build_absolute_uri('/')}api/authors/{instance.author.id}/posts"
         data['id'] = f"{current_url}/{instance.id}"
         data["comments"] = f"{current_url}/{instance.id}/comments"
+        if (not data['image']) and (data['image_url']):
+            data['image'] = data['image_url']
         return data
     
 class CommentSerializer(serializers.ModelSerializer):
@@ -151,12 +154,12 @@ class LikeSerializer(serializers.ModelSerializer):
             if data['object'] == None or data['object'] == '':
                 data["object"] = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments/{instance.comment.id}"
             if data['summary'] == None or data['summary'] == '':
-                data['summary'] = f"{instance.author.display_name} liked the comment"
+                data['summary'] = f"{instance.author.displayName} liked the comment"
         elif instance.post:
             if data['object'] == None or data['object'] == '':
                 data["object"] = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}"
             if data['summary'] == None or data['summary'] == '':
-                data['summary'] = f"{instance.author.display_name} liked the post"
+                data['summary'] = f"{instance.author.displayName} liked the post"
         else:
             data["object"] = None
         return data

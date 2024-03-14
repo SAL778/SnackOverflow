@@ -28,39 +28,35 @@ function Links() {
 		{ content: "New Post", href: "/newpost", icon: UploadSimple },
 	];
 
-	var allLinks = [];
-	for (let object of objects) {
-		const Icons = object.icon;
-		allLinks.push(
-			<NavLink
-				key={object.content}
-				to={object.href}
-				className={({ isActive }) =>
-					`flex h-[48px] grow items-center justify-center gap-2 p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3 ${
-						isActive
-							? "bg-dark-orange text-white"
-							: "bg-white hover:bg-orange-200 hover:text-orange-800"
-					}`
-				}
-			>
-				<Icons
-					width="24px"
-					height="24px"
-					className={({ isActive }) =>
-						isActive ? "text-white" : "text-current"
-					}
-				/>
-				<p
-					className={({ isActive }) =>
-						isActive ? "md:block text-white" : "md:block"
-					}
-				>
-					{object.content}
-				</p>
-			</NavLink>
-		);
-	}
-	return <div>{allLinks}</div>;
+	return (
+		<div>
+			{objects.map((object) => {
+				const Icons = object.icon;
+				return (
+					<NavLink
+						key={object.content}
+						to={object.href}
+						className={({ isActive }) =>
+							`flex h-[48px] grow items-center justify-center gap-2 p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3 ${
+								isActive
+									? "bg-dark-orange text-white"
+									: "bg-white hover:bg-orange-200 hover:text-orange-800"
+							}`
+						}
+					>
+						<Icons width="24px" height="24px" />
+						<p
+							className={({ isActive }) =>
+								isActive ? "md:block text-white" : "md:block"
+							}
+						>
+							{object.content}
+						</p>
+					</NavLink>
+				);
+			})}
+		</div>
+	);
 }
 
 export default function Navigation() {

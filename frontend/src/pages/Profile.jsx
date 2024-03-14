@@ -331,6 +331,11 @@ function Profile() {
 									? post.content.substring(0, 100) + "... See More"
 									: post.content;
 							}
+							const authorId = post.author.id.split("/").slice(-1)[0]; // extract the author's id
+
+							const postId = post.id.split("/").slice(-1)[0]; // extract the post's id
+
+							// const postId = post.id.split("/").slice(-1)[0]; // extract the post's id
 
 							return (
 								<PostCard
@@ -344,8 +349,10 @@ function Profile() {
 									profilePage={true}
 									setAuthPosts={setAuthPosts}
 									authPosts={authPosts}
-									postId={post.id}
+									authorId={authorId}
+									postId={postId}
 									imageSrc={post.image}
+									postVisibility={post.visibility}
 								/>
 							);
 						})}
@@ -357,17 +364,3 @@ function Profile() {
 }
 
 export default Profile;
-
-//	<div>
-// {profile.map((profile) => (
-
-// 		<ProfileCard
-// 			key={profile.id}
-// 			host={profile.host}
-// 			username={profile.username}
-// 			imageSrc={profile.imageSrc}
-// 			github={profile.github}
-// 		/>
-
-// ))}
-// </div>

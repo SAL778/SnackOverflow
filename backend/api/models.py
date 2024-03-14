@@ -95,7 +95,8 @@ class Post(models.Model):
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=50, choices=(('PUBLIC','PUBLIC'),('FRIENDS', 'FRIENDS'),('UNLISTED','UNLISTED')))
     # image = models.URLField(max_length=200, blank=True, null=True)
-    image = models.ImageField(upload_to='post_images', blank=True, null=True)    
+    image = models.ImageField(upload_to='post_images', blank=True, null=True)  
+    image_url = models.URLField(max_length=200, blank=True, null=True)  
 # #comments
 class Comment(models.Model):
     type = models.CharField(max_length=50, default="comment")

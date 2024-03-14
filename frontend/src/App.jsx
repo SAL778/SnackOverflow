@@ -2,7 +2,7 @@ import { React, useState } from "react";
 import "./App.css";
 import "./output.css";
 import Navigation from "./components/Navbar.jsx";
-import NotificationBar from "./components/Notifbar.jsx";
+import SinglePost from "./components/SinglePost.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Profile from "./pages/Profile.jsx";
 import Feed from "./pages/Feed.jsx";
@@ -74,6 +74,14 @@ function App() {
 						element={
 							<PrivateRoute>
 								<NewPost />
+							</PrivateRoute>
+						}
+					/>
+					<Route
+						path="/profile/:authorId/posts/:postId"
+						element={
+							<PrivateRoute>
+								<SinglePost />
 							</PrivateRoute>
 						}
 					/>
