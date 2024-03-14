@@ -37,6 +37,10 @@ async function makeGithubCall(username) {
             else if (response.status === 304) {
                 return "no change";
             }
+            // error has returned during request
+            else if (response.status === 404 || response.status === 403 || response.status == 429) {
+                return "error polling";
+            }
             else {
                 console.log("Something went wrong: " + response.status);
             }
@@ -80,14 +84,15 @@ async function pollGithub(github, displayName, userId) {
         var repData = await makeGithubCall(username);
         console.log(repData);
         // make posts if new data is found
-        if (repData !== "no change" && repData !== undefined) {
+        if (repData !== "no change" && repData !== undefined && repData.length > 0 && repData !== "error polling") {
             if (localStorage.getItem("githubID") === null || (localStorage.getItem("githubID") !== repData[0].id)) {
                 // make all the new github activity posts when given results
                 await makeGithubPost(repData, displayName, userId);
                 localStorage.setItem("githubID", repData[0].id);
             } 
         }
-        if (localStorage.getItem("isLoggedIn")=== "true") {
+        // trigger the next timeout
+        if (localStorage.getItem("isLoggedIn")=== "true" && repData !== "error polling") {
             console.log("should trigger multiple times until logged out");
             setTimeout(() => {
                 pollGithub(github, displayName, userId);
