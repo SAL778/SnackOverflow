@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from .models import Author, Follower, FollowRequest, Post, Comment, Like, Inbox
@@ -13,6 +13,7 @@ import requests, json, os
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
+from rest_framework.parsers import FormParser, MultiPartParser
 
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -511,6 +512,7 @@ def get_all_friends_follows_posts(request):
         responses={201: "Created", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
 )
 @api_view(['GET', 'POST'])
+@parser_classes([MultiPartParser, FormParser])
 def get_and_create_post(request, id_author):
     """
     Get all posts by a single author or create a new post
@@ -565,19 +567,34 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
+        print("Here")
+        print(request)
+        print("request.data:")
+        print(request.data)
+        # requestData = dict(request.data)
+        requestData = request.data
+        # REQUest data is query dict
+        # if the image is a url then store the url in the image field
+        image = request.data.get("image")
+        # check if the image type is strin
+        
+        if(not (image is None) and (type(image) == "str") and image.startswith("http")):
+            print("inside if imageURL")
+            requestData["image"] = None
+            requestData["image_url"] = request.data.get("image")
 
-        requestData = dict(request.data)
         #requestData = json.loads(requestData)
         #print("Data: ",requestData, type(requestData))
 
-        if(requestData.get("origin") is None):
-            requestData["origin"] = ""
+        # if(requestData.get("origin") is None):
+        #     requestData["origin"] = ""
 
-        if(requestData.get("source") is None):
-            requestData["source"] = ""
+        # if(requestData.get("source") is None):
+        #     requestData["source"] = ""
 
         serializer = PostSerializer(data=requestData, context={'request': request})
-
+        print("Here2")
+        print(serializer)
         if serializer.is_valid():
             serializer.save(author=author)
             # send the serializer.data (post) to the inbox of the author's followers
@@ -820,9 +837,10 @@ def get_post_likes(request, id_author, id_post):
     """
     Get all likes of a single post
     """
+    #TODO: get likes from other servers or create a like when it comes to an inbox
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
     likes = Like.objects.filter(post=post)
-    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
         "type": "likes",
         "items": serializer.data,
@@ -842,7 +860,7 @@ def get_comment_likes(request, id_author, id_post, id_comment):
     """
     comment = get_object_or_404(Comment, id=id_comment, post__id=id_post, post__author__id=id_author)
     likes = Like.objects.filter(comment=comment)
-    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
         "type": "likes",
         "items": serializer.data,
@@ -956,7 +974,10 @@ def get_and_post_inbox(request, id_author):
                 else:
                     likeData["comment"] = None
                 if "posts" in objectString:
-                    postId = objectString.split("/")[-1]
+                    if "comments" in objectString:
+                        postId = objectString.split("/")[-3]
+                    else:
+                        postId = objectString.split("/")[-1]
                     likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
@@ -969,6 +990,7 @@ def get_and_post_inbox(request, id_author):
                 likeExists = Like.objects.filter(author=likeAuthor, post=likeData["post"]).exists()
             
             if likeExists:
+                # unlike them
                 return Response({"details":"like already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             likeSerializer = LikeSerializer(data=likeData, context={'request': request})

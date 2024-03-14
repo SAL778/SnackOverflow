@@ -10,7 +10,8 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 	const [content, setContent] = useState(""); // State for storing the content input value
 	const [description, setDescription] = useState(""); // State for storing the description input value
 	const [isMarkdown, setIsMarkdown] = useState(false); // State for tracking if the content is in markdown format
-	const [images, setImages] = useState([]); // State for storing the uploaded image files
+	const [isImage, setIsImage] = useState(false); // State for tracking if the content is an image
+	const [image, setImage] = useState(""); // State for storing the uploaded image files
 	const [showValidationError, setShowValidationError] = useState(false); // State for showing/hiding validation error message
 
 	// Function to handle the click event on post type buttons
@@ -20,15 +21,16 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 
 	// Function to handle the file upload event for images
 	const handleImageUpload = (event) => {
-		setImages([...event.target.files]);
+		setImage(event.target.files[0]);
 	};
 
 	// Function to handle the form submission
 	const handleSubmit = (event) => {
 		event.preventDefault();
-
+		console.log("Submitting post...");
 		// Validate required fields
-		if (!title.trim() || !content.trim() || !postType.trim()) {
+		if (!title.trim() || !postType.trim()) {
+			console.log("Fields Missing. Please Check Again.");
 			setShowValidationError(true);
 			setTimeout(() => setShowValidationError(false), 3000); // Hide alert after 3 seconds
 			return;
@@ -43,9 +45,10 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 			description,
 			content,
 			isMarkdown,
-			images,
+			image,
+			isImage,
 		};
-
+		console.log("Post Data:", postData);
 		// Call the onSubmit function with the postData
 		onSubmit(postData);
 	};
@@ -58,9 +61,10 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 		setTitle("");
 		setContent("");
 		setDescription("");
-		setImages([]);
+		setImage("");
 		setPostType("");
 		setIsMarkdown(false);
+		setIsImage(false);
 	};
 
 	return (
@@ -129,30 +133,51 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 						>
 							<button
 								type="button"
-								className={!isMarkdown ? "selected" : ""}
-								onClick={() => setIsMarkdown(false)}
+								className={!isMarkdown && !isImage ? "selected" : ""}
+								onClick={() => {
+									setIsMarkdown(false);
+									setIsImage(false);
+								}}
 							>
 								Text
 							</button>
 							<button
 								type="button"
-								className={isMarkdown ? "selected" : ""}
-								onClick={() => setIsMarkdown(true)}
+								className={isMarkdown && !isImage ? "selected" : ""}
+								onClick={() => {
+									setIsMarkdown(true);
+									setIsImage(false)
+								}}
 							>
 								Markdown
 							</button>
+							<button
+								type="button"
+								className={isImage ? "selected" : ""}
+								onClick={() => {
+									setIsImage(true) ;
+									setIsMarkdown(false)
+								}}
+							>
+								Image
+							</button>
 						</div>
-						<textarea
-							value={content}
-							onChange={(e) => setContent(e.target.value)}
-							placeholder="Post content goes here..."
-						/>
+						{/* only display the textarea if the content is not an image */}
+						{!isImage && (
+							<textarea
+								value={content}
+								onChange={(e) => setContent(e.target.value)}
+								placeholder="Post content goes here..."
+							/>
+						)}
 					</div>
 					{/* Input for uploading media. Comes into effect later, Project Part 2 */}
-					<div className="form-group">
-						<label>Media:</label>
-						<input type="file" multiple onChange={handleImageUpload} />
-					</div>
+					{isImage && (
+						<div className="form-group">
+							<label>Media:</label>
+							<input type="file" name= "image" accept="image/jpeg,image/png" onChange={handleImageUpload} />
+						</div>
+					)}
 					{/* Buttons for canceling or submitting the form */}
 					<div className="form-actions">
 						<button

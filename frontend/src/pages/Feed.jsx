@@ -54,6 +54,8 @@ function Feed() {
 						content={post.content}
 						postId={postId}
 						authorId={authorId}
+						imageSrc={post.image}
+						postVisibility={post.visibility}
 					/>
 				);
 			})}

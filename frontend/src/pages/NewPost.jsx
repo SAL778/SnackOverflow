@@ -11,23 +11,34 @@ const NewPost = () => {
 	const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
 	const handlePostSubmit = async (postData) => {
-		if (!postData.title || !postData.content || !postData.postType) {
+		if (!postData.title || !postData.postType) {
 			return;
 		}
-
-		const dataToSend = {
-			title: postData.title,
-			description: postData.description,
-			contentType: postData.isMarkdown ? "text/markdown" : "text/plain",
-			content: postData.content,
-			visibility: postData.postType.toUpperCase(),
-		};
-
+		let contentType = "text/plain";
+		if (postData.isMarkdown){
+			contentType = "text/markdown";
+		} 
+		else if (postData.isImage){
+			contentType = "image/png;base64";
+		}
+		const dataToSend = new FormData();
+		dataToSend.append("title", postData.title);
+		dataToSend.append("description", postData.description);
+		dataToSend.append("contentType", contentType);
+		if (postData.content){
+			dataToSend.append("content", postData.content);
+		}
+		dataToSend.append("visibility", postData.postType.toUpperCase());
+		if (postData.image){
+			dataToSend.append("image", postData.image || null, postData.image.name); // Only one image for now (to be updated later)
+		}
+		
 		try {
 			const data = await postRequest(
 				`authors/${auth.user.id}/posts/`,
 				//JSON.stringify(dataToSend)
-				dataToSend
+				dataToSend,
+				true
 			);
 			console.log("POST Request Data:", data);
 			setShowSuccessAlert(true);

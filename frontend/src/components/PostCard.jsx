@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
-import { deleteRequest } from "../utils/Requests.jsx";
+import { deleteRequest, getRequest, postRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { Pencil, Trash } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
@@ -20,14 +20,92 @@ function PostCard({
 	authPosts,
 	postId,
 	authorId,
+	postVisibility,
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
-
+	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
+	const serviceUrl = "https://socialapp-api.herokuapp.com";
 	const handleLike = () => {
-		setLikes((prevLikes) => prevLikes + 1);
+		// check if the user has already liked the post
+		let alreadyLiked = false;
+		likesObjet.forEach((like) => {
+			var likedAuthorId = like.author.id.split("/").pop();
+			if (likedAuthorId === auth.user.id) {
+				alreadyLiked = true;
+			}
+			if (alreadyLiked) {
+				console.log("You have already liked this post");
+				return;
+			}
+		});
+		if (!alreadyLiked) {
+			// if not, post a like request
+			//TODO: post the like request
+			console.log(auth.user.displayName, " liked the post-" , auth.user.id);
+
+			let dataToSend = {
+				"type":"inbox",
+				// this is the author of the post
+				"author":`${serviceUrl}/authors/${authorId}`,
+				"items":[
+					{
+						"type":"Like",
+						"summary":`${auth.user.displayName} liked your post`,
+						// this is the author of the like
+						"author":{
+							id: `${serviceUrl}/authors/${auth.user.id}`,
+						},
+						object : `${serviceUrl}/authors/${authorId}/posts/${postId}`
+					}
+				]
+			}
+
+			postRequest(`authors/${authorId}/inbox`, dataToSend, false)
+				.then((response) => {
+					console.log("Like posted successfully");
+					console.log(response);
+					getLikes();
+				})
+				.catch((error) => {
+					console.error("Error posting the like: ", error.message);
+				});	
+		}
 	};
+ 
+// {type: 'likes', items: Array(1)}
+// items
+// : 
+// Array(1)
+// 0
+// : 
+// {type: 'Like', summary: 'Lara Croft Likes your post', author: {…}, post: 'd4feacb5-f8c4-46be-bdf7-da6e2c2f8145', comment: null, …}
+// length
+// : 
+// 1
+// [[Prototype]]
+// : 
+// Array(0)
+// type
+// : 
+// "likes"
+// [[Prototype]]
+// : 
+// Object
+	const getLikes = () =>{
+		// get the likes for the post from doing a get request
+		getRequest(`authors/${authorId}/posts/${postId}/likes`)
+			.then((response) => {
+				console.log("Likes: ", response);
+				setLikes(response.items.length);
+				setLikesObject(response.items);
+			})
+			.catch((error) => {
+				console.error("Error getting likes: ", error.message);
+			});
+	}
+
 	const handleDelete = () => {
 		deleteRequest(`${postId}`) // why is it this url? It works but I don't know why figure it out
 			.then((response) => {
@@ -49,6 +127,11 @@ function PostCard({
 		// redirect to the edit post page later
 		console.log("Edit post");
 	};
+
+	useEffect(() => {
+		console.log("PostCard useEffect");
+		getLikes();
+	}, []);
 
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
@@ -86,7 +169,9 @@ function PostCard({
 					User: {username}
 				</Link>
 			)}
-
+			{postVisibility === "UNLISTED" && 
+				<p>Link: {`${serviceUrl}/profile/${authorId}/posts/${postId}`} </p>
+			}
 			{/* <h1 className="post-header">{title}</h1> */}
 			<h1 className="post-header">
 				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
@@ -98,13 +183,17 @@ function PostCard({
 				<br />
 				{description}
 			</p>
-			<div className="post-content">
-				{contentType === "text/markdown" ? (
-					<ReactMarkdown>{content}</ReactMarkdown>
-				) : (
-					<p>{content}</p>
-				)}
-			</div>
+			{content &&
+				(
+					<div className="post-content">
+						{contentType === "text/markdown" ? (
+							<ReactMarkdown>{content}</ReactMarkdown>
+						) : (
+							<p>{content}</p>
+						)}
+					</div>
+				)
+			}
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
 				<div>
