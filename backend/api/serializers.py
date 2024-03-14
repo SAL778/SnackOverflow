@@ -138,6 +138,7 @@ class CommentSerializer(serializers.ModelSerializer):
         current_url = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments"
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
         data["id"] = f"{current_url}/{instance.id}"
+        data["post"] = PostSerializer(instance.post, context=self.context).data
         return data
 
 class LikeSerializer(serializers.ModelSerializer):
