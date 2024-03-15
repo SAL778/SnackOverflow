@@ -1056,6 +1056,11 @@ def get_and_post_inbox(request, id_author):
             commentData = item.copy()
             commentData["author"] = commentAuthor.id
             commentData["post"] = item.get("post").get("id").split("/")[-1]
+            #increment the comment count in the post
+            
+            post = Post.objects.filter(id=commentData["post"]).first()
+            post.count += 1
+            post.save()
 
             commentSerializer = CommentSerializer(data=commentData, context={'request': request})
             if commentSerializer.is_valid():

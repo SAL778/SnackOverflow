@@ -1,0 +1,29 @@
+.comments-list {
+	background-color: rgb(252, 241, 241);
+	border-radius: 6px;
+	padding: 10px;
+	border: 1px solid #ddd;
+	overflow-y: auto;
+	max-height: 55%;
+	margin: 20px;
+	scrollbar-width: none;
+}
+.comment-card{
+	margin: 20px;
+	padding: 10px;
+	border-radius: 6px;
+	border: 1px solid #ddd;
+	background-color: white;	
+}
+.no-comment-card {
+	text-align: center;
+	margin: 20px;
+	padding: 10px;
+	border-radius: 6px;
+	border: 1px solid #ddd;
+	background-color: white;
+}
+.no-comment-card p {
+	margin: 0;
+	padding: 10px;
+}

@@ -22,6 +22,7 @@ function PostCard({
 	postId,
 	authorId,
 	postVisibility,
+	reload,
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
@@ -45,7 +46,6 @@ function PostCard({
 		});
 		if (!alreadyLiked) {
 			// if not, post a like request
-			//TODO: post the like request
 			console.log(auth.user.displayName, " liked the post-" , auth.user.id);
 
 			let dataToSend = {
@@ -144,6 +144,9 @@ function PostCard({
 					console.log("Comment posted successfully");
 					console.log(response);
 					setClickedComment(false);
+					if(reload){
+						reload();
+					}
 				})
 				.catch((error) => {
 					console.error("Error posting the comment: ", error.message);
