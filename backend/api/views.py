@@ -839,7 +839,9 @@ def get_post_likes(request, id_author, id_post):
     """
     #TODO: get likes from other servers or create a like when it comes to an inbox
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
-    likes = Like.objects.filter(post=post)
+    # get all the likes of the post and the like doesn't have comments
+    likes = Like.objects.filter(post=post, comment=None)
+    
     serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
         "type": "likes",
@@ -915,6 +917,7 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
+    print("Inbox")
     user = request.user
     if(isinstance(user, Author)):
         userId = user.id
@@ -970,6 +973,7 @@ def get_and_post_inbox(request, id_author):
             if objectString is not None or objectString != "":
                 if "comments" in objectString:
                     commentId = objectString.split("/")[-1]
+                    print("commentId: ", commentId)
                     likeData["comment"] = get_object_or_404(Comment, id=commentId).id
                 else:
                     likeData["comment"] = None
@@ -978,6 +982,7 @@ def get_and_post_inbox(request, id_author):
                         postId = objectString.split("/")[-3]
                     else:
                         postId = objectString.split("/")[-1]
+                    print("postId: ", postId)
                     likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1014,16 +1019,8 @@ def get_and_post_inbox(request, id_author):
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
             if followRequest:
-                # # unfollow them
-                # # if the followed_user is in our server do this else send the request
-                # Follower.objects.filter(follower=actorAuthor, followed_user=objectAuthor).delete()
-                # return Response({"details":f"{actorAuthor.display_name} unfollowed {objectAuthor.display_name}"}, status=status.HTTP_200_OK)
                 return Response({"details":f"{actorAuthor.display_name} already follows {objectAuthor.display_name}"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # followingData = {
-            #     "follower": actorAuthor,
-            #     "followed_user": objectAuthor
-            # }
             followRequestData = {
                 "from_user": actorAuthor,
                 "to_user": objectAuthor
@@ -1050,19 +1047,33 @@ def get_and_post_inbox(request, id_author):
                 return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
         
         elif itemType == "comment":
-            # do you want to send the comment to the author of the post
-            commentId = item.get("id").split("/")[-1]
-            if commentId is None:
-                return Response({"details":"comment id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            # I think post will always be in our server
+            # if the post is not in our server then make a request to the server where the post is and send the comment
+
+            commentAuthorId = item.get("author").get("id").split("/")[-1]
+
+            # check if the comment author is in our server
+            commentAuthor = Author.objects.filter(id=commentAuthorId).first()
+            if commentAuthor is None:
+                # do something - create an author copy
+                return
+
+            commentData = item.copy()
+            commentData["author"] = commentAuthor.id
+            commentData["post"] = item.get("post").get("id").split("/")[-1]
+            #increment the comment count in the post
             
-            try:
-                comment = Comment.objects.get(id=commentId)
-                item["post"] = str(comment.post.id)
-                requestData["item"] = item
-                # if the author of the post is not in our domain send the request, else just add the comment to the inbox
-            except Comment.DoesNotExist:
-                return Response({"details":"comment does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-        
+            post = Post.objects.filter(id=commentData["post"]).first()
+            post.count += 1
+            post.save()
+
+            commentSerializer = CommentSerializer(data=commentData, context={'request': request})
+            if commentSerializer.is_valid():
+                commentSerializer.save()
+                requestData["item"] =  commentSerializer.data
+            else:
+                print(commentSerializer.errors)
+                return Response(commentSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"details":"item type is required and should be one of post, comment, like, follow"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1072,6 +1083,9 @@ def get_and_post_inbox(request, id_author):
         if inboxSerializer.is_valid():
             inboxSerializer.save()
             return Response(inboxSerializer.data, status=status.HTTP_201_CREATED)
+        print(requestData["item"])
+        print("inboxSerializer.errors")
+        print(inboxSerializer.errors)
         return Response(inboxSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
     if request.method == 'DELETE':

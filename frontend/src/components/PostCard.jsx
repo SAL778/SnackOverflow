@@ -6,6 +6,7 @@ import { Pencil, Trash } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import "./PostCard.css";
 import Alert from "@mui/material/Alert";
+import MakeCommentCard from "./MakeCommentCard.jsx";
 
 function PostCard({
 	username,
@@ -21,12 +22,15 @@ function PostCard({
 	postId,
 	authorId,
 	postVisibility,
+	reload,
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
+	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
 	const serviceUrl = "https://socialapp-api.herokuapp.com";
+	
 	const handleLike = () => {
 		// check if the user has already liked the post
 		let alreadyLiked = false;
@@ -42,7 +46,6 @@ function PostCard({
 		});
 		if (!alreadyLiked) {
 			// if not, post a like request
-			//TODO: post the like request
 			console.log(auth.user.displayName, " liked the post-" , auth.user.id);
 
 			let dataToSend = {
@@ -73,26 +76,7 @@ function PostCard({
 				});	
 		}
 	};
- 
-// {type: 'likes', items: Array(1)}
-// items
-// : 
-// Array(1)
-// 0
-// : 
-// {type: 'Like', summary: 'Lara Croft Likes your post', author: {…}, post: 'd4feacb5-f8c4-46be-bdf7-da6e2c2f8145', comment: null, …}
-// length
-// : 
-// 1
-// [[Prototype]]
-// : 
-// Array(0)
-// type
-// : 
-// "likes"
-// [[Prototype]]
-// : 
-// Object
+
 	const getLikes = () =>{
 		// get the likes for the post from doing a get request
 		getRequest(`authors/${authorId}/posts/${postId}/likes`)
@@ -127,6 +111,56 @@ function PostCard({
 		// redirect to the edit post page later
 		console.log("Edit post");
 	};
+
+	const handleComment = () => {
+		setClickedComment(true);
+	}
+
+	const handleCommentSubmit = async (commentData) => {
+		if(!commentData.comment){
+			return;
+		}
+		let dataToSend = {
+			"type":"inbox",
+			"author":`${serviceUrl}/authors/${authorId}`,
+			"items":[
+				{
+					"type":"Comment",
+					"author":{
+						id: `${serviceUrl}/authors/${auth.user.id}`,
+					},
+					"comment": commentData.comment,
+					"contentType":"text/markdown",
+					"post":{
+						id: `${serviceUrl}/authors/${authorId}/posts/${postId}}`
+					}
+				}
+			]
+		}
+		try{
+			// post the comment request
+			postRequest(`authors/${authorId}/inbox`, dataToSend, false)
+				.then((response) => {
+					console.log("Comment posted successfully");
+					console.log(response);
+					setClickedComment(false);
+					if(reload){
+						reload();
+					}
+				})
+				.catch((error) => {
+					console.error("Error posting the comment: ", error.message);
+				});
+		}
+		catch (error) {
+			console.log("ERROR: ", error);
+		}
+	}
+	
+	const handleCommentCancel = () => {
+		setClickedComment(false);
+		console.log("Comment creation canceled");
+	}
 
 	useEffect(() => {
 		console.log("PostCard useEffect");
@@ -198,9 +232,14 @@ function PostCard({
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
 				<div>
 					<button>Share</button>
-					<button>Comment</button>
+					<button onClick={handleComment}>Comment</button>
 				</div>
 			</div>
+			{clickedComment && (
+				<div className="new-comment-card">
+					<MakeCommentCard onSubmit={handleCommentSubmit} onCancel={handleCommentCancel} />
+				</div>
+			)}
 		</div>
 	);
 }
