@@ -915,6 +915,7 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
+    print("Inbox")
     user = request.user
     if(isinstance(user, Author)):
         userId = user.id
@@ -970,6 +971,7 @@ def get_and_post_inbox(request, id_author):
             if objectString is not None or objectString != "":
                 if "comments" in objectString:
                     commentId = objectString.split("/")[-1]
+                    print("commentId: ", commentId)
                     likeData["comment"] = get_object_or_404(Comment, id=commentId).id
                 else:
                     likeData["comment"] = None
@@ -978,6 +980,7 @@ def get_and_post_inbox(request, id_author):
                         postId = objectString.split("/")[-3]
                     else:
                         postId = objectString.split("/")[-1]
+                    print("postId: ", postId)
                     likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)

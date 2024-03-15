@@ -44,7 +44,7 @@ function CommentCard({
                         "author":{
                             id: `${serviceUrl}/authors/${auth.user.id}`,
                         },
-                        object : `${serviceUrl}/authors/${authorId}/posts/${postId}/comments/${comment.id}`
+                        object : `${serviceUrl}/authors/${authorId}/posts/${postId}/comments/${commentId}`
                     }
                 ]
             }
@@ -61,7 +61,7 @@ function CommentCard({
     };
 
     const getLikes = () =>{
-        getRequest(`authors/${authorId}/posts/${postId}/comments/${comment.id}/likes`)
+        getRequest(`authors/${authorId}/posts/${postId}/comments/${commentId}/likes`)
             .then((response) => {
                 console.log("Likes: ", response);
                 setLikes(response.items.length);
@@ -72,9 +72,10 @@ function CommentCard({
             });
     }
 
-    // useEffect(() => {
-    //     getLikes();
-    // }, []);
+    useEffect(() => {
+        console.log("Getting comment likes");
+        getLikes();
+    }, []);
 
     return (
         <div className="comment-card">
@@ -84,9 +85,9 @@ function CommentCard({
             </div>
             <div className="comment-card-content">
                 {contentType === "text/markdown" ? (
-					<ReactMarkdown>{content}</ReactMarkdown>
+					<ReactMarkdown>{comment}</ReactMarkdown>
 				) : (
-                    <p>{content}</p>
+                    <p>{comment}</p>
 				)}
             </div>
             <div className="comment-card-likes">
