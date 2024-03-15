@@ -839,7 +839,9 @@ def get_post_likes(request, id_author, id_post):
     """
     #TODO: get likes from other servers or create a like when it comes to an inbox
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
-    likes = Like.objects.filter(post=post)
+    # get all the likes of the post and the like doesn't have comments
+    likes = Like.objects.filter(post=post, comment=None)
+    
     serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
         "type": "likes",
