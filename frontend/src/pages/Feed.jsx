@@ -5,6 +5,8 @@ import { getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { useEffect, useState } from "react";
 import NotificationBar from "../components/Notifbar.jsx";
+import {pollGithub} from "../utils/Github.jsx";
+
 
 // For the .map() method:
 // https://legacy.reactjs.org/docs/lists-and-keys.html
@@ -26,8 +28,20 @@ function Feed() {
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);
-			});
+			})
+		// start polling if the browser has not done so already
+		if (localStorage.getItem("polling") === "false") {
+			localStorage.setItem("polling", "true");
+			const timeout = 300000;
+			// polling will run every 5 minutes until the user logs out
+			console.log("polling triggered");
+			setTimeout(() => {
+				pollGithub(auth.user.github, auth.user.displayName, auth.user.id);
+			}, timeout);
+		}
+		
 	}, []);
+	
 
 	return (
 		<div className="feed-container">

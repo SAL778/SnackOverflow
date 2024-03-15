@@ -42,7 +42,7 @@ function ProfileCard({
 	}
 
 	//API METHODS BEGIN
-
+	// TODO author needs to be full URL from author object, not just ID
 	const follow = (authorUUID, followerUUID) => {
 		var dataToSend = {
 			type: "inbox",

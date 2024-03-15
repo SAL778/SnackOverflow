@@ -52,6 +52,7 @@ export const AuthProvider = ({ children }) => {
 
 			localStorage.setItem("user", JSON.stringify(response));
 			localStorage.setItem("isLoggedIn", "true");
+			localStorage.setItem("polling", "false");
 
 			return new Promise((resolve) => {
 				resolve(true);
@@ -74,6 +75,7 @@ export const AuthProvider = ({ children }) => {
 			localStorage.removeItem("user");
 			// localStorage.removeItem("userId");
 			localStorage.setItem("isLoggedIn", "false");
+			localStorage.setItem("polling", "false");
 		} catch (error) {
 			console.error("Error logging out:", error);
 		}
