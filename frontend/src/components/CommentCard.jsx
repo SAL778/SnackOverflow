@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import { getRequest, postRequest } from "../utils/Requests";
 import { useAuth } from "../utils/Auth";
 import "./CommentCard.css";
+import ReactMarkdown from "react-markdown";
 
 function CommentCard({
     username,
@@ -82,7 +83,11 @@ function CommentCard({
                 <div className="comment-card-date">Date: {date}</div>
             </div>
             <div className="comment-card-content">
-                {comment}
+                {contentType === "text/markdown" ? (
+					<ReactMarkdown>{content}</ReactMarkdown>
+				) : (
+                    <p>{content}</p>
+				)}
             </div>
             <div className="comment-card-likes">
                 <button onClick={handleLike}>Likes: {likes} 👍</button>

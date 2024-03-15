@@ -130,7 +130,7 @@ function PostCard({
 						id: `${serviceUrl}/authors/${auth.user.id}`,
 					},
 					"comment": commentData.comment,
-					"contentType":"text/plain",
+					"contentType":"text/markdown",
 					"post":{
 						id: `${serviceUrl}/authors/${authorId}/posts/${postId}}`
 					}
