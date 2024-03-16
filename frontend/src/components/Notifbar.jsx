@@ -6,6 +6,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { Link } from "react-router-dom";
+import { extractUUID } from "../utils/Auth.jsx";
 
 const followType = "follow";
 const commentType = "comment";
@@ -18,6 +19,10 @@ const theme = createTheme({
 });
 
 function Notifications() {
+	// const authorId = post.author.id.split("/").slice(-1)[0]; // extract the author's id
+
+	// const postId = post.id.split("/").slice(-1)[0]; // extract the post's id
+
 	const auth = useAuth();
 	const [notifs, setNotifs] = React.useState(null);
 
@@ -45,6 +50,7 @@ function Notifications() {
 			const keyIndex = inbox.indexOf(object);
 			if (object.type.toLowerCase() === followType) {
 				var author = object.actor;
+				var authorId = extractUUID(author.url);
 				allNotifs.push(
 					// TODO: these a elements need to be changed to Link elements
 					<div
@@ -53,7 +59,7 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								href={author.url}
+								to={`/profile/${authorId}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
@@ -64,6 +70,7 @@ function Notifications() {
 				);
 			} else if (object.type === likeType) {
 				var author = object.author;
+				var authorId = extractUUID(author.url);
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -71,7 +78,7 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								href={author.url}
+								to={`/profile/${authorId}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
@@ -89,6 +96,7 @@ function Notifications() {
 				);
 			} else if (object.type === commentType) {
 				var author = object.author;
+				var authorId = extractUUID(author.url);
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -96,7 +104,7 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								href={author.url}
+								to={`/profile/${authorId}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
