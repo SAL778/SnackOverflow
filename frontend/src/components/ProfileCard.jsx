@@ -42,25 +42,25 @@ function ProfileCard({
 	}
 
 	//API METHODS BEGIN
-
+	// TODO author needs to be full URL from author object, not just ID
 	const follow = (authorUUID, followerUUID) => {
-		var dataToSend = {		
-			"type":"inbox",
-			"author":`http://127.0.0.1:5454/authors/${authorUUID}`,
-			"items":[
-				{		
-					"type": "Follow",
-					"actor":{
-						"type":"author",
-						"id":`http://127.0.0.1:5454/authors/${followerUUID}`,
+		var dataToSend = {
+			type: "inbox",
+			author: `http://127.0.0.1:5454/authors/${authorUUID}`,
+			items: [
+				{
+					type: "Follow",
+					actor: {
+						type: "author",
+						id: `http://127.0.0.1:5454/authors/${followerUUID}`,
 					},
-					"object":{
-						"type":"author",
-						"id":`http://127.0.0.1:5454/authors/${authorUUID}`,
-					}
-				}
-			]
-		}
+					object: {
+						type: "author",
+						id: `http://127.0.0.1:5454/authors/${authorUUID}`,
+					},
+				},
+			],
+		};
 		postRequest(`authors/${authorUUID}/inbox`, dataToSend)
 			.then((data) => {
 				console.log("Follow Req POSTed.");

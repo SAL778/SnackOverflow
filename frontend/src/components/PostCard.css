@@ -5,7 +5,7 @@
 	border-radius: 8px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	width: 800px; /* Fixed width */
-	height: 80000px; /* Fixed height */
+	/* height: 600px; Fixed height */
 	display: flex;
 	flex-direction: column;
 }
@@ -115,4 +115,13 @@
 	color: #666;
 	margin-left: 0;
 	margin-right: 0;
+}
+
+.new-comment-card {
+	margin: 24px;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	width: 700px; /* Fixed width */
+	background-color: lightgray;
 }

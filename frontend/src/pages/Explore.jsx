@@ -37,6 +37,10 @@ function Explore() {
 				).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
 				// String.padStart(2, "0") is used to ensure the month and day are always two digits long
 
+				const authorId = post.author.id.split("/").slice(-1)[0]; // extract the author's id
+
+				const postId = post.id.split("/").slice(-1)[0]; // extract the post's id
+
 				return (
 					<PostCard
 						key={post.id}
@@ -46,8 +50,11 @@ function Explore() {
 						description={post.description}
 						contentType={post.contentType}
 						content={post.content}
-						postId={post.id}
-						sharedBy={post.sharedBy}
+						postId={postId}
+            sharedBy={post.sharedBy}
+						authorId={authorId}
+						imageSrc={post.image}
+						postVisibility={post.visibility}
 					/>
 				);
 			})}

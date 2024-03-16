@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from .models import Author, Follower, FollowRequest, Post, Comment, Like, Inbox
@@ -13,6 +13,7 @@ import requests, json, os
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
+from rest_framework.parsers import FormParser, MultiPartParser
 
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -511,6 +512,7 @@ def get_all_friends_follows_posts(request):
         responses={201: "Created", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
 )
 @api_view(['GET', 'POST'])
+@parser_classes([MultiPartParser, FormParser])
 def get_and_create_post(request, id_author):
     """
     Get all posts by a single author or create a new post
@@ -565,19 +567,34 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
+        print("Here")
+        print(request)
+        print("request.data:")
+        print(request.data)
+        # requestData = dict(request.data)
+        requestData = request.data
+        # REQUest data is query dict
+        # if the image is a url then store the url in the image field
+        image = request.data.get("image")
+        # check if the image type is strin
+        
+        if(not (image is None) and (type(image) == "str") and image.startswith("http")):
+            print("inside if imageURL")
+            requestData["image"] = None
+            requestData["image_url"] = request.data.get("image")
 
-        requestData = dict(request.data)
         #requestData = json.loads(requestData)
         #print("Data: ",requestData, type(requestData))
 
-        if(requestData.get("origin") is None):
-            requestData["origin"] = ""
+        # if(requestData.get("origin") is None):
+        #     requestData["origin"] = ""
 
-        if(requestData.get("source") is None):
-            requestData["source"] = ""
+        # if(requestData.get("source") is None):
+        #     requestData["source"] = ""
 
         serializer = PostSerializer(data=requestData, context={'request': request})
-
+        print("Here2")
+        print(serializer)
         if serializer.is_valid():
             serializer.save(author=author)
             # send the serializer.data (post) to the inbox of the author's followers
@@ -820,9 +837,12 @@ def get_post_likes(request, id_author, id_post):
     """
     Get all likes of a single post
     """
+    #TODO: get likes from other servers or create a like when it comes to an inbox
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
-    likes = Like.objects.filter(post=post)
-    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    # get all the likes of the post and the like doesn't have comments
+    likes = Like.objects.filter(post=post, comment=None)
+    
+    serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
         "type": "likes",
         "items": serializer.data,
@@ -842,7 +862,7 @@ def get_comment_likes(request, id_author, id_post, id_comment):
     """
     comment = get_object_or_404(Comment, id=id_comment, post__id=id_post, post__author__id=id_author)
     likes = Like.objects.filter(comment=comment)
-    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
         "type": "likes",
         "items": serializer.data,
@@ -897,6 +917,7 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
+    print("Inbox")
     user = request.user
     if(isinstance(user, Author)):
         userId = user.id
@@ -952,11 +973,16 @@ def get_and_post_inbox(request, id_author):
             if objectString is not None or objectString != "":
                 if "comments" in objectString:
                     commentId = objectString.split("/")[-1]
+                    print("commentId: ", commentId)
                     likeData["comment"] = get_object_or_404(Comment, id=commentId).id
                 else:
                     likeData["comment"] = None
                 if "posts" in objectString:
-                    postId = objectString.split("/")[-1]
+                    if "comments" in objectString:
+                        postId = objectString.split("/")[-3]
+                    else:
+                        postId = objectString.split("/")[-1]
+                    print("postId: ", postId)
                     likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
@@ -969,6 +995,7 @@ def get_and_post_inbox(request, id_author):
                 likeExists = Like.objects.filter(author=likeAuthor, post=likeData["post"]).exists()
             
             if likeExists:
+                # unlike them
                 return Response({"details":"like already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             likeSerializer = LikeSerializer(data=likeData, context={'request': request})
@@ -992,16 +1019,8 @@ def get_and_post_inbox(request, id_author):
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
             if followRequest:
-                # # unfollow them
-                # # if the followed_user is in our server do this else send the request
-                # Follower.objects.filter(follower=actorAuthor, followed_user=objectAuthor).delete()
-                # return Response({"details":f"{actorAuthor.display_name} unfollowed {objectAuthor.display_name}"}, status=status.HTTP_200_OK)
                 return Response({"details":f"{actorAuthor.display_name} already follows {objectAuthor.display_name}"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # followingData = {
-            #     "follower": actorAuthor,
-            #     "followed_user": objectAuthor
-            # }
             followRequestData = {
                 "from_user": actorAuthor,
                 "to_user": objectAuthor
@@ -1028,19 +1047,33 @@ def get_and_post_inbox(request, id_author):
                 return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
         
         elif itemType == "comment":
-            # do you want to send the comment to the author of the post
-            commentId = item.get("id").split("/")[-1]
-            if commentId is None:
-                return Response({"details":"comment id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            # I think post will always be in our server
+            # if the post is not in our server then make a request to the server where the post is and send the comment
+
+            commentAuthorId = item.get("author").get("id").split("/")[-1]
+
+            # check if the comment author is in our server
+            commentAuthor = Author.objects.filter(id=commentAuthorId).first()
+            if commentAuthor is None:
+                # do something - create an author copy
+                return
+
+            commentData = item.copy()
+            commentData["author"] = commentAuthor.id
+            commentData["post"] = item.get("post").get("id").split("/")[-1]
+            #increment the comment count in the post
             
-            try:
-                comment = Comment.objects.get(id=commentId)
-                item["post"] = str(comment.post.id)
-                requestData["item"] = item
-                # if the author of the post is not in our domain send the request, else just add the comment to the inbox
-            except Comment.DoesNotExist:
-                return Response({"details":"comment does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-        
+            post = Post.objects.filter(id=commentData["post"]).first()
+            post.count += 1
+            post.save()
+
+            commentSerializer = CommentSerializer(data=commentData, context={'request': request})
+            if commentSerializer.is_valid():
+                commentSerializer.save()
+                requestData["item"] =  commentSerializer.data
+            else:
+                print(commentSerializer.errors)
+                return Response(commentSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"details":"item type is required and should be one of post, comment, like, follow"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1050,6 +1083,9 @@ def get_and_post_inbox(request, id_author):
         if inboxSerializer.is_valid():
             inboxSerializer.save()
             return Response(inboxSerializer.data, status=status.HTTP_201_CREATED)
+        print(requestData["item"])
+        print("inboxSerializer.errors")
+        print(inboxSerializer.errors)
         return Response(inboxSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
     if request.method == 'DELETE':

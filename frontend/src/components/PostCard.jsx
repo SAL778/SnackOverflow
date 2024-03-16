@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
 import { deleteRequest, postRequest, getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
@@ -6,6 +6,7 @@ import { Pencil, Trash } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import "./PostCard.css";
 import Alert from "@mui/material/Alert";
+import MakeCommentCard from "./MakeCommentCard.jsx";
 
 function PostCard({
 	username,
@@ -19,17 +20,78 @@ function PostCard({
 	setAuthPosts,
 	authPosts,
 	postId,
-	sharedBy=""
+	sharedBy="",
+	authorId,
+	postVisibility,
+	reload,
 }) {
-	const [likes, setLikes] = useState(0); // DUMMY DATA
+	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
-
 	const [postVisibility, setPostVisibility] = useState("INITIAL");
-
+	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
+	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
+	const serviceUrl = "https://socialapp-api.herokuapp.com";
+  
 	const handleLike = () => {
-		setLikes((prevLikes) => prevLikes + 1);
+		// check if the user has already liked the post
+		let alreadyLiked = false;
+		likesObjet.forEach((like) => {
+			var likedAuthorId = like.author.id.split("/").pop();
+			if (likedAuthorId === auth.user.id) {
+				alreadyLiked = true;
+			}
+			if (alreadyLiked) {
+				console.log("You have already liked this post");
+				return;
+			}
+		});
+		if (!alreadyLiked) {
+			// if not, post a like request
+			console.log(auth.user.displayName, " liked the post-" , auth.user.id);
+
+			let dataToSend = {
+				"type":"inbox",
+				// this is the author of the post
+				"author":`${serviceUrl}/authors/${authorId}`,
+				"items":[
+					{
+						"type":"Like",
+						"summary":`${auth.user.displayName} liked your post`,
+						// this is the author of the like
+						"author":{
+							id: `${serviceUrl}/authors/${auth.user.id}`,
+						},
+						object : `${serviceUrl}/authors/${authorId}/posts/${postId}`
+					}
+				]
+			}
+
+			postRequest(`authors/${authorId}/inbox`, dataToSend, false)
+				.then((response) => {
+					console.log("Like posted successfully");
+					console.log(response);
+					getLikes();
+				})
+				.catch((error) => {
+					console.error("Error posting the like: ", error.message);
+				});	
+		}
 	};
+
+	const getLikes = () =>{
+		// get the likes for the post from doing a get request
+		getRequest(`authors/${authorId}/posts/${postId}/likes`)
+			.then((response) => {
+				console.log("Likes: ", response);
+				setLikes(response.items.length);
+				setLikesObject(response.items);
+			})
+			.catch((error) => {
+				console.error("Error getting likes: ", error.message);
+			});
+	}
+
 	const handleDelete = () => {
 		deleteRequest(`${postId}`) // why is it this url? It works but I don't know why figure it out
 			.then((response) => {
@@ -91,6 +153,60 @@ function PostCard({
 
 	console.log("THIS POST'S SHARE VISIBILITY IN FUNCTION",postVisibility);
 
+	const handleComment = () => {
+		setClickedComment(true);
+	}
+
+	const handleCommentSubmit = async (commentData) => {
+		if(!commentData.comment){
+			return;
+		}
+		let dataToSend = {
+			"type":"inbox",
+			"author":`${serviceUrl}/authors/${authorId}`,
+			"items":[
+				{
+					"type":"Comment",
+					"author":{
+						id: `${serviceUrl}/authors/${auth.user.id}`,
+					},
+					"comment": commentData.comment,
+					"contentType":"text/markdown",
+					"post":{
+						id: `${serviceUrl}/authors/${authorId}/posts/${postId}}`
+					}
+				}
+			]
+		}
+		try{
+			// post the comment request
+			postRequest(`authors/${authorId}/inbox`, dataToSend, false)
+				.then((response) => {
+					console.log("Comment posted successfully");
+					console.log(response);
+					setClickedComment(false);
+					if(reload){
+						reload();
+					}
+				})
+				.catch((error) => {
+					console.error("Error posting the comment: ", error.message);
+				});
+		}
+		catch (error) {
+			console.log("ERROR: ", error);
+		}
+	}
+	
+	const handleCommentCancel = () => {
+		setClickedComment(false);
+		console.log("Comment creation canceled");
+	}
+
+	useEffect(() => {
+		console.log("PostCard useEffect");
+		getLikes();
+	}, []);
 
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
@@ -123,19 +239,27 @@ function PostCard({
 					</button>
 				</div>
 			)}
+      
 			{!profilePage && (sharedBy === "") && (
-				<a href="/profile" className="username">
+				<Link to={`/profile/${authorId}`} className="username">
 					User: {username}
-				</a>
+				</Link>
 			)}
-
-			{(!(sharedBy === "")) && (
+      {(!(sharedBy === "")) && (
 				<a href="/profile" className="username">
 					Shared By: {sharedBy}
 				</a>
 			)}
+      
+			{postVisibility === "UNLISTED" && 
+				<p>Link: {`${serviceUrl}/profile/${authorId}/posts/${postId}`} </p>
+			}
+			{/* <h1 className="post-header">{title}</h1> */}
+			<h1 className="post-header">
+				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
+			</h1>
+      
 
-			<h1 className="post-header">{title}</h1>
 			<span className="post-date">Date: {date}</span>
 			{imageSrc && <img src={imageSrc} alt="Post" />}
 			<p className="post-description">
@@ -143,17 +267,22 @@ function PostCard({
 				<br />
 				{description}
 			</p>
-			<div className="post-content">
-				{contentType === "text/markdown" ? (
-					<ReactMarkdown>{content}</ReactMarkdown>
-				) : (
-					<p>{content}</p>
-				)}
-			</div>
+			{content &&
+				(
+					<div className="post-content">
+						{contentType === "text/markdown" ? (
+							<ReactMarkdown>{content}</ReactMarkdown>
+						) : (
+							<p>{content}</p>
+						)}
+					</div>
+				)
+			}
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
 
 				<div>
+       
 					{(postVisibility === "PUBLIC") && 
 						<div>
 							{(<button onClick={handleShare}>Share</button>)}
@@ -161,6 +290,11 @@ function PostCard({
 					<button>Comment</button>
 				</div>
 			</div>
+			{clickedComment && (
+				<div className="new-comment-card">
+					<MakeCommentCard onSubmit={handleCommentSubmit} onCancel={handleCommentCancel} />
+				</div>
+			)}
 		</div>
 	);
 }
