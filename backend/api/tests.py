@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.core import serializers
 from django.urls import reverse
 import json
@@ -6,6 +6,10 @@ import json
 from .models import Author, Post, Comment, Like, Inbox, FollowRequest, Follower
 
 # Create your tests here.
+
+def set_active(author):
+    setattr(author, "is_active", True)
+    author.save()
 
 def create_author(email, name, github, image, password):
     """
@@ -32,20 +36,17 @@ def create_follow_request(follower, followee):
     """
     return FollowRequest.objects.create(from_user=follower, to_user=followee)
 
-def create_comment(author, comment, content_type, post):
-    print("no comment test yet")
+def create_comment(author, comment, post, content_type="type/markdown"):
+    """ 
+    creates a comment object given a post
+    """
+    return Comment.objects.create(author=author, comment=comment, contentType=content_type, post=post)
 
 def create_like(summary, author, post, object):
     """
     creates an like object for either a post or a comment
     """
     return Like.objects.create(summary=summary, author=author, post=post, object=object)
-
-def create_inbox(author, item):
-    """
-
-    """
-    return Inbox.objects.create(author=author, item=item)
 
 def create_follower(follower, followee):
     """
@@ -65,6 +66,10 @@ class UserCreation(TestCase):
         # create the user, login, and check if user is in authors list of server
         response = self.client.post(reverse("api:register"), user)
         self.assertEqual(response.status_code, 201)
+        # allow the user to be active via admin command
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
+        # LOGIN
         response = self.client.post(reverse("api:login"), user)
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse("api:get_authors"))
@@ -85,6 +90,10 @@ class UserCreation(TestCase):
         # create the user, login, and check if user is in authors list of server
         response = self.client.post(reverse("api:register"), user)
         self.assertEqual(response.status_code, 201)
+        # allow the user to be active via admin command
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
+        # LOGIN
         response = self.client.post(reverse("api:login"), user)
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse("api:get_authors"))
@@ -107,9 +116,14 @@ class UserCreation(TestCase):
         """
         # create two users
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        # allow the user to be active via admin command
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
+        author = Author.objects.get(display_name="test1 user1")
+        set_active(author)
 
         # login as user 1 and test the authors endpoint
         self.client.post(reverse("api:login"), user1)
@@ -134,15 +148,18 @@ class UserCreation(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
         self.client.post(reverse("api:login"), user)
 
         # test authentication and retrieval of user information
         response =self.client.get(reverse("api:user"))
         self.assertEqual(response.status_code, 200)
         result = json.loads(response.content)
-        object = result["user"]
-        assert user["display_name"] == object["displayName"]
-        assert user["github"] == object["github"]
+        assert user["display_name"] == result["displayName"]
+        assert user["github"] == result["github"]
+
+    # def test_github_field(self):
 
     # TODO: part 2 since no likes
     # def test_get_liked(self):
@@ -157,10 +174,10 @@ class PostCreation(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
         self.client.post(reverse("api:login"), user)
 
-        # retrieve author info
-        author = Author.objects.get(display_name="test user")
         # create the object 
         post = create_post("test title", '', '', "test description", "text/plain", "test content", author, "0", "", "PUBLIC" )
 
@@ -188,10 +205,11 @@ class PostCreation(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
+        author_object = Author.objects.get(display_name="test user")
+        set_active(author_object)
         self.client.post(reverse("api:login"), user)
 
         # retrieve author info
-        author_object = Author.objects.get(display_name="test user")
         response = self.client.get(reverse("api:get_authors"))
         result = json.loads(response.content)
         author = result["items"][0]
@@ -212,7 +230,8 @@ class PostCreation(TestCase):
             "published": "",
             "visibility": "PUBLIC"
         }
-        response = self.client.post(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}), json.dumps(post), content_type="application/json")
+        response = self.client.post(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}), json.dumps(post), content_type="application/vnd.api+json")
+        print(response.content)
         self.assertEqual(response.status_code, 201)
 
         # pull posts from endpoint
@@ -240,10 +259,10 @@ class PostCreation(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
         self.client.post(reverse("api:login"), user)
 
-        # retrieve author info
-        author = Author.objects.get(display_name="test user")
         # create the object internally (not with api)
         post = create_post("test title", '', '', "# this is a header", "text/markdown", "test content", author, "0", "", "PUBLIC" )
 
@@ -271,10 +290,9 @@ class PostCreation(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
-        self.client.post(reverse("api:login"), user)
-
-        # retrieve author info
         author = Author.objects.get(display_name="test user")
+        set_active(author)
+        self.client.post(reverse("api:login"), user)
         # create the object internally (not with api)
         post = create_post("test title", '', '', "friends only", "text/plain", "test content", author, "0", "", "FRIENDS" )
 
@@ -302,10 +320,11 @@ class PostCreation(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
         self.client.post(reverse("api:login"), user)
 
         # retrieve author info
-        author = Author.objects.get(display_name="test user")
         # create the object internally (not with api)
         post = create_post("test title", '', '', "test description", "text/plain", "test content", author, "0", "", "public" )
         response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}))
@@ -328,9 +347,10 @@ class PostCreation(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
         self.client.post(reverse("api:login"), user)
 
-        author = Author.objects.get(display_name="test user")
         # create the object and attempt to delete
         post = create_post("test title", '', '', "test description", "text/plain", "test content", author, "0", "", "public" )
         response = self.client.delete(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}))
@@ -350,13 +370,16 @@ class FeedTests(TestCase):
         """
         # create users and login as user1
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1 = Author.objects.get(display_name="test user")
+        set_active(author1)
+        author2 = Author.objects.get(display_name="test1 user1")
+        set_active(author2)
         self.client.post(reverse("api:login"), user1)
 
         # create public posts as user1, log out
-        author1 = Author.objects.get(display_name="test user")
         post1 = create_post("test title", '', '', "test description", "text/plain", "test content", author1, "0", "", "PUBLIC" )
         post11 = create_post("another", '', '', "description", "text/plain", "wow", author1, "0", "", "PUBLIC" )
         post111 = create_post("another", '', '', "description", "text/plain", "wow", author1, "0", "", "UNLISTED" )
@@ -364,7 +387,6 @@ class FeedTests(TestCase):
 
         # login as user 2, create public post, and get posts from public endpoint
         self.client.post(reverse("api:login"), user2)   
-        author2 = Author.objects.get(display_name="test1 user1")
         post2 = create_post("nice", '', '', "nice", "text/plain", "nice content", author2, "0", "", "PUBLIC" )
         response = self.client.get(reverse("api:get_all_public_posts"))
         self.assertEqual(response.status_code, 200)
@@ -383,10 +405,11 @@ class FeedTests(TestCase):
         """
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
         self.client.post(reverse("api:login"), user)
 
         # retrieve author info and create posts through model creation, oldest post to most recent
-        author = Author.objects.get(display_name="test user")
         post1 = create_post("test public", '', '', "1 description", "text/plain", "test content", author, "0", "", "PUBLIC" )
         post2 = create_post("test friends", '', '', "2 description", "text/plain", "test content", author, "0", "", "FRIENDS" )
         post3 = create_post("test unlisted", '', '', "3 description", "text/plain", "test content", author, "0", "", "UNLISTED" )
@@ -411,13 +434,16 @@ class FeedTests(TestCase):
         """
         # create users and login as user1
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1 = Author.objects.get(display_name="test user")
+        set_active(author1)
+        author2 = Author.objects.get(display_name="test1 user1")
+        set_active(author2)
         self.client.post(reverse("api:login"), user1)
 
         # create a few posts
-        author2 = Author.objects.get(display_name="test1 user1")
         post1 = create_post("test title", '', '', "friends only", "text/plain", "test content", author2, "0", "", "FRIENDS" )
         post2 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
 
@@ -443,13 +469,15 @@ class FeedTests(TestCase):
             test getting personalized feed in order
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1 = Author.objects.get(display_name="test user")
+        set_active(author1)
+        author2 = Author.objects.get(display_name="test1 user1")
+        set_active(author2)
         self.client.post(reverse("api:login"), user1)
 
-        author1 = Author.objects.get(display_name="test1 user1")
-        author2 = Author.objects.get(display_name="test1 user1")
         follwer = create_follower(author1, author2)
         post1 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
         post1 = create_post("test title", '', '', "public", "text/plain", "test content", author2, "0", "", "PUBLIC" )
@@ -466,12 +494,14 @@ class FeedTests(TestCase):
         """
         # create users and login as user1
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
 
         author1_obj = Author.objects.get(display_name="test user")
         author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
 
         # make each user a follower of each other
         follower_user1 = create_follower(author1_obj, author2_obj)
@@ -504,15 +534,16 @@ class FollowingandFollowers(TestCase):
             test getting followers
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
         self.client.post(reverse("api:login"), user2)
 
         # make author 1 an follower of author 2 via call methods
-        author1_obj = Author.objects.get(display_name="test user")
-        author2_obj = Author.objects.get(display_name="test1 user1")
-
         follower = create_follower(author1_obj, author2_obj)
 
         # check if author 1 is follower
@@ -530,14 +561,14 @@ class FollowingandFollowers(TestCase):
             test getting following
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
-        self.client.post(reverse("api:login"), user1)
-
-        # make author 1 an follower of author 2 via call methods
         author1_obj = Author.objects.get(display_name="test user")
         author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
+        self.client.post(reverse("api:login"), user1)
 
         # make and now check the following list of author 1
         follower = create_follower(author1_obj, author2_obj)
@@ -556,14 +587,14 @@ class FollowingandFollowers(TestCase):
             test getting friends
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
-        self.client.post(reverse("api:login"), user1)
-
-        # make author 1 an follower of author 2 via call methods
         author1_obj = Author.objects.get(display_name="test user")
         author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
+        self.client.post(reverse("api:login"), user1)
 
         # make each user a follower of each other
         follower_user1 = create_follower(author1_obj, author2_obj)
@@ -596,14 +627,16 @@ class RequestTests(TestCase):
             accept a follow request from a user
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
         self.client.post(reverse("api:login"), user1)
 
         # author 1 sends a request to author two
-        author1_obj = Author.objects.get(display_name="test user")
-        author2_obj = Author.objects.get(display_name="test1 user1")
         request = create_follow_request(author1_obj, author2_obj)
 
         self.client.post(reverse("api:logout"), user1)
@@ -633,14 +666,16 @@ class RequestTests(TestCase):
             deny a follow request from a user
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
         self.client.post(reverse("api:login"), user1)
 
         # author 1 sends a request to author two
-        author1_obj = Author.objects.get(display_name="test user")
-        author2_obj = Author.objects.get(display_name="test1 user1")
         request = create_follow_request(author1_obj, author2_obj)
 
         self.client.post(reverse("api:logout"), user1)
@@ -666,12 +701,13 @@ class RequestTests(TestCase):
             make two users friends of each other
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
-
         author1_obj = Author.objects.get(display_name="test user")
         author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
 
         # make follow requests for each user to each other
         request1 = create_follow_request(author1_obj, author2_obj)
@@ -722,12 +758,14 @@ class RequestTests(TestCase):
         """
         # create users
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
 
         author1_obj = Author.objects.get(display_name="test user")
         author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
 
         # make each user a follower of each other (friends)
         follower_user1 = create_follower(author1_obj, author2_obj)
@@ -767,14 +805,16 @@ class RequestTests(TestCase):
             create an follow request for a specific user
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
         self.client.post(reverse("api:login"), user1)
 
         # author 1 sends a request to author two
-        author1_obj = Author.objects.get(display_name="test user")
-        author2_obj = Author.objects.get(display_name="test1 user1")
         response = self.client.get(reverse("api:get_authors"))
         result = json.loads(response.content)
         users = result["items"]
@@ -808,14 +848,16 @@ class RequestTests(TestCase):
             get follow requests for a user
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
         self.client.post(reverse("api:login"), user1)
 
         # author 1 sends a request to author two
-        author1_obj = Author.objects.get(display_name="test user")
-        author2_obj = Author.objects.get(display_name="test1 user1")
         request = create_follow_request(author1_obj, author2_obj)
 
         self.client.post(reverse("api:logout"), user1)
@@ -839,14 +881,16 @@ class RequestTests(TestCase):
         """
 
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
         self.client.post(reverse("api:login"), user2)
 
         # make author 1 the follower of author 2
-        author1_obj = Author.objects.get(display_name="test user")
-        author2_obj = Author.objects.get(display_name="test1 user1")
         follower = create_follower(author1_obj, author2_obj)
 
         # remove author 1 as a follower
@@ -868,14 +912,16 @@ class InboxTests(TestCase):
             test getting follow requests in the inbox
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-        user2 = create_author("test1@test1.ca", "test1 user1", "https://google.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
         self.client.post(reverse("api:login"), user2)
 
         # get author information
-        author1_obj = Author.objects.get(display_name="test user")
-        author2_obj = Author.objects.get(display_name="test1 user1")
         response = self.client.get(reverse("api:get_authors"))
         result = json.loads(response.content)
         users = result["items"]
@@ -904,7 +950,6 @@ class InboxTests(TestCase):
         self.assertEqual(response.status_code, 200)
         result = json.loads(response.content)
         request_obj = result["items"][0]
-        print(request_obj)
 
         assert request["actor"]["displayName"] == request_obj["actor"]["displayName"]
         assert request["object"]["displayName"] == request_obj["object"]["displayName"]

@@ -567,10 +567,10 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
-        print("Here")
-        print(request)
-        print("request.data:")
-        print(request.data)
+        # print("Here")
+        # print(request)
+        # print("request.data:")
+        # print(request.data)
         # requestData = dict(request.data)
         requestData = request.data
         # REQUest data is query dict
