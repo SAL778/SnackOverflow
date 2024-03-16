@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
-import { deleteRequest } from "../utils/Requests.jsx";
+import { deleteRequest, postRequest, getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { Pencil, Trash } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
@@ -19,10 +19,13 @@ function PostCard({
 	setAuthPosts,
 	authPosts,
 	postId,
+	sharedBy=""
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY DATA
 	const auth = useAuth();
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
+
+	const [postVisibility, setPostVisibility] = useState("INITIAL");
 
 	const handleLike = () => {
 		setLikes((prevLikes) => prevLikes + 1);
@@ -48,6 +51,46 @@ function PostCard({
 		// redirect to the edit post page later
 		console.log("Edit post");
 	};
+
+	const handleShare = () => {
+		//authors/<uuid:id_author>/posts/<uuid:id_post>
+		//get the post, get data and visibility from it
+		let name = ""
+		console.log(auth)
+		console.log("CHECK ID: ", postId)
+		getRequest(`${postId}`)
+			.then((data) => {
+				console.log("Getting post: ", data)
+				name = data.author.displayName;
+			})
+
+		const dataToSend = {
+			title: title,
+			username: name,
+			description: description,
+			contentType: contentType,
+			content: content,
+			visibility: "PUBLIC",
+			sharedBy: auth.user.displayName
+		}
+		console.log("TEST SHAREDBY: ", dataToSend.sharedBy)
+		postRequest(`authors/${auth.user.id}/posts/`, dataToSend)
+			.then((data) => {
+				console.log("SHARED POST POSTED")
+			}).catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
+	}
+
+	getRequest(`${postId}`)
+				.then((data) => {
+					console.log("Getting post: ", data);
+					console.log("Post Visibility: ", data.visibility);
+					setPostVisibility(data.visibility);
+				})
+
+	console.log("THIS POST'S SHARE VISIBILITY IN FUNCTION",postVisibility);
+
 
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
@@ -80,9 +123,15 @@ function PostCard({
 					</button>
 				</div>
 			)}
-			{!profilePage && (
+			{!profilePage && (sharedBy === "") && (
 				<a href="/profile" className="username">
 					User: {username}
+				</a>
+			)}
+
+			{(!(sharedBy === "")) && (
+				<a href="/profile" className="username">
+					Shared By: {sharedBy}
 				</a>
 			)}
 
@@ -103,8 +152,12 @@ function PostCard({
 			</div>
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
+
 				<div>
-					<button>Share</button>
+					{(postVisibility === "PUBLIC") && 
+						<div>
+							{(<button onClick={handleShare}>Share</button>)}
+						</div>}
 					<button>Comment</button>
 				</div>
 			</div>

@@ -46,6 +46,8 @@ function Explore() {
 						description={post.description}
 						contentType={post.contentType}
 						content={post.content}
+						postId={post.id}
+						sharedBy={post.sharedBy}
 					/>
 				);
 			})}

@@ -95,6 +95,7 @@ class Post(models.Model):
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=50, choices=(('PUBLIC','PUBLIC'),('FRIENDS', 'FRIENDS'),('UNLISTED','UNLISTED')))
     image = models.URLField(max_length=200, blank=True, null=True)
+    sharedBy = models.CharField(max_length=100, default="")
     
 # #comments
 class Comment(models.Model):
