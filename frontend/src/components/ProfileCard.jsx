@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
 
 function ProfileCard({
-	key,
+	// key,
 	url,
 	host,
 	username,
@@ -109,6 +109,15 @@ function ProfileCard({
 
 	//API METHODS END
 
+	const renderButton = (onClick, text) => (
+		<button
+			onClick={onClick}
+			class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500"
+		>
+			{text}
+		</button>
+	);
+
 	return (
 		<div>
 			{showCard && (
@@ -127,49 +136,28 @@ function ProfileCard({
 							{username}
 						</h5>
 
-						{buttontype === "Follow" && !owner && (
-							<button
-								onClick={() => follow(altId, viewerId)}
-								class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500"
-							>
-								Req. Follow
-							</button>
-						)}
-
-						{buttontype === "Following" && owner && (
-							<button
-								onClick={() => unfollow(authId, cardUUID)}
-								class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500"
-							>
-								Unfollow
-							</button>
-						)}
-
+						{buttontype === "Follow" &&
+							!owner &&
+							renderButton(() => follow(altId, viewerId), "Req. Follow")}
+						{buttontype === "Following" &&
+							owner &&
+							renderButton(() => unfollow(authId, cardUUID), "Unfollow")}
 						{buttontype === "Request" && owner && (
 							<div className="flex flex-col space-y-1">
-								<button
-									onClick={() => request(authId, cardUUID, true)}
-									class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500"
-								>
-									Accept
-								</button>
-								<button
-									onClick={() => request(authId, cardUUID, false)}
-									class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-1 py-1 focus:outline-none dark:focus:bg-orange-500"
-								>
-									Decline
-								</button>
+								{renderButton(() => request(authId, cardUUID, true), "Accept")}
+								{renderButton(
+									() => request(authId, cardUUID, false),
+									"Decline"
+								)}
 							</div>
 						)}
 
-						{
-							<Link
-								onClick={() => changeProfileFunc(change)}
-								to={`/profile/${cardUUID}/`}
-							>
-								Profile
-							</Link>
-						}
+						<Link
+							onClick={() => changeProfileFunc(change)}
+							to={`/profile/${cardUUID}/`}
+						>
+							Profile
+						</Link>
 					</div>
 				</a>
 			)}
