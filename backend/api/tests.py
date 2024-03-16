@@ -364,8 +364,6 @@ class PostCreation(TestCase):
         # should not exist
         response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}))
         self.assertEqual(response.status_code, 404)
-
-    # def test_like_post(self):
     
     # def test_edit_own_post(self):
         
@@ -972,7 +970,51 @@ class InboxTests(TestCase):
         assert request["object"]["displayName"] == request_obj["object"]["displayName"]
 
     # TODO
-    # def test_notifications_likes(self):
+    def test_notifications_likes(self):
+        """
+            test getting likes in the inbox
+        """
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        author1_obj = Author.objects.get(display_name="test user")
+        set_active(author1_obj)
+        self.client.post(reverse("api:login"), user1)
+
+        # get author and post information
+        response = self.client.get(reverse("api:get_authors"))
+        result = json.loads(response.content)
+        users = result["items"]
+        author1 = users[0]
+        post1 = create_post("test public", '', '', "1 description", "text/plain", "test content", author1_obj, "0", "", "PUBLIC" )
+        response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+
+        request = {
+            "type": "like",
+            "summary": "someone liked your post",
+            "author": author1,
+            "object": retrieved["id"]
+        }
+
+        inbox = {
+            "type": "inbox",
+            "author": author1["id"],
+            "published": "",
+            "items": [request,]
+        }
+        # send the follow request to the inbox
+        response = self.client.post(reverse("api:get_and_post_inbox", kwargs={"id_author":author1_obj.id}), json.dumps(inbox), content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+
+        response = self.client.get(reverse("api:get_and_post_inbox", kwargs={"id_author":author1_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)
+        request_obj = result["items"][0]
+
+        assert request["author"]["displayName"] == request_obj["author"]["displayName"]
+        assert request["object"]== request_obj["object"]
+    # def test_notifications_comments(self):
     #     """
     #         test getting likes in the inbox
     #     """
@@ -982,41 +1024,35 @@ class InboxTests(TestCase):
     #     set_active(author1_obj)
     #     self.client.post(reverse("api:login"), user1)
 
-    #     # get author information
+    #     # get author and post information
     #     response = self.client.get(reverse("api:get_authors"))
     #     result = json.loads(response.content)
     #     users = result["items"]
     #     author1 = users[0]
     #     post1 = create_post("test public", '', '', "1 description", "text/plain", "test content", author1_obj, "0", "", "PUBLIC" )
-    #     print(post1.id)
+    #     # response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+    #     # self.assertEqual(response.status_code, 200)
+    #     # retrieved = json.loads(response.content)
 
-    #     request = {
-    #         "type": "like",
-    #         "summary": "someone liked your post",
-    #         "actor": author1,
-    #         "object": str(post1.id)
+    #     #create the comment via api so it sends to the inbox
+    #     comment_obj = {
+    #         "type": "comment",
+    #         "author": author1,
+    #         "comment": "this is a comment",
+    #         "contentType": "text/markdown",
     #     }
-
-    #     inbox = {
-    #         "type": "inbox",
-    #         "author": author1["id"],
-    #         "published": "",
-    #         "items": [request,]
-    #     }
-    #     # send the follow request to the inbox
-    #     response = self.client.post(reverse("api:get_and_post_inbox", kwargs={"id_author":author1_obj.id}), json.dumps(inbox), content_type="application/json")
+    #     response = self.client.post(reverse("api:get_and_create_comment", kwargs={"id_author":author1_obj.id, "id_post": post1.id}), comment_obj)
     #     self.assertEqual(response.status_code, 201)
+    #     comment = json.loads(response.content)
 
     #     response = self.client.get(reverse("api:get_and_post_inbox", kwargs={"id_author":author1_obj.id}))
     #     self.assertEqual(response.status_code, 200)
     #     result = json.loads(response.content)
     #     request_obj = result["items"][0]
+    #     print(request_obj)
 
-    #     assert request["actor"]["displayName"] == request_obj["actor"]["displayName"]
-    #     assert request["object"]== request_obj["object"]
-    # def test_notifications_comments(self):
-        
-    # def test_posts_inbox(self):
+    #     assert comment_obj["author"]["displayName"] == request_obj["author"]["displayName"]
+    #     assert comment_obj["id"]!= ""
         
 # class LikeTests(TestCase):
     #TODO finish this class
@@ -1028,6 +1064,7 @@ class InboxTests(TestCase):
         
 # class CommentTests(TestCase):
 #     def test_make_comment(self):
+    # def test_get_comments(self):
     # def test_like_comment(self):
     # def test_make_comment_friends_only(self):
 

@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 const followType = "follow";
 const commentType = "comment";
-const likeType = "like";
+const likeType = "Like";
 
 const theme = createTheme({
 	palette: {
@@ -25,15 +25,12 @@ function Notifications() {
 	useEffect(() => {
 		getRequest(`authors/${auth.user.id}/inbox`)
 			.then((data) => {
-				// console.log('GET inbox data:', data);
 				setNotifs(data);
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);
 			});
 	}, []);
-	console.log("here is the notifs");
-	console.log(notifs);
 
 	var allNotifs = [];
 	// check if notifications have been successfully retrieved and that there are notifications
@@ -43,8 +40,12 @@ function Notifications() {
 		// building the feed for all the objects in the inbox
 		for (let object of inbox) {
 			const keyIndex = inbox.indexOf(object);
+			console.log(object);
 			if (object.type.toLowerCase() === followType) {
 				var author = object.actor;
+				// slice for proper url for frontend
+				var profile = author.url.replace("api","profile");
+				profile = profile.slice(profile.indexOf("profile")-1).replace("/authors","");
 				allNotifs.push(
 					// TODO: these a elements need to be changed to Link elements
 					<div
@@ -53,7 +54,7 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								href={author.url}
+								to={profile}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
@@ -64,6 +65,12 @@ function Notifications() {
 				);
 			} else if (object.type === likeType) {
 				var author = object.author;
+				// slice for proper url for frontend
+				// var profile = author.url.replace("api","profile");
+				// profile = profile.slice(profile.indexOf("profile")-1).replace("/authors","");
+				// var pointTo = object.object.replace("api","profile");
+				// pointTo = pointTo.slice(pointTo.indexOf("profile")-1).replace("/authors","");
+				// pointTo = pointTo.slice(0,pointTo.indexOf("comments"));
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -71,14 +78,14 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								href={author.url}
+								to={"profile"}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
 							</Link>{" "}
 							left a like on your{" "}
 							<Link
-								href={object.object}
+								to={"pointTo"}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								post
@@ -89,6 +96,12 @@ function Notifications() {
 				);
 			} else if (object.type === commentType) {
 				var author = object.author;
+				// slice for proper url for frontend
+				var profile = author.url.replace("api","profile");
+				profile = profile.slice(profile.indexOf("profile")-1).replace("/authors","");
+				var pointTo = object.id.replace("api","profile");
+				pointTo = pointTo.slice(pointTo.indexOf("profile")-1).replace("/authors","");
+				pointTo = pointTo.slice(0,pointTo.indexOf("comments"));
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -96,14 +109,14 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								href={author.url}
+								to={profile}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
 							</Link>{" "}
 							left a comment on your{" "}
 							<Link
-								href={object.id}
+								to={pointTo}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								post
