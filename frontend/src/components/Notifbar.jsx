@@ -19,10 +19,6 @@ const theme = createTheme({
 });
 
 function Notifications() {
-	// const authorId = post.author.id.split("/").slice(-1)[0]; // extract the author's id
-
-	// const postId = post.id.split("/").slice(-1)[0]; // extract the post's id
-
 	const auth = useAuth();
 	const [notifs, setNotifs] = React.useState(null);
 
