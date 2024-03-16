@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
 
 function ProfileCard({
-	key,
+	// key,
 	url,
 	host,
 	username,

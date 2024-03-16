@@ -85,6 +85,14 @@ function App() {
 							</PrivateRoute>
 						}
 					/>
+					<Route
+						path="/edit-post/:authorId/:postId"
+						element={
+							<PrivateRoute>
+								<NewPost editMode={true} />
+							</PrivateRoute>
+						}
+					/>
 				</Routes>
 			</div>
 		</Router>

@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import "./PostCard.css";
 import Alert from "@mui/material/Alert";
 import MakeCommentCard from "./MakeCommentCard.jsx";
+import { useNavigate } from "react-router-dom";
 
 function PostCard({
 	username,
@@ -30,7 +31,8 @@ function PostCard({
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
 	const serviceUrl = "https://socialapp-api.herokuapp.com";
-	
+	const navigate = useNavigate();
+
 	const handleLike = () => {
 		// check if the user has already liked the post
 		let alreadyLiked = false;
@@ -46,24 +48,24 @@ function PostCard({
 		});
 		if (!alreadyLiked) {
 			// if not, post a like request
-			console.log(auth.user.displayName, " liked the post-" , auth.user.id);
+			console.log(auth.user.displayName, " liked the post-", auth.user.id);
 
 			let dataToSend = {
-				"type":"inbox",
+				type: "inbox",
 				// this is the author of the post
-				"author":`${serviceUrl}/authors/${authorId}`,
-				"items":[
+				author: `${serviceUrl}/authors/${authorId}`,
+				items: [
 					{
-						"type":"Like",
-						"summary":`${auth.user.displayName} liked your post`,
+						type: "Like",
+						summary: `${auth.user.displayName} liked your post`,
 						// this is the author of the like
-						"author":{
+						author: {
 							id: `${serviceUrl}/authors/${auth.user.id}`,
 						},
-						object : `${serviceUrl}/authors/${authorId}/posts/${postId}`
-					}
-				]
-			}
+						object: `${serviceUrl}/authors/${authorId}/posts/${postId}`,
+					},
+				],
+			};
 
 			postRequest(`authors/${authorId}/inbox`, dataToSend, false)
 				.then((response) => {
@@ -73,11 +75,11 @@ function PostCard({
 				})
 				.catch((error) => {
 					console.error("Error posting the like: ", error.message);
-				});	
+				});
 		}
 	};
 
-	const getLikes = () =>{
+	const getLikes = () => {
 		// get the likes for the post from doing a get request
 		getRequest(`authors/${authorId}/posts/${postId}/likes`)
 			.then((response) => {
@@ -88,7 +90,7 @@ function PostCard({
 			.catch((error) => {
 				console.error("Error getting likes: ", error.message);
 			});
-	}
+	};
 
 	const handleDelete = () => {
 		deleteRequest(`${postId}`) // why is it this url? It works but I don't know why figure it out
@@ -107,60 +109,55 @@ function PostCard({
 				console.error("Error deleting the post: ", error.message);
 			});
 	};
-	const handleEdit = () => {
-		// redirect to the edit post page later
-		console.log("Edit post");
-	};
 
 	const handleComment = () => {
 		setClickedComment(true);
-	}
+	};
 
 	const handleCommentSubmit = async (commentData) => {
-		if(!commentData.comment){
+		if (!commentData.comment) {
 			return;
 		}
 		let dataToSend = {
-			"type":"inbox",
-			"author":`${serviceUrl}/authors/${authorId}`,
-			"items":[
+			type: "inbox",
+			author: `${serviceUrl}/authors/${authorId}`,
+			items: [
 				{
-					"type":"Comment",
-					"author":{
+					type: "Comment",
+					author: {
 						id: `${serviceUrl}/authors/${auth.user.id}`,
 					},
-					"comment": commentData.comment,
-					"contentType":"text/markdown",
-					"post":{
-						id: `${serviceUrl}/authors/${authorId}/posts/${postId}}`
-					}
-				}
-			]
-		}
-		try{
+					comment: commentData.comment,
+					contentType: "text/markdown",
+					post: {
+						id: `${serviceUrl}/authors/${authorId}/posts/${postId}}`,
+					},
+				},
+			],
+		};
+		try {
 			// post the comment request
 			postRequest(`authors/${authorId}/inbox`, dataToSend, false)
 				.then((response) => {
 					console.log("Comment posted successfully");
 					console.log(response);
 					setClickedComment(false);
-					if(reload){
+					if (reload) {
 						reload();
 					}
 				})
 				.catch((error) => {
 					console.error("Error posting the comment: ", error.message);
 				});
-		}
-		catch (error) {
+		} catch (error) {
 			console.log("ERROR: ", error);
 		}
-	}
-	
+	};
+
 	const handleCommentCancel = () => {
 		setClickedComment(false);
 		console.log("Comment creation canceled");
-	}
+	};
 
 	useEffect(() => {
 		console.log("PostCard useEffect");
@@ -190,9 +187,15 @@ function PostCard({
 			)}
 			{profilePage && (
 				<div className="post-edit-delete">
-					<button onClick={handleEdit} style={{ marginRight: "10px" }}>
-						<Pencil size={32} />
-					</button>
+					<div className="post-edit-delete">
+						<button
+							onClick={() => navigate(`/edit-post/${authorId}/${postId}`)}
+							style={{ marginRight: "10px" }}
+							className="edit-button"
+						>
+							<Pencil size={32} />
+						</button>
+					</div>
 					<button onClick={handleDelete}>
 						<Trash size={32} color="red" />
 					</button>
@@ -203,9 +206,9 @@ function PostCard({
 					User: {username}
 				</Link>
 			)}
-			{postVisibility === "UNLISTED" && 
+			{postVisibility === "UNLISTED" && (
 				<p>Link: {`${serviceUrl}/profile/${authorId}/posts/${postId}`} </p>
-			}
+			)}
 			{/* <h1 className="post-header">{title}</h1> */}
 			<h1 className="post-header">
 				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
@@ -217,17 +220,15 @@ function PostCard({
 				<br />
 				{description}
 			</p>
-			{content &&
-				(
-					<div className="post-content">
-						{contentType === "text/markdown" ? (
-							<ReactMarkdown>{content}</ReactMarkdown>
-						) : (
-							<p>{content}</p>
-						)}
-					</div>
-				)
-			}
+			{content && (
+				<div className="post-content">
+					{contentType === "text/markdown" ? (
+						<ReactMarkdown>{content}</ReactMarkdown>
+					) : (
+						<p>{content}</p>
+					)}
+				</div>
+			)}
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
 				<div>
@@ -237,7 +238,10 @@ function PostCard({
 			</div>
 			{clickedComment && (
 				<div className="new-comment-card">
-					<MakeCommentCard onSubmit={handleCommentSubmit} onCancel={handleCommentCancel} />
+					<MakeCommentCard
+						onSubmit={handleCommentSubmit}
+						onCancel={handleCommentCancel}
+					/>
 				</div>
 			)}
 		</div>

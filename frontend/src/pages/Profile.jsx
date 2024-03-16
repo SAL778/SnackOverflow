@@ -326,10 +326,11 @@ function Profile() {
 								dates.getMonth() + 1
 							).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
 							let limitedContent = "";
-							if (post.content !== ""){
-								limitedContent = post.content.length > 100
-									? post.content.substring(0, 100) + "... See More"
-									: post.content;
+							if (post.content !== "") {
+								limitedContent =
+									post.content.length > 100
+										? post.content.substring(0, 100) + "... See More"
+										: post.content;
 							}
 							const authorId = post.author.id.split("/").slice(-1)[0]; // extract the author's id
 
