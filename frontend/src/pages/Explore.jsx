@@ -51,6 +51,7 @@ function Explore() {
 						contentType={post.contentType}
 						content={post.content}
 						postId={postId}
+            sharedBy={post.sharedBy}
 						authorId={authorId}
 						imageSrc={post.image}
 						postVisibility={post.visibility}

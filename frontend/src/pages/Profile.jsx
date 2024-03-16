@@ -251,6 +251,7 @@ function Profile() {
 								//buttontype = {"Follower"} //not necessary, no button
 								changeProfileFunc={flipChangeProfile}
 								change={changeProfile}
+								sharedBy={follower.sharedBy}
 							/>
 						))}
 					</div>

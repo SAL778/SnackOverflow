@@ -6,7 +6,7 @@ axios.defaults.xsrfHeaderName = "X-CSRFToken";
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
-let baseURL = "https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com/api/";
+let baseURL = "http://127.0.0.1:8000/api/";
 
 if (process.env.NODE_ENV === "development") {
 	baseURL = "http://127.0.0.1:8000/api/";
