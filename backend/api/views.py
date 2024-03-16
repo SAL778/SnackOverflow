@@ -13,7 +13,7 @@ import requests, json, os
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -512,7 +512,7 @@ def get_all_friends_follows_posts(request):
         responses={201: "Created", 400: "Bad Request", 401: "Unauthorized", 404: "Not found"},
 )
 @api_view(['GET', 'POST'])
-@parser_classes([MultiPartParser, FormParser])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def get_and_create_post(request, id_author):
     """
     Get all posts by a single author or create a new post
@@ -593,8 +593,8 @@ def get_and_create_post(request, id_author):
         #     requestData["source"] = ""
 
         serializer = PostSerializer(data=requestData, context={'request': request})
-        print("Here2")
-        print(serializer)
+        # print("Here2")
+        # print(serializer)
         if serializer.is_valid():
             serializer.save(author=author)
             # send the serializer.data (post) to the inbox of the author's followers

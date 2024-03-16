@@ -230,7 +230,7 @@ class PostCreation(TestCase):
             "published": "",
             "visibility": "PUBLIC"
         }
-        response = self.client.post(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}), json.dumps(post), content_type="application/vnd.api+json")
+        response = self.client.post(reverse("api:get_and_create_post", kwargs={"id_author": author_object.id}), json.dumps(post), content_type="application/json")
         print(response.content)
         self.assertEqual(response.status_code, 201)
 
