@@ -486,8 +486,9 @@ def get_all_friends_follows_posts(request):
             # get all the posts of the remote following
             for remote_author in remote_following_authors:
                 host_url = remote_author.host
-                request_url = f"{host_url}/authors/{remote_author.id}/posts/"
-                node = Node.objects.filter(api_url=host_url).first()
+                node = Node.objects.filter(host_url=host_url).first()
+                
+                request_url = f"{node.api_url}authors/{remote_author.id}/posts/"
                 response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code == 200:
                     all_posts = response.json().get('items')
@@ -503,8 +504,8 @@ def get_all_friends_follows_posts(request):
             # get all the posts of the remote friends
             for remote_author in remote_friends_authors:
                 host_url = remote_author.host
-                request_url = f"{host_url}/authors/{remote_author.id}/posts/"
-                node = Node.objects.filter(api_url=host_url).first()
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{remote_author.id}/posts/"
                 response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code == 200:
                     all_posts = response.json().get('items')
@@ -582,8 +583,8 @@ def get_and_create_post(request, id_author):
             return Response(status=status.HTTP_404_NOT_FOUND)
         elif author.is_remote:
             host_url = author.host
-            request_url = f"{host_url}/authors/{id_author}/posts/"
-            node = Node.objects.filter(api_url=host_url).first()
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}authors/{id_author}/posts/"
             response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
             if response.status_code == 200:
                 all_posts = response.json().get('items')
@@ -685,15 +686,16 @@ def get_and_create_post(request, id_author):
                     if followerAuthor.is_remote:
                         # send the request to the remote server
                         host_url = followerAuthor.host
-                        request_url = f"{host_url}/authors/{follower.follower.id}/inbox/"
+                        node = Node.objects.filter(host_url=host_url).first()
+                        request_url = f"{node.api_url}authors/{follower.follower.id}/inbox"
                         post_payload = {
                             "type":"inbox",
-                            "author": f"{host_url}/authors/{follower.follower.id}",
+                            "author": f"{node.api_url}authors/{follower.follower.id}",
                             "items":[{serializer.data}],
                         }
 
-                        node = Node.objects.filter(api_url=host_url).first()
-                        response = requests.post(request_url, data=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+                        response = requests.post(request_url, json=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                         if response.status_code ==200:
                             print("Post sent to the remote server inbox")
                         else:
@@ -714,14 +716,15 @@ def get_and_create_post(request, id_author):
                         if friendAuthor.is_remote:
                             # send the request to the remote server
                             host_url = friendAuthor.host
-                            request_url = f"{host_url}/authors/{follower.follower.id}/inbox/"
+                            node = Node.objects.filter(host_url=host_url).first()
+                            request_url = f"{node.api_url}authors/{follower.follower.id}/inbox"
                             post_payload = {
                                 "type":"inbox",
-                                "author": f"{host_url}/authors/{follower.follower.id}",
+                                "author": f"{node.api_url}authors/{follower.follower.id}",
                                 "items":[{serializer.data}],
                             }
-                            node = Node.objects.filter(api_url=host_url).first()
-                            response = requests.post(request_url, data=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+                            response = requests.post(request_url, json=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                             if response.status_code ==200:
                                 print("Post sent to the remote server inbox")
                             else:
@@ -828,8 +831,9 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
         if post_author.is_remote:
             # send the request to the remote server
             host_url = post_author.host
-            request_url = f"{host_url}/posts/{id_post}/"
-            node = Node.objects.filter(api_url=host_url).first()
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}posts/{id_post}"
+
             response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
             if response.status_code == 200:
                 return Response(response.json())
@@ -903,8 +907,8 @@ def get_and_create_comment(request, id_author, id_post):
         if post_author.is_remote:
             # send the request to the remote server
             host_url = post_author.host
-            request_url = f"{host_url}/authors/{id_author}/posts/{id_post}/comments/"
-            node = Node.objects.filter(api_url=host_url).first()
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}/comments"
             response = requests.get(request_url,headers={'Authorization': f'Basic {node.base64_authorization}'})
             if response.status_code == 200:
                 return Response(response.json())
@@ -935,9 +939,9 @@ def get_and_create_comment(request, id_author, id_post):
         if post_author.is_remote:
             # send the request to the remote server
             host_url = post_author.host
-            request_url = f"{host_url}/authors/{id_author}/posts/{id_post}/comments/"
-            node = Node.objects.filter(api_url=host_url).first()
-            response = requests.post(request_url, data=request.data, headers={'Authorization': f'Basic {node.base64_authorization}'})
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}/authors/{id_author}/posts/{id_post}/comments"
+            response = requests.post(request_url, json=request.data, headers={'Authorization': f'Basic {node.base64_authorization}'})
             if response.status_code == 201:
                 return Response(response.json(), status=response.status_code)
             else:
@@ -987,8 +991,9 @@ def get_post_likes(request, id_author, id_post):
     if post_author.is_remote:
         # send the request to the remote server
         host_url = post_author.host
-        request_url = f"{host_url}/authors/{id_author}/posts/{id_post}/likes/"
-        node = Node.objects.filter(api_url=host_url).first()
+        node = Node.objects.filter(host_url=host_url).first()
+        request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}/likes"
+
         response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
         if response.status_code == 200:
             return Response(response.json())
@@ -1020,8 +1025,9 @@ def get_liked(request, id_author):
     if author.is_remote:
         # send the request to the remote server
         host_url = author.host
-        request_url = f"{host_url}/authors/{id_author}/liked/"
-        node = Node.objects.filter(api_url=host_url).first()
+        node = Node.objects.filter(host_url=host_url).first()
+        request_url = f"{node.api_url}authors/{id_author}/liked"
+
         response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
         if response.status_code == 200:
             return Response(response.json())
@@ -1069,9 +1075,12 @@ def get_and_post_inbox(request, id_author):
         userId = user.id
     else:
         userId = None
-    author = get_object_or_404(Author, id=id_author)
 
     if request.method == 'GET':
+        author = get_object_or_404(Author, id=id_author)
+        if not author:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
         if userId is None:
@@ -1118,10 +1127,11 @@ def get_and_post_inbox(request, id_author):
                 # except create the payload for the request, else do what we are doing currently
                 # send the request to the remote server
                 host_url = likeAuthor.host
-                request_url = f"{host_url}/authors/{id_author}/inbox/"
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{id_author}/inbox"
                 like_payload = {
                     "type":"inbox",
-                    "author": f"{host_url}/authors/{id_author}",
+                    "author": f"{node.api_url}authors/{id_author}",
                     "items":[{
                         "type":"like",
                         "author": AuthorSerializer(likeAuthor, context={'request': request}).data,
@@ -1129,8 +1139,8 @@ def get_and_post_inbox(request, id_author):
                         "object": item.get("object"),
                     }],
                 }
-                node = Node.objects.filter(api_url=host_url).first()
-                response = requests.post(request_url, data=like_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+                response = requests.post(request_url, json=like_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code ==200:
                     print("Like sent to the remote server inbox")
                     return Response(response.json(), status=response.status_code)
@@ -1195,6 +1205,15 @@ def get_and_post_inbox(request, id_author):
             objectAuthor = Author.objects.filter(id = objectId).first()
 
             if objectAuthor is None:
+                objectAuthor = Author.objects.create(
+                    id = objectId,
+                    host = object.get("host"),
+                    display_name = object.get("displayName"),
+                    url = object.get("url"),
+                    github = object.get("github"),
+                    profile_image = object.get("profileImage"),
+                    is_remote = True
+                )
                 return Response({"details":"object author does not exist"}, status=status.HTTP_400_BAD_REQUEST)
             
             if actorAuthor is None:
@@ -1247,15 +1266,16 @@ def get_and_post_inbox(request, id_author):
             if author.is_remote:
                 # send the request to the remote server
                 host_url = author.host
-                request_url = f"{host_url}/authors/{id_author}/inbox/"
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{id_author}/inbox"
                 comment_payload = {
                     "type":"inbox",
-                    "author": f"{host_url}/authors/{id_author}",
+                    "author": f"{node.api_url}authors/{id_author}",
                     "items":[item],
                 }
-                node = Node.objects.filter(api_url=host_url).first()
-                response = requests.post(request_url, data=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
-                if response.status_code ==200:
+                
+                response = requests.post(request_url, json=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                if response.status_code ==201:
                     print("Comment sent to the remote server inbox")
                     return Response(response.json(), status=response.status_code)
                 else:
