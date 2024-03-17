@@ -1032,7 +1032,7 @@ class InboxTests(TestCase):
         self.assertEqual(response.status_code, 200)
         retrieved = json.loads(response.content)
 
-        #create the comment via api so it sends to the inbox
+        #create the comment via inbox api so it sends to the inbox
         comment_obj = {
             "type": "comment",
             "author": author1,
@@ -1057,16 +1057,148 @@ class InboxTests(TestCase):
 
         assert comment_obj["author"]["displayName"] == request_obj["author"]["displayName"]
         
-# class LikeTests(TestCase):
-    #TODO finish this class
-    # def test_get_liked(self):
+class LikeTests(TestCase):
+    def test_get_liked(self):
+        """
+            test getting likes for a user
+        """
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        author1_obj = Author.objects.get(display_name="test user")
+        set_active(author1_obj)
+        self.client.post(reverse("api:login"), user1)
 
-    # def test_get_post_likes(self):
+        # create two posts for the user to like
+        post1 = create_post("test public", '', '', "2 description", "text/plain", "test content", author1_obj, "0", "", "PUBLIC" )
+        post2 = create_post("test public2", '', '', "2 description", "text/plain", "test content2", author1_obj, "0", "", "PUBLIC" )
+        response1 = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+        self.assertEqual(response1.status_code, 200)
+        retrieved1 = json.loads(response1.content)
+        response2 = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post2.id}))
+        self.assertEqual(response2.status_code, 200)
+        retrieved2 = json.loads(response2.content)
+
+        # create like objects
+        like1= create_like("test user liked the post1", author1_obj, post1, retrieved1["id"])
+        like2= create_like("test user liked the post2", author1_obj, post2, retrieved2["id"])
+
+        # fetch likes
+        response = self.client.get(reverse("api:get_liked", kwargs={"id_author":author1_obj.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        items = retrieved["items"]
+        item0 = items[0]
+        item1 = items[1]
+        
+        # confirm like objects belong to user
+        assert item0["author"]["displayName"] == like1.author.display_name
+        assert item1["author"]["displayName"] == like2.author.display_name
+        assert item0["object"] == like1.object
+        assert item1["object"] == like2.object
+
+    def test_get_post_likes(self):
+        """
+            test getting likes for a post
+        """
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
+        self.client.post(reverse("api:login"), user1)
+
+        # create post for the users to like
+        post1 = create_post("test public", '', '', "2 description", "text/plain", "test content", author1_obj, "0", "", "PUBLIC" )
+        response1 = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+        self.assertEqual(response1.status_code, 200)
+        retrieved1 = json.loads(response1.content)
+
+        # create like objects
+        like1= create_like("test user liked the post1", author1_obj, post1, retrieved1["id"])
+        like2= create_like("test1 user1 liked the post1", author2_obj, post1, retrieved1["id"])
+
+        # fetch post likes
+        response = self.client.get(reverse("api:get_post_likes", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        items = retrieved["items"]
+        item0 = items[0]
+        item1 = items[1]
+
+        # confirm like objects belong to post
+        assert item0["author"]["displayName"] == like1.author.display_name
+        assert item1["author"]["displayName"] == like2.author.display_name
+        assert item0["object"] == like1.object
+        assert item1["object"] == like2.object
 
         
-# class CommentTests(TestCase):
-#     def test_make_comment(self):
-    # def test_get_comments(self):
-    # def test_make_comment_friends_only(self):
+class CommentTests(TestCase):
+    # TODO some weird bug with /comments api
+    # def test_make_comment(self):
+
+    def test_get_comments(self):
+        """
+            test getting comments for a post
+        """
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        author1_obj = Author.objects.get(display_name="test user")
+        set_active(author1_obj)
+        self.client.post(reverse("api:login"), user1)
+
+        # create post and comments under post
+        post1 = create_post("test public", '', '', "2 description", "text/plain", "test content", author1_obj, "0", "", "PUBLIC" )
+        response1 = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+        self.assertEqual(response1.status_code, 200)
+        retrieved1 = json.loads(response1.content)
+        comment1 = create_comment(author1_obj, "this is a nice comment", post1)
+        comment2 = create_comment(author1_obj, "another aodsjda", post1)
+
+        # get comments from post
+        response = self.client.get(reverse("api:get_and_create_comment", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        items = retrieved["items"]
+        item1 = items[0]
+        item0 = items[1]
+
+        assert item0["author"]["displayName"] == comment1.author.display_name
+        assert item1["author"]["displayName"] == comment2.author.display_name
+        assert item0["comment"] == comment1.comment
+        assert item1["comment"] == comment2.comment
+    def test_make_comment_friends_only(self):
+        """
+            test comments on friends only posts
+        """
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
+        user3 = create_author("test2@test2.ca", "test2 user2", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
+        self.client.post(reverse("api:login"), user1)
+
+        # make user1 and user2 a follower of each other (friends)
+        follower_user1 = create_follower(author1_obj, author2_obj)
+        follower_user2 = create_follower(author2_obj, author1_obj)
+
+        # user 1 makes the post and user 2 comments on said post
+        post1 = create_post("test public", '', '', "2 description", "text/plain", "test content", author1_obj, "0", "", "FRIENDS" )
+        comment1 = create_comment(author2_obj, "this is a nice comment", post1)
+
+        # from user 1 fetch the comments from the frie
+        response = self.client.get(reverse("api:get_and_create_comment", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        print(retrieved)
+        items = retrieved["items"]
+        item0 = items[0]
 
 # class NodeTests(TestCase):
+    # def add node
