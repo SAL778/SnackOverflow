@@ -311,7 +311,8 @@ function Profile() {
 									authPosts={authPosts}
 									authorId={authorId}
 									postId={postId}
-									imageSrc={post.image}
+									// imageSrc={post.image}
+									imageSrc={post.image_base64}
 									postVisibility={post.visibility}
 								/>
 							);

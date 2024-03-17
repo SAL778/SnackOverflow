@@ -30,7 +30,7 @@ function PostCard({
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
-	const serviceUrl = window.location.protocol + '//' + window.location.host;
+	const serviceUrl = window.location.protocol + "//" + window.location.host;
 	const navigate = useNavigate();
 
 	const handleLike = () => {
@@ -164,6 +164,11 @@ function PostCard({
 		getLikes();
 	}, []);
 
+	// debugging console log. Print the base64 image source
+	useEffect(() => {
+		console.log("Base64 Image Source:", imageSrc);
+	}, [imageSrc]);
+
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
 			{showDeleteAlert && (
@@ -214,7 +219,22 @@ function PostCard({
 				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
 			</h1>
 			<span className="post-date">Date: {date}</span>
-			{imageSrc && <img src={imageSrc} alt="Post" />}
+
+			{/* {imageSrc && <img src={imageSrc} alt="Post" />} */}
+			{/* {imageSrc && (
+				<img src={`data:image/jpeg;base64,${imageSrc}`} alt="Post" />
+			)} */}
+			{imageSrc && (
+				<img
+					src={imageSrc}
+					alt="Post"
+					onError={(e) => {
+						console.log("Error loading image");
+						e.target.style.display = "none";
+					}}
+				/>
+			)}
+
 			<p className="post-description">
 				Description:
 				<br />

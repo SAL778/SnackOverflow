@@ -52,7 +52,7 @@ function Explore() {
 						content={post.content}
 						postId={postId}
 						authorId={authorId}
-						imageSrc={post.image}
+						imageSrc={post.image_base64}
 						postVisibility={post.visibility}
 					/>
 				);

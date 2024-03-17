@@ -26,31 +26,31 @@ const NewPost = ({ editMode }) => {
 		if (!postData.title || !postData.postType) {
 			return;
 		}
+
 		let contentType = "text/plain";
 		if (postData.isMarkdown) {
 			contentType = "text/markdown";
-		} else if (postData.isImage) {
-			contentType = "image/png;base64";
+		} else if (postData.isImage && postData.image) {
+			contentType = "image/png;base64"; // TODO: should dynamically set based on the image type
 		}
-		const dataToSend = new FormData();
-		dataToSend.append("title", postData.title);
-		dataToSend.append("description", postData.description);
-		dataToSend.append("contentType", contentType);
-		dataToSend.append("visibility", postData.postType.toUpperCase());
-		if (!postData.isImage && postData.content) {
-			dataToSend.append("content", postData.content);
-		}
+
+		const dataToSend = {
+			title: postData.title,
+			description: postData.description,
+			contentType: contentType,
+			visibility: postData.postType.toUpperCase(),
+			content: postData.content,
+		};
+
 		if (postData.isImage && postData.image) {
-			dataToSend.append("image", postData.image, postData.image.name); // Only one image for now (to be updated later)
+			dataToSend.image_base64 = postData.image; // Attach the base64 encoded image string directly to the dataToSend object
 		}
-		// console.log("Data to send:", dataToSend);
 
 		try {
 			const data = await postRequest(
 				`authors/${auth.user.id}/posts/`,
-				//JSON.stringify(dataToSend)
-				dataToSend,
-				true
+				JSON.stringify(dataToSend),
+				true // Ensure your request handler sets the correct content type header for JSON, typically 'application/json'
 			);
 			console.log("POST Request Data:", data);
 			setShowSuccessAlert(true);
@@ -59,6 +59,45 @@ const NewPost = ({ editMode }) => {
 			console.log("ERROR: ", error);
 		}
 	};
+
+	// Old handlePostSubmit, can remove later if no bugs with the new one.
+	// const handlePostSubmit = async (postData) => {
+	// 	if (!postData.title || !postData.postType) {
+	// 		return;
+	// 	}
+	// 	let contentType = "text/plain";
+	// 	if (postData.isMarkdown) {
+	// 		contentType = "text/markdown";
+	// 	} else if (postData.isImage) {
+	// 		contentType = "image/png;base64";
+	// 	}
+	// 	const dataToSend = new FormData();
+	// 	dataToSend.append("title", postData.title);
+	// 	dataToSend.append("description", postData.description);
+	// 	dataToSend.append("contentType", contentType);
+	// 	dataToSend.append("visibility", postData.postType.toUpperCase());
+	// 	if (!postData.isImage && postData.content) {
+	// 		dataToSend.append("content", postData.content);
+	// 	}
+	// 	if (postData.isImage && postData.image) {
+	// 		dataToSend.append("image", postData.image, postData.image.name);
+	// 	}
+	// 	// console.log("Data to send:", dataToSend);
+
+	// 	try {
+	// 		const data = await postRequest(
+	// 			`authors/${auth.user.id}/posts/`,
+	// 			//JSON.stringify(dataToSend)
+	// 			dataToSend,
+	// 			true
+	// 		);
+	// 		console.log("POST Request Data:", data);
+	// 		setShowSuccessAlert(true);
+	// 		setTimeout(() => setShowSuccessAlert(false), 3000); // Hide alert after 3 seconds
+	// 	} catch (error) {
+	// 		console.log("ERROR: ", error);
+	// 	}
+	// };
 
 	const handleCancel = () => {
 		// Cancel action: clear the form or redirect to another page, clear for now.

@@ -27,8 +27,17 @@ const MakePostCard = ({
 	};
 
 	// Function to handle the file upload event for images
+	// const handleImageUpload = (event) => {
+	// 	setImage(event.target.files[0]);
+	// };
+
 	const handleImageUpload = (event) => {
-		setImage(event.target.files[0]);
+		const file = event.target.files[0];
+		const reader = new FileReader();
+		reader.onloadend = () => {
+			setImage(reader.result); // base64 string
+		};
+		reader.readAsDataURL(file);
 	};
 
 	useEffect(() => {
