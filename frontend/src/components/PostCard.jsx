@@ -30,7 +30,7 @@ function PostCard({
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
-	const serviceUrl = "https://socialapp-api.herokuapp.com";
+	const serviceUrl = window.location.protocol + '//' + window.location.host;
 	const navigate = useNavigate();
 
 	const handleLike = () => {

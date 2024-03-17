@@ -161,6 +161,7 @@ class LikeSerializer(serializers.ModelSerializer):
                 data["object"] = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}"
             if data['summary'] == None or data['summary'] == '':
                 data['summary'] = f"{instance.author.displayName} liked the post"
+            data["post"] = PostSerializer(instance.post, context=self.context).data
         else:
             data["object"] = None
         return data
