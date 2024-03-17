@@ -9,7 +9,7 @@ import os
 class Author(AbstractBaseUser, PermissionsMixin):
     type = models.CharField(max_length=30, default="author")
     # leave id as uuid to minimize the number of changes to be done to views
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, editable=False)
     host = models.URLField(max_length=500, editable=False)
     url = models.URLField(max_length=500, editable=False)
     display_name = models.CharField(max_length=100)
@@ -38,10 +38,26 @@ class Author(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         isActive = os.getenv('IS_ACTIVE')
 
+        print("into save method")
+        print("id: ", self.id)
+        print("email: ", self.email)
+
+        # add uuid if not provided
+        if not self.id:
+            self.id = uuid.uuid4()
+
         if self._state.adding and not self.is_staff:
+
+            print("into addinggg in save")
 
             if self.password:
                 self.set_password(self.password)
+
+            if not self.email:
+                # generate a random email
+                self.email = f'{self.id}@{self.id}.com' 
+
+            print("email 2: ", self.email)
 
             # set is_active to isActive only when user is created, and not when updated
             if isActive and isActive.lower() == 'false':
@@ -49,7 +65,13 @@ class Author(AbstractBaseUser, PermissionsMixin):
             else:
                 self.is_active = True
 
-        super().save(*args, **kwargs)
+        print("lallalalalalalallalal")
+
+        try:
+            super().save(*args, **kwargs)
+        except Exception as e:
+            print("wtf")
+            print(e)
     
     
 
@@ -136,9 +158,7 @@ class Node(models.Model):
     api_url = models.URLField(max_length=200)
     base64_authorization = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
+    host_url = models.URLField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return f'{self.team_name}: {self.api_url}'
-
-    def __str__(self):
-        return self.name

@@ -13,6 +13,7 @@ import requests, json, os
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
+import uuid
 
 from api.utils import get_remote_request
 
@@ -169,7 +170,7 @@ def get_authors(request):
         request_body=AuthorSerializer,
         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
 )
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'POST'])
 def get_and_update_author(request, id):
     """
     Get a single profile on the server by ID
@@ -185,8 +186,37 @@ def get_and_update_author(request, id):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        
+    if request.method == 'POST':
+        # mainly to create a remote author in our local db
+        serializer = AuthorSerializer(data=request.data)
+        if serializer.is_valid():
+            print("ahahahahhaha")
+            # remove trailing slash from url
+            request.data['id'] = request.data.get('id').rstrip('/')
+            # extract uuid from url/full id
+            author_id = request.data.get('id').split('/')[-1]
+
+            print("lollll")
+            print("id: ", uuid.UUID(author_id))
+            
+            author = Author.objects.create(
+                type=request.data.get('type'),
+                id=uuid.UUID(author_id),
+                host=request.data.get('host'),
+                display_name=request.data.get('displayName'),
+                url=request.data.get('url'),
+                github=request.data.get('github'),
+                profile_image=request.data.get('profileImage'),
+                is_remote=True
+            )
+
+            print("wtfffffff")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+    
+
 @swagger_auto_schema(
         method="get",
         operation_summary="gets all the followers of the author with the given id",   
@@ -902,14 +932,19 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
+    print("Inbox: ", request.user)
+
     user = request.user
     if(isinstance(user, Author)):
         userId = user.id
     else:
         userId = None
-    author = get_object_or_404(Author, id=id_author)
+
+    print("User: ", userId)
 
     if request.method == 'GET':
+        author = get_object_or_404(Author, id=id_author)
+
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
         if userId is None:
@@ -937,15 +972,19 @@ def get_and_post_inbox(request, id_author):
         if userId is None:
             return Response({"details":"Can't post to inbox anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
         requestData = request.data.copy()
-        requestData["author"] = author.id
+        requestData["author"] = id_author
         items = requestData.get("items")
         if not (isinstance(items, list)):
             items = [items]
         item = items[0]
 
+        print("items: ", items)
+
         if item is None:
             return Response({"details":"item is required"}, status=status.HTTP_400_BAD_REQUEST)
         itemType = item.get("type").lower()
+
+        author = Author.objects.filter(id=id_author).first()
 
         if itemType == "like":
             # send the like to the author of the post/comments inbox - frontend
@@ -986,8 +1025,13 @@ def get_and_post_inbox(request, id_author):
 
         elif itemType == "follow":
             # send the follow request to the objectAuthor's inbox - frontend
+            print("we are in follow")
+
             actor = item.get("actor")
             object = item.get("object")
+
+            print("actor: ", actor)
+            print("object: ", object)
             if actor is None or object is None:
                 return Response({"details":"actor and object are required"}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -995,6 +1039,9 @@ def get_and_post_inbox(request, id_author):
             # object - the person receiving the request
             actorId = actor.get("id").split("/")[-1]
             objectId = object.get("id").split("/")[-1]
+
+            print("actorId: ", actorId)
+            print("objectId: ", objectId)
 
             if objectId != str(id_author):
                 return Response({"details":"Can't send follow request to someone else's inbox"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -1010,12 +1057,67 @@ def get_and_post_inbox(request, id_author):
             actorAuthor = Author.objects.filter(id = actorId).first()
             objectAuthor = Author.objects.filter(id = objectId).first()
 
-            if objectAuthor is None:
-                return Response({"details":"object author does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            if objectAuthor is None or objectAuthor.is_remote:
+                # the id_author is remote now
+                # most likely a remote author,  create the author
+                # need to send to the remote user inbox
+                print("Creating object author...")
+                if objectAuthor is None:
+                    objectAuthor = Author.objects.create(
+                        id=objectId, 
+                        host=object.get("host"), 
+                        display_name=object.get("displayName"), 
+                        url=object.get("url"),
+                        github=object.get("github"),
+                        profile_image=object.get("profileImage"),
+                        is_remote=True
+                    )
+
+                print("after creating object author...")
+                
+                author = Author.objects.filter(id=id_author).first()
+
+                print("Author in creating object author: ", author)
+
+                # now we need to send it to remote server
+                node = Node.objects.filter(host_url = author.host).first()
+                print("Node: ", node)
+
+                request_url = f"{node.api_url}authors/{id_author}/inbox"
+                print("Request url: ", request_url)
+
+                payload = {
+                    "type": "inbox",
+                    "author": f"{node.api_url}/authors/{id_author}",
+                    "items": [
+                        {
+                            "type": "follow",
+                            "summary": f"{actor.get('displayName')} wants to follow {object.get('displayName')}",
+                            "actor": actor,
+                            "object": object
+                        }
+                    ]
+                }
+
+                print("encoding: ", node.base64_authorization)
+                response = requests.post(request_url, json=payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+                print("Response: ", response.status_code, response.json())
+
+                if response.status_code != 201:
+                    print("Not 201")
+                    print(response.status_code)
+                    print(response.json())
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    print("Yes 201")
+                    return Response(response.json(), status=response.status_code)
+
             
             if actorAuthor is None:
                 # actorAuthor is most likely from another server
                 # create a new author with the actor's details
+                print("Creating actor author...")
                 actorAuthor = Author.objects.create(
                     id=actorId, 
                     host=actor.get("host"), 
@@ -1025,6 +1127,7 @@ def get_and_post_inbox(request, id_author):
                     profile_image=actor.get("profileImage"),
                     is_remote=True
                 )
+            print("after create")
 
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
@@ -1035,7 +1138,8 @@ def get_and_post_inbox(request, id_author):
             try:
                 newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
                 serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
-                requestData["item"] = dict(serializer.data)
+                print("follow request created")
+                requestData["item"] = serializer.data
             except Exception as e:
                 return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1128,6 +1232,10 @@ def check_remote_follow_requests_approved(request):
         print(follow_request.from_user.id, follow_request.to_user.id)
         foreign_author_id = follow_request.from_user.id # the person who sent the follow request
         author_id = follow_request.to_user.id # the person who received the follow request
+
+        node = Node.objects.filter(host_url = follow_request.to_user.host).first()
+        request_url = f'{follow_request.to_user.url}/followers/{follow_request.from_user.id}'
+
 
         user = get_remote_request(f'{follow_request.to_user.url}/followers/{follow_request.from_user.id}', follow_request.to_user.host)
 
