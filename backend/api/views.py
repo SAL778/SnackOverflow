@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from .models import Author, Follower, FollowRequest, Post, Comment, Like, Inbox
+from .models import Author, Follower, FollowRequest, Post, Comment, Like, Inbox, Node
 from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegisterSerializer, UserLoginSerializer, PostSerializer, CommentSerializer, LikeSerializer, InboxSerializer
 from django.contrib.auth import login, logout
 from rest_framework import status, permissions
@@ -1085,6 +1085,29 @@ def get_and_post_inbox(request, id_author):
         inbox.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+
+@api_view(['GET'])
+def get_remote_authors(request):
+    """
+    Get all remote authors from all remote servers
+    """
+    remote_nodes = Node.objects.all()
+    allRemoteAuthors = []
+    for node in remote_nodes:
+        response = requests.get(f'{node.host}/authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+        if response.status_code == 200:
+            payload = response.json()
+            authors = payload.get("items")
+            allRemoteAuthors += authors
+
+    data = {
+        "type": "authors",
+        "items": allRemoteAuthors
+    }
+
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
