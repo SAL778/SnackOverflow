@@ -167,26 +167,7 @@ class UserCreation(TestCase):
         author = Author.objects.get(display_name="test user")
         # login despite not setting account active
         response = self.client.post(reverse("api:login"), user)
-        self.assertEqual(response.status_code, 403)
-
-    # def test_basic_auth(self):
-    #     """
-    #         test for basic auth access
-    #     """
-    #     user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
-    #     self.client.post(reverse("api:register"), user)
-    #     author = Author.objects.get(display_name="test user")
-    #     set_active(author)
-    #     # create the base64 encoding
-    #     # usage of this encoding and setting was taken from Ryan Nowakowski on stackoverflow: https://stackoverflow.com/a/9088563
-    #     # accessed 2024-03-17
-    #     encoded = 'test@test.ca:12345'
-    #     base64_encoding = base64.b64encode(encoded.encode("utf-8"))
-    #     self.client.defaults['HTTP_AUTHORIZATION'] = 'Basic ' + str(base64_encoding)
-
-    #     response = self.client.get(reverse("api:get_authors"))
-    #     self.assertEqual(response.status_code, 200)
-    
+        self.assertEqual(response.status_code, 403)    
         
 class PostCreation(TestCase):
     # note: github testing not available as frontend is the one to do polling
