@@ -1357,6 +1357,3 @@ class CommentTests(TestCase):
 
         assert item0["author"]["displayName"] == comment1.author.display_name
         assert item0["comment"] == comment1.comment
-
-# class NodeTests(TestCase):
-    # def add node
