@@ -109,7 +109,7 @@ class PostSerializer(serializers.ModelSerializer):
         fields = [
             'type', 'id', 'title', 'source', 'origin', 'description', 'contentType',
             'content', 'author', 'count', 'comments', 'published',
-            'visibility', 'image', 'image_url' 'sharedBy'
+            'visibility', 'image', 'image_url', 'sharedBy'
         ]
         read_only_fields = ['type', 'id', 'author', 'count', 'comments', 'published']
     

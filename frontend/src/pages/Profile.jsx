@@ -41,11 +41,11 @@ function Profile() {
 	let owner = true;
 
 	if (source === undefined) {
-		console.log("No source, portay profile as logged-in user");
+		//console.log("No source, portay profile as logged-in user");
 		profileUUID = auth.user.id; //redundant but explicit
 		owner = true; //redundant but explicit
 	} else if (source === profileUUID) {
-		console.log("Accessing Own Profile.");
+		//console.log("Accessing Own Profile.");
 		profileUUID = auth.user.id; //redundant but explicit
 		owner = true; //redundant but explicit
 	} else {
@@ -66,7 +66,7 @@ function Profile() {
 				console.log("ERROR: ", error.message);
 			});
 	}, [changeProfile]);
-	console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
+	//console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
 
 	//END AUTHOR FETCH
 
@@ -82,7 +82,7 @@ function Profile() {
 			});
 	}, [showFollowers, changeProfile]);
 
-	console.log("TEST followers OUT OF REQUEST:", followers);
+	//console.log("TEST followers OUT OF REQUEST:", followers);
 
 	//END AUTHOR FOLLOWERS FETCH
 
@@ -101,7 +101,7 @@ function Profile() {
 
 	//END AUTHOR FOLLOWINGS FETCH
 
-	console.log("TEST: AUTHOR followings DATA:", followings);
+	//console.log("TEST: AUTHOR followings DATA:", followings);
 
 	//BEGIN AUTHOR FRIENDS FETCH
 
@@ -118,7 +118,7 @@ function Profile() {
 
 	//END AUTHOR FOLLOWINGS FETCH
 
-	console.log("TEST: AUTHOR friends DATA:", friends);
+	//console.log("TEST: AUTHOR friends DATA:", friends);
 
 	//END AUTHOR FOLLOWERS FETCH
 

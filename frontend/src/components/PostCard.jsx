@@ -28,10 +28,10 @@ function PostCard({
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
-	const [postVisibility, setPostVisibility] = useState("INITIAL");
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
-	const serviceUrl = "https://socialapp-api.herokuapp.com";
+	//const serviceUrl = "https://socialapp-api.herokuapp.com";
+	const serviceUrl = "http://127.0.0.1:8000";
   
 	const handleLike = () => {
 		// check if the user has already liked the post
@@ -93,7 +93,7 @@ function PostCard({
 	}
 
 	const handleDelete = () => {
-		deleteRequest(`${postId}`) // why is it this url? It works but I don't know why figure it out
+		deleteRequest(`authors/${authorId}/posts/${postId}`) // why is it this url? It works but I don't know why figure it out
 			.then((response) => {
 				console.log("Post deleted successfully");
 				setShowDeleteAlert(true); // Show "Post Deleted" alert
@@ -120,12 +120,12 @@ function PostCard({
 		let name = ""
 		console.log(auth)
 		console.log("CHECK ID: ", postId)
-		getRequest(`${postId}`)
+		getRequest(`authors/${authorId}/posts/${postId}`)
 			.then((data) => {
 				console.log("Getting post: ", data)
 				name = data.author.displayName;
 			})
-
+		/*
 		const dataToSend = {
 			title: title,
 			username: name,
@@ -135,23 +135,26 @@ function PostCard({
 			visibility: "PUBLIC",
 			sharedBy: auth.user.displayName
 		}
-		console.log("TEST SHAREDBY: ", dataToSend.sharedBy)
-		postRequest(`authors/${auth.user.id}/posts/`, dataToSend)
+		*/
+
+
+		const dataToSend = new FormData();
+
+		dataToSend.append("title",title);
+		dataToSend.append("description",description);
+		dataToSend.append("contentType",contentType);
+		dataToSend.append("content",content);
+		dataToSend.append("visibility","PUBLIC");
+		dataToSend.append("sharedBy",auth.user.displayName);
+		
+		//console.log("TEST SHAREDBY: ", dataToSend.sharedBy)
+		postRequest(`authors/${auth.user.id}/posts/`, dataToSend, false)
 			.then((data) => {
 				console.log("SHARED POST POSTED")
 			}).catch((error) => {
 				console.log("ERROR: ", error.message);
 			});
 	}
-
-	getRequest(`${postId}`)
-				.then((data) => {
-					console.log("Getting post: ", data);
-					console.log("Post Visibility: ", data.visibility);
-					setPostVisibility(data.visibility);
-				})
-
-	console.log("THIS POST'S SHARE VISIBILITY IN FUNCTION",postVisibility);
 
 	const handleComment = () => {
 		setClickedComment(true);
