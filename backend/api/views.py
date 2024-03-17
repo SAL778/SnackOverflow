@@ -472,7 +472,50 @@ def get_all_friends_follows_posts(request):
 
             public_posts = Post.objects.filter(author__in=following.values_list('followed_user', flat=True), visibility="PUBLIC")
             friends_posts = Post.objects.filter(author__in=friends.values_list('followed_user', flat=True), visibility="FRIENDS")
-            posts = public_posts.union(friends_posts).order_by('-published')
+            own_friends_only_posts = Post.objects.filter(author__id=userId, visibility="FRIENDS")
+            
+            # get all the following whose is_remote is true
+            remote_following = following.filter(followed_user__is_remote=True)
+            remote_following_authors = remote_following.values_list('followed_user', flat=True)
+            remote_following_posts = []
+            # get all the posts of the remote following
+            for remote_author in remote_following_authors:
+                host_url = remote_author.host
+                request_url = f"{host_url}/authors/{remote_author.id}/posts/"
+                response = requests.get(request_url)
+                if response.status_code == 200:
+                    all_posts = response.json().get('items')
+                    for post in all_posts:
+                        # check if the post type is public
+                        if post.get('visibility').upper() == "PUBLIC":
+                            remote_following_posts.append(post)
+            
+            # get all the friends whose is_remote is true            
+            remote_friends = friends.filter(followed_user__is_remote=True)
+            remote_friends_authors = remote_friends.values_list('followed_user', flat=True)
+            remote_friends_posts = []
+            # get all the posts of the remote friends
+            for remote_author in remote_friends_authors:
+                host_url = remote_author.host
+                request_url = f"{host_url}/authors/{remote_author.id}/posts/"
+                response = requests.get(request_url)
+                if response.status_code == 200:
+                    all_posts = response.json().get('items')
+                    for post in all_posts:
+                        # check if the post type is public
+                        if post.get('visibility').upper() == "FRIENDS":
+                            remote_friends_posts.append(post)
+
+            # union of all the posts
+            # feed  = friends_post + my own friends only post 
+            #                 + public posts of the people I am following 
+            #                 + friends only posts of the people I am friends with 
+            posts = public_posts.union(friends_posts)
+            posts = posts.union(own_friends_only_posts)
+            posts = posts.union(remote_following_posts)
+            posts = posts.union(remote_friends_posts)
+            posts = posts.order_by('-published')
+
             # pagination
             page_number = request.query_params.get('page', 0)
             size = request.query_params.get('size', 0)
@@ -567,10 +610,6 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
-        print("Here")
-        print(request)
-        print("request.data:")
-        print(request.data)
         # requestData = dict(request.data)
         requestData = request.data
         # REQUest data is query dict
@@ -582,46 +621,71 @@ def get_and_create_post(request, id_author):
             print("inside if imageURL")
             requestData["image"] = None
             requestData["image_url"] = request.data.get("image")
-
-        #requestData = json.loads(requestData)
-        #print("Data: ",requestData, type(requestData))
-
-        # if(requestData.get("origin") is None):
-        #     requestData["origin"] = ""
-
-        # if(requestData.get("source") is None):
-        #     requestData["source"] = ""
-
         serializer = PostSerializer(data=requestData, context={'request': request})
-        print("Here2")
-        print(serializer)
         if serializer.is_valid():
             serializer.save(author=author)
+
             # send the serializer.data (post) to the inbox of the author's followers
             # send the post to the author's followers or friends
             # check if the post is coming from our host. If its from our host do this else just add that to the inbox (everything is correct in that case)
+
             postId = serializer.data.get("id").split("/")[-1]
             post = Post.objects.filter(id=postId).first()
             postType = post.visibility
+            
             if postType == "PUBLIC":
                 followers = Follower.objects.filter(followed_user__id=id_author)
                 for follower in followers:
                     # check if the follower is in another server and if it is then send the request
-                    requestData["author"] = follower.follower.id
-                    inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
-                    if inboxSerializer.is_valid():
-                        inboxSerializer.save()
+                    followerAuthor = Author.objects.filter(id=follower.follower.id).first()
+                    if followerAuthor.is_remote:
+                        # send the request to the remote server
+                        host_url = followerAuthor.host
+                        request_url = f"{host_url}/authors/{follower.follower.id}/inbox/"
+                        post_payload = {
+                            "type":"inbox",
+                            "author": f"{host_url}/authors/{follower.follower.id}",
+                            "items":[{serializer.data}],
+                        }
+                        response = requests.post(request_url, data=post_payload)
+                        if response.status_code ==200:
+                            print("Post sent to the remote server inbox")
+                        else:
+                            print("Error sending the post to the remote server inbox")
+                            print(response.status_code, response.text)
+                            return Response(response.text, status=response.status_code)
+                    else:
+                        requestData = serializer.data
+                        inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
+                        if inboxSerializer.is_valid():
+                            inboxSerializer.save()
             elif postType == "FRIENDS":
                 followers = Follower.objects.filter(followed_user__id=id_author)
                 for follower in followers:
                     followerObject = Follower.objects.filter(follower__id=id_author, followed_user__id=follower.follower.id).first()
                     if followerObject is not None:
-                        requestData["author"] = follower.follower.id
-                        inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
-                        if inboxSerializer.is_valid():
-                            inboxSerializer.save()
-                # what if the follower is in another server, how do we know its a friend?
-                # we have to know its a friend so that we can send it to their inbox
+                        friendAuthor = Author.objects.filter(id=follower.follower.id).first()
+                        if friendAuthor.is_remote:
+                            # send the request to the remote server
+                            host_url = friendAuthor.host
+                            request_url = f"{host_url}/authors/{follower.follower.id}/inbox/"
+                            post_payload = {
+                                "type":"inbox",
+                                "author": f"{host_url}/authors/{follower.follower.id}",
+                                "items":[{serializer.data}],
+                            }
+                            response = requests.post(request_url, data=post_payload)
+                            if response.status_code ==200:
+                                print("Post sent to the remote server inbox")
+                            else:
+                                print("Error sending the post to the remote server inbox")
+                                print(response.status_code, response.text)
+                                return Response(response.text, status=response.status_code)
+                        else:
+                            requestData = serializer.data
+                            inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
+                            if inboxSerializer.is_valid():
+                                inboxSerializer.save()
             else:
                 print("unlisted post")
 
@@ -1036,15 +1100,18 @@ def get_and_post_inbox(request, id_author):
 
         # if its a post or comment check if the post or comment exists
         elif itemType == "post":
-            postId = item.get("id").split("/")[-1]
-            if postId is None:
-                return Response({"details":"post id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            try:
-                # if the post is in our host do this else put the post in the requestData item
-                post = Post.objects.get(id=postId)
-                requestData["item"] = item
-            except Post.DoesNotExist:
-                return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            # ignore it
+
+            # postId = item.get("id").split("/")[-1]
+            # if postId is None:
+            #     return Response({"details":"post id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            # try:
+            #     # if the post is in our host do this else put the post in the requestData item
+            #     post = Post.objects.get(id=postId)
+            #     requestData["item"] = item
+            # except Post.DoesNotExist:
+            #     return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_200_OK)
         
         elif itemType == "comment":
             # I think post will always be in our server
