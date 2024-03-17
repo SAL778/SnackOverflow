@@ -122,8 +122,8 @@ class Like(models.Model):
     summary = models.CharField(max_length=248)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="likes_author")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="like_post", null=True)
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="like_comment", null=True)
     object = models.CharField(max_length=250, null=False, blank=False, default="")
+
 # #inbox
 class Inbox(models.Model):
     type = models.CharField(max_length=50, default="inbox")

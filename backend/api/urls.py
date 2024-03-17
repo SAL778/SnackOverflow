@@ -47,7 +47,6 @@ urlpatterns = [
 
    # apis for likes
    path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes", views.get_post_likes, name="get_post_likes"),
-   path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments/<uuid:id_comment>/likes", views.get_comment_likes, name="get_comment_likes"),
    path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
 
    # apis for inbox
