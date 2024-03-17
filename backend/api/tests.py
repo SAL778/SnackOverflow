@@ -490,7 +490,7 @@ class PostCreation(TestCase):
 
         assert post.title == item["title"]
         assert post.content == item["content"]
-        assert author1_obj.display_name == item["author"]["displayName"]
+        assert author2_obj.display_name == item["author"]["displayName"]
         # assert post.sharedby == item["sharedBy"]
 
     #TODO
