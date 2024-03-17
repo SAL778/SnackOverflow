@@ -579,8 +579,44 @@ def get_and_create_post(request, id_author):
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
         if author is None:
-            # send a request to team 1 and then to team 2 to see if a user with that id exists
             return Response(status=status.HTTP_404_NOT_FOUND)
+        elif author.is_remote:
+            host_url = author.host
+            request_url = f"{host_url}/authors/{id_author}/posts/"
+            node = Node.objects.filter(api_url=host_url).first()
+            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+            if response.status_code == 200:
+                all_posts = response.json().get('items')
+                posts = []
+                for post in all_posts:
+                    # check if the post type is public
+                    if post.get('visibility').upper() == "PUBLIC":
+                        posts.append(post)
+                    if userId is not None:
+                        follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
+                        following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
+                        if follower and following:
+                            if post.get('visibility').upper() == "FRIENDS":
+                                posts.append(post)
+
+                posts = sorted(posts, key=lambda x: x['published'], reverse=True)
+
+                if int(page_number) and int(size):
+                    paginator = Paginator(posts, size)
+                    posts = paginator.get_page(page_number)
+                    serializer = PostSerializer(posts, context={'request': request}, many=True)
+                    response = {
+                        "type": "posts",
+                        "items": serializer.data,
+                    }
+                    return Response(response)
+                else:
+                    serializer = PostSerializer(posts, context={'request': request}, many=True)
+                    response = {
+                        "type": "posts",
+                        "items": serializer.data,
+                    }
+                    return Response(response)
         else:
             # the author is in our local server
             if userId is None:
@@ -597,6 +633,7 @@ def get_and_create_post(request, id_author):
                 else:
                     posts = Post.objects.filter(author=author, visibility="PUBLIC")
 
+            posts = posts.order_by('-published')
             if int(page_number) and int(size):
                 paginator = Paginator(posts, size)
                 posts = paginator.get_page(page_number)
