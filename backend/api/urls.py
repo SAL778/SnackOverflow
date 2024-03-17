@@ -56,4 +56,9 @@ urlpatterns = [
    # custom urls
    path("publicPosts/", views.get_all_public_posts, name="get_all_public_posts"),
    path("friendsFollowerPosts/", views.get_all_friends_follows_posts, name="get_all_friends_follows_posts"),
+
+
+   # urls for remote stuff
+   # this should be called every x seconds from frontend
+   path("checkRemoteFollowRequests/", views.check_remote_follow_requests_approved, name="check_remote_follow_requests_approved"),
 ]

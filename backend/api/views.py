@@ -14,6 +14,8 @@ from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
 
+from api.utils import get_remote_request
+
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
 
@@ -32,7 +34,7 @@ class UserRegister(APIView):
     )
     def post(self, request):
         # clean_data = custom_validation(request.data)
-        serializer = UserRegisterSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -74,7 +76,7 @@ class UserLogin(APIView):
                     return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
             
             else:
-                serializer = AuthorSerializer(user, data=request.data, context={'request': request}, partial=True)
+                serializer = AuthorSerializer(user, data=request.data, partial=True)
                 if serializer.is_valid():
                     login(request, user)
                     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -115,7 +117,7 @@ class UserView(APIView):
         responses={200: "Ok"},
     )
     def get(self, request):
-        serializer = AuthorSerializer(request.user, context={'request': request})
+        serializer = AuthorSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(
@@ -150,7 +152,7 @@ def get_authors(request):
         response["page"] = authors.number
         response["size"] = size
 
-    serializer = AuthorSerializer(authors, context={'request': request}, many=True)
+    serializer = AuthorSerializer(authors, many=True)
     response["items"] = serializer.data
     return Response(response)
 
@@ -161,25 +163,25 @@ def get_authors(request):
         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
 )
 @swagger_auto_schema(
-        method="post",
+        method="put",
         operation_summary="creates an authors on the server",   
         operation_description="It creates an author on the server. If the author exists then it will throw an error. It will return the author's data.",
         request_body=AuthorSerializer,
         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
 )
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'PUT'])
 def get_and_update_author(request, id):
     """
     Get a single profile on the server by ID
     """
     if request.method == 'GET':
         author = get_object_or_404(Author, id=id)
-        serializer = AuthorSerializer(author, context={'request': request})
+        serializer = AuthorSerializer(author)
         return Response(serializer.data)
 
-    if request.method == 'POST':
+    if request.method == 'PUT':
         author = get_object_or_404(Author, id=id)
-        serializer = AuthorSerializer(author, data=request.data, context={'request': request}, partial=True)
+        serializer = AuthorSerializer(author, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -203,7 +205,7 @@ def get_followers(request, id):
     for follower_object in followers:
         followers_set.add(follower_object.follower)
 
-    serializer = AuthorSerializer(followers_set, context={'request': request}, many=True)
+    serializer = AuthorSerializer(followers_set, many=True)
     response = {
         "type": "followers",
         "items": serializer.data,
@@ -238,7 +240,7 @@ def get_update_and_delete_follower(request, id_author, id_follower):
 
     if request.method == 'GET':
         follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
-        serializer = AuthorSerializer(follower_object.follower, context={'request': request})
+        serializer = AuthorSerializer(follower_object.follower)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
@@ -274,7 +276,7 @@ def get_followings(request, id_author):
     for following_object in followings:
         followings_set.add(following_object.followed_user)
 
-    serializer = AuthorSerializer(followings_set, context={'request': request}, many=True)
+    serializer = AuthorSerializer(followings_set, many=True)
     response = {
         "type": "followings",
         "items": serializer.data,
@@ -305,7 +307,7 @@ def get_friends(request, id_author):
     for friend_object in friends:
         friends_set.add(friend_object.followed_user)
 
-    serializer = AuthorSerializer(friends_set, context={'request': request}, many=True)
+    serializer = AuthorSerializer(friends_set, many=True)
     response = {
         "type": "friends",
         "items": serializer.data,
@@ -377,7 +379,10 @@ def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
         # create a new follow request
         author = Author.objects.filter(id=id_sender)
 
-        if author.exists() and author.count() == 1:
+        # if sending follow request to remote author, make sure that remote author has been added to our local db before hand.
+        author_receiver = Author.objects.filter(id=id_author)
+
+        if author.exists() and author.count() == 1 and author_receiver.exists() and author_receiver.count() == 1:
             follow_request, created = FollowRequest.objects.get_or_create(from_user_id=id_sender, to_user_id=id_author)
             # send it to the inbox of the author
             return Response(status=status.HTTP_201_CREATED)
@@ -822,7 +827,7 @@ def get_post_likes(request, id_author, id_post):
     """
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
     likes = Like.objects.filter(post=post)
-    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    serializer = AuthorSerializer(likes, many=True)
     response = {
         "type": "likes",
         "items": serializer.data,
@@ -842,7 +847,7 @@ def get_comment_likes(request, id_author, id_post, id_comment):
     """
     comment = get_object_or_404(Comment, id=id_comment, post__id=id_post, post__author__id=id_author)
     likes = Like.objects.filter(comment=comment)
-    serializer = AuthorSerializer(likes, context={'request': request}, many=True)
+    serializer = AuthorSerializer(likes, many=True)
     response = {
         "type": "likes",
         "items": serializer.data,
@@ -986,30 +991,49 @@ def get_and_post_inbox(request, id_author):
             if actor is None or object is None:
                 return Response({"details":"actor and object are required"}, status=status.HTTP_400_BAD_REQUEST)
             
-            actorAuthor = Author.objects.filter(id = actor.get("id").split("/")[-1]).first()
-            objectAuthor = Author.objects.filter(id = object.get("id").split("/")[-1]).first()
+            # actor - the person sending the request
+            # object - the person receiving the request
+            actorId = actor.get("id").split("/")[-1]
+            objectId = object.get("id").split("/")[-1]
+
+            if objectId != str(id_author):
+                return Response({"details":"Can't send follow request to someone else's inbox"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            # TODO: 
+            # check if person sending the request is from another server
+            # if the person is from another server then store that remote author in our Author table
+            # create a follow request object and store it in our database (our ui should be able to retrieve it after that)
+            # if follow request accepted, create a follower object and store it in our database and delete follow request object
+            # if follow request declined, delete the follow request object and the remote author from our Author table
+
+            
+            actorAuthor = Author.objects.filter(id = actorId).first()
+            objectAuthor = Author.objects.filter(id = objectId).first()
+
+            if objectAuthor is None:
+                return Response({"details":"object author does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if actorAuthor is None:
+                # actorAuthor is most likely from another server
+                # create a new author with the actor's details
+                actorAuthor = Author.objects.create(
+                    id=actorId, 
+                    host=actor.get("host"), 
+                    display_name=actor.get("displayName"), 
+                    url=actor.get("url"),
+                    github=actor.get("github"),
+                    profile_image=actor.get("profileImage"),
+                    is_remote=True
+                )
 
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
             if followRequest:
-                # # unfollow them
-                # # if the followed_user is in our server do this else send the request
-                # Follower.objects.filter(follower=actorAuthor, followed_user=objectAuthor).delete()
-                # return Response({"details":f"{actorAuthor.display_name} unfollowed {objectAuthor.display_name}"}, status=status.HTTP_200_OK)
                 return Response({"details":f"{actorAuthor.display_name} already follows {objectAuthor.display_name}"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # followingData = {
-            #     "follower": actorAuthor,
-            #     "followed_user": objectAuthor
-            # }
-            followRequestData = {
-                "from_user": actorAuthor,
-                "to_user": objectAuthor
-            }
             # create a follow request
             try:
                 newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
-                newFollowRequest.save()
                 serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
                 requestData["item"] = dict(serializer.data)
             except Exception as e:
@@ -1060,3 +1084,35 @@ def get_and_post_inbox(request, id_author):
         inbox = Inbox.objects.filter(author=author)
         inbox.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+@api_view(['GET'])
+def check_remote_follow_requests_approved(request):
+    """
+    Check if the remote follow request is approved
+    """
+    # check if the follow request is approved
+    # if it is then create a follower object and delete the follow request object
+
+    print("Checking remote follow requests")
+    # get all follow requests, with receiver being a remote author
+    follow_requests = FollowRequest.objects.filter(to_user__is_remote=True)
+    print("Follow requests: ", follow_requests)
+
+    # loop through all the follow requests and check if they are approved
+    for follow_request in follow_requests:
+        print(follow_request.from_user.id, follow_request.to_user.id)
+        foreign_author_id = follow_request.from_user.id # the person who sent the follow request
+        author_id = follow_request.to_user.id # the person who received the follow request
+
+        user = get_remote_request(f'{follow_request.to_user.url}/followers/{follow_request.from_user.id}', follow_request.to_user.host)
+
+        if user is not None:
+            # follow request was approved, local user is now a follower of the remote user
+            # create a follower object
+            follower = Follower.objects.create(follower_id=foreign_author_id, followed_user_id=author_id)
+            # delete the local follow request
+            follow_request.delete()
+
+    return Response(status=status.HTTP_200_OK)

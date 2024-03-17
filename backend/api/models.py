@@ -7,17 +7,22 @@ import uuid
 import os
 
 class Author(AbstractBaseUser, PermissionsMixin):
+    type = models.CharField(max_length=30, default="author")
+    # leave id as uuid to minimize the number of changes to be done to views
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True)
-
+    host = models.URLField(max_length=500, editable=False)
+    url = models.URLField(max_length=500, editable=False)
     display_name = models.CharField(max_length=100)
     github = models.URLField(max_length=100)
     profile_image = models.URLField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False, editable=False)
     is_active = models.BooleanField(default=True)
 
+    is_remote = models.BooleanField(default=False)
+
+    email = models.EmailField(unique=True)
     objects = CustomAuthorManager()
 
     EMAIL_FIELD = 'email'
@@ -33,7 +38,11 @@ class Author(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         isActive = os.getenv('IS_ACTIVE')
 
-        if self._state.adding:
+        if self._state.adding and not self.is_staff:
+
+            if self.password:
+                self.set_password(self.password)
+
             # set is_active to isActive only when user is created, and not when updated
             if isActive and isActive.lower() == 'false':
                 self.is_active = False
@@ -120,3 +129,16 @@ class Inbox(models.Model):
     author = models.ForeignKey(Author, related_name='author', on_delete=models.CASCADE)
     item = models.JSONField()
     published = models.DateTimeField(auto_now_add=True)
+
+
+class Node(models.Model):
+    team_name = models.CharField(max_length=100)
+    api_url = models.URLField(max_length=200)
+    base64_authorization = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.team_name}: {self.api_url}'
+
+    def __str__(self):
+        return self.name
