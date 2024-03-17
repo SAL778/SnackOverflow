@@ -250,13 +250,12 @@ function PostCard({
 				</Link>
 			)}
       
-			{postVisibility === "UNLISTED" && 
-
-      {(!(sharedBy === "")) && (
+			{postVisibility === "UNLISTED" && (!(sharedBy === "")) && (
 				<a href="/profile" className="username">
 					Shared By: {sharedBy}
 				</a>
 			)}
+
 			{postVisibility === "UNLISTED" && (
 				<p>Link: {`${serviceUrl}/profile/${authorId}/posts/${postId}`} </p>
 			)}
