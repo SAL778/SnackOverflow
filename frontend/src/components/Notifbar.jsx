@@ -10,7 +10,7 @@ import { extractUUID } from "../utils/Auth.jsx";
 
 const followType = "follow";
 const commentType = "comment";
-const likeType = "like";
+const likeType = "Like";
 
 const theme = createTheme({
 	palette: {
@@ -26,15 +26,12 @@ function Notifications() {
 	useEffect(() => {
 		getRequest(`authors/${auth.user.id}/inbox`)
 			.then((data) => {
-				// console.log('GET inbox data:', data);
 				setNotifs(data);
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);
 			});
 	}, []);
-	console.log("here is the notifs");
-	console.log(notifs);
 
 	var allNotifs = [];
 	// check if notifications have been successfully retrieved and that there are notifications
@@ -44,6 +41,7 @@ function Notifications() {
 		// building the feed for all the objects in the inbox
 		for (let object of inbox) {
 			const keyIndex = inbox.indexOf(object);
+			console.log(object);
 			if (object.type.toLowerCase() === followType) {
 				var author = object.actor;
 				var authorId = extractUUID(author.url);
@@ -67,6 +65,7 @@ function Notifications() {
 			} else if (object.type === likeType) {
 				var author = object.author;
 				var authorId = extractUUID(author.url);
+				var pointTo = extractUUID(object.object);
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -81,7 +80,7 @@ function Notifications() {
 							</Link>{" "}
 							left a like on your{" "}
 							<Link
-								href={object.object}
+								to={`/profile/${authorId}/posts/${pointTo}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								post
@@ -93,6 +92,8 @@ function Notifications() {
 			} else if (object.type === commentType) {
 				var author = object.author;
 				var authorId = extractUUID(author.url);
+				var pointTo = object.id.split("/");
+				pointTo = pointTo[pointTo.length - 3];
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -107,7 +108,7 @@ function Notifications() {
 							</Link>{" "}
 							left a comment on your{" "}
 							<Link
-								href={object.id}
+								to={`/profile/${authorId}/posts/${pointTo}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								post

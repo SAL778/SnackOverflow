@@ -63,18 +63,28 @@ const MakePostCard = ({
 			contentType = image.type;
 		}
 
-		const postData = {
+		const editPostData = {
 			title,
 			visibility: postType.toUpperCase(),
 			description,
 			content,
 			contentType,
 		};
-		console.log("Post Data:", postData);
+
+		const postData = {
+			title,
+			postType,
+			description,
+			content,
+			isMarkdown,
+			image,
+			isImage,
+		};
+		// console.log("Post Data:", postData);
 		// console.log("Initial Data:", initialData);
 
 		if (initialData) {
-			putRequest(`authors/${authorId}/posts/${postId}`, postData)
+			putRequest(`authors/${authorId}/posts/${postId}`, editPostData)
 				.then((response) => {
 					// Handle success
 					// console.log("PUT Request Data:", response);
