@@ -6,6 +6,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { Link } from "react-router-dom";
+import { extractUUID } from "../utils/Auth.jsx";
 
 const followType = "follow";
 const commentType = "comment";
@@ -43,9 +44,7 @@ function Notifications() {
 			console.log(object);
 			if (object.type.toLowerCase() === followType) {
 				var author = object.actor;
-				// slice for proper url for frontend
-				var profile = author.url.replace("api","profile");
-				profile = profile.slice(profile.indexOf("profile")-1).replace("/authors","");
+				var authorId = extractUUID(author.url);
 				allNotifs.push(
 					// TODO: these a elements need to be changed to Link elements
 					<div
@@ -54,7 +53,7 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								to={profile}
+								to={`/profile/${authorId}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
@@ -65,12 +64,7 @@ function Notifications() {
 				);
 			} else if (object.type === likeType) {
 				var author = object.author;
-				// slice for proper url for frontend
-				// var profile = author.url.replace("api","profile");
-				// profile = profile.slice(profile.indexOf("profile")-1).replace("/authors","");
-				// var pointTo = object.object.replace("api","profile");
-				// pointTo = pointTo.slice(pointTo.indexOf("profile")-1).replace("/authors","");
-				// pointTo = pointTo.slice(0,pointTo.indexOf("comments"));
+				var authorId = extractUUID(author.url);
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -78,7 +72,7 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								to={"profile"}
+								to={`/profile/${authorId}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
@@ -96,12 +90,7 @@ function Notifications() {
 				);
 			} else if (object.type === commentType) {
 				var author = object.author;
-				// slice for proper url for frontend
-				var profile = author.url.replace("api","profile");
-				profile = profile.slice(profile.indexOf("profile")-1).replace("/authors","");
-				var pointTo = object.id.replace("api","profile");
-				pointTo = pointTo.slice(pointTo.indexOf("profile")-1).replace("/authors","");
-				pointTo = pointTo.slice(0,pointTo.indexOf("comments"));
+				var authorId = extractUUID(author.url);
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -109,14 +98,14 @@ function Notifications() {
 					>
 						<p className="text-sm">
 							<Link
-								to={profile}
+								to={`/profile/${authorId}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								{author.displayName}
 							</Link>{" "}
 							left a comment on your{" "}
 							<Link
-								to={pointTo}
+								to={"pointTo"}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								post
