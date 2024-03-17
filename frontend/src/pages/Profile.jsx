@@ -32,6 +32,14 @@ function Profile() {
 	const [showPosts, setShowPosts] = useState(false);
 	const [showReqs, setShowReqs] = useState(false);
 
+	const buttons = [
+		{ name: "Followers", stateSetter: setShowFollowers },
+		{ name: "Following", stateSetter: setShowFollowing },
+		{ name: "Friends", stateSetter: setShowFriends },
+		{ name: "Posts", stateSetter: setShowPosts },
+		{ name: "Follow Requests", stateSetter: setShowReqs },
+	];
+
 	const [changeProfile, setChangeProfile] = useState(false);
 	const flipChangeProfile = (change) => {
 		setChangeProfile(!change);
@@ -172,67 +180,18 @@ function Profile() {
 			/>
 
 			<div className="flex-initial flex-col h-56 grid-cols-5 gap-14 content-center">
-				<button
-					onClick={() => {
-						setShowFollowers(true);
-						setShowFollowing(false);
-						setShowFriends(false);
-						setShowPosts(false);
-						setShowReqs(false);
-					}}
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
-				>
-					Followers
-				</button>
-				<button
-					onClick={() => {
-						setShowFollowers(false);
-						setShowFollowing(true);
-						setShowFriends(false);
-						setShowPosts(false);
-						setShowReqs(false);
-					}}
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
-				>
-					Following
-				</button>
-				<button
-					onClick={() => {
-						setShowFollowers(false);
-						setShowFollowing(false);
-						setShowFriends(true);
-						setShowPosts(false);
-						setShowReqs(false);
-					}}
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
-				>
-					Friends
-				</button>
-				<button
-					onClick={() => {
-						setShowFollowers(false);
-						setShowFollowing(false);
-						setShowFriends(false);
-						setShowPosts(true);
-						setShowReqs(false);
-						console.log("Posts Button Clicked");
-					}}
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
-				>
-					Posts
-				</button>
-				<button
-					onClick={() => {
-						setShowFollowers(false);
-						setShowFollowing(false);
-						setShowFriends(false);
-						setShowPosts(false);
-						setShowReqs(true);
-					}}
-					class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
-				>
-					Follow Requests
-				</button>
+				{buttons.map((button, index) => (
+					<button
+						key={index}
+						onClick={() => {
+							buttons.forEach((btn) => btn.stateSetter(false));
+							button.stateSetter(true);
+						}}
+						class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
+					>
+						{button.name}
+					</button>
+				))}
 			</div>
 
 			<div class="overflow-y-scroll h-96 max-h-screen">
@@ -327,10 +286,11 @@ function Profile() {
 								dates.getMonth() + 1
 							).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
 							let limitedContent = "";
-							if (post.content !== ""){
-								limitedContent = post.content.length > 100
-									? post.content.substring(0, 100) + "... See More"
-									: post.content;
+							if (post.content !== "") {
+								limitedContent =
+									post.content.length > 100
+										? post.content.substring(0, 100) + "... See More"
+										: post.content;
 							}
 							const authorId = post.author.id.split("/").slice(-1)[0]; // extract the author's id
 

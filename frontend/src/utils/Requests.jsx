@@ -6,7 +6,9 @@ axios.defaults.xsrfHeaderName = "X-CSRFToken";
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
-let baseURL = "http://127.0.0.1:8000/api/";
+//let baseURL = "http://127.0.0.1:8000/api/";
+let baseURL =
+	"https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com/api/";
 
 if (process.env.NODE_ENV === "development") {
 	baseURL = "http://127.0.0.1:8000/api/";
@@ -42,8 +44,7 @@ async function postRequest(apiEndpoint, postData, formData = false) {
 				},
 			});
 			return response.data;
-		}
-		else {
+		} else {
 			const response = await client.post(apiEndpoint, postData, {
 				withCredentials: true,
 			});
@@ -62,7 +63,6 @@ async function postRequest(apiEndpoint, postData, formData = false) {
 		} else {
 			throw new Error(error.message);
 		}
-		
 	}
 }
 
@@ -83,9 +83,11 @@ async function deleteRequest(apiEndpoint) {
 }
 
 // Function to make a PUT request
-async function putRequest(apiEndpoint) {
+async function putRequest(apiEndpoint, data) {
 	try {
-		const response = await client.put(apiEndpoint, { withCredentials: true });
+		const response = await client.put(apiEndpoint, data, {
+			withCredentials: true,
+		});
 		return response.data;
 	} catch (error) {
 		console.error(

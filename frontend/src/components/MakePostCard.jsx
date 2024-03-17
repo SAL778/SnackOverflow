@@ -3,8 +3,15 @@
 // upload media files, and submit or cancel the post.
 import "./MakePostCard.css";
 import Alert from "@mui/material/Alert";
-import React, { useState } from "react";
-const MakePostCard = ({ onSubmit, onCancel }) => {
+import React, { useState, useEffect } from "react";
+import { postRequest, putRequest, getRequest } from "../utils/Requests.jsx";
+const MakePostCard = ({
+	onSubmit,
+	onCancel,
+	initialData,
+	authorId,
+	postId,
+}) => {
 	const [title, setTitle] = useState(""); // State for storing the title input value
 	const [postType, setPostType] = useState(""); // State for storing the selected post type
 	const [content, setContent] = useState(""); // State for storing the content input value
@@ -24,7 +31,18 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 		setImage(event.target.files[0]);
 	};
 
-	// Function to handle the form submission
+	useEffect(() => {
+		if (initialData) {
+			setTitle(initialData.title);
+			setPostType(initialData.visibility);
+			setDescription(initialData.description);
+			setContent(initialData.content);
+			// setIsMarkdown(initialData.contentType);
+			setIsMarkdown(initialData.contentType === "text/markdown");
+			setIsImage(initialData.contentType.startsWith("image/"));
+		}
+	}, [initialData]);
+
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		console.log("Submitting post...");
@@ -38,7 +56,21 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 
 		setShowValidationError(false);
 
-		// Create a postData object with the input values
+		let contentType = "text/plain";
+		if (isMarkdown) {
+			contentType = "text/markdown";
+		} else if (isImage && image) {
+			contentType = image.type;
+		}
+
+		const editPostData = {
+			title,
+			visibility: postType.toUpperCase(),
+			description,
+			content,
+			contentType,
+		};
+
 		const postData = {
 			title,
 			postType,
@@ -48,9 +80,22 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 			image,
 			isImage,
 		};
-		console.log("Post Data:", postData);
-		// Call the onSubmit function with the postData
-		onSubmit(postData);
+		// console.log("Post Data:", postData);
+		// console.log("Initial Data:", initialData);
+
+		if (initialData) {
+			putRequest(`authors/${authorId}/posts/${postId}`, editPostData)
+				.then((response) => {
+					// Handle success
+					// console.log("PUT Request Data:", response);
+				})
+				.catch((error) => {
+					// Handle error
+					console.error("Error updating the post: ", error.message);
+				});
+		} else {
+			onSubmit(postData);
+		}
 	};
 
 	// Function to handle the cancel button click event
@@ -146,7 +191,7 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 								className={isMarkdown && !isImage ? "selected" : ""}
 								onClick={() => {
 									setIsMarkdown(true);
-									setIsImage(false)
+									setIsImage(false);
 								}}
 							>
 								Markdown
@@ -155,8 +200,8 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 								type="button"
 								className={isImage ? "selected" : ""}
 								onClick={() => {
-									setIsImage(true) ;
-									setIsMarkdown(false)
+									setIsImage(true);
+									setIsMarkdown(false);
 								}}
 							>
 								Image
@@ -175,7 +220,12 @@ const MakePostCard = ({ onSubmit, onCancel }) => {
 					{isImage && (
 						<div className="form-group">
 							<label>Media:</label>
-							<input type="file" name= "image" accept="image/jpeg,image/png" onChange={handleImageUpload} />
+							<input
+								type="file"
+								name="image"
+								accept="image/jpeg,image/png"
+								onChange={handleImageUpload}
+							/>
 						</div>
 					)}
 					{/* Buttons for canceling or submitting the form */}
