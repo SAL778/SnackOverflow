@@ -65,6 +65,7 @@ function Notifications() {
 			} else if (object.type === likeType) {
 				var author = object.author;
 				var authorId = extractUUID(author.url);
+				var pointTo = extractUUID(object.object);
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -79,7 +80,7 @@ function Notifications() {
 							</Link>{" "}
 							left a like on your{" "}
 							<Link
-								to={"pointTo"}
+								to={`/profile/${authorId}/posts/${pointTo}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								post
@@ -91,6 +92,8 @@ function Notifications() {
 			} else if (object.type === commentType) {
 				var author = object.author;
 				var authorId = extractUUID(author.url);
+				var pointTo = object.id.split("/");
+				pointTo = pointTo[pointTo.length - 3];
 				allNotifs.push(
 					<div
 						key={keyIndex}
@@ -105,7 +108,7 @@ function Notifications() {
 							</Link>{" "}
 							left a comment on your{" "}
 							<Link
-								to={"pointTo"}
+								to={`/profile/${authorId}/posts/${pointTo}`}
 								className="font-semibold hover:underline hover:text-orange-700"
 							>
 								post

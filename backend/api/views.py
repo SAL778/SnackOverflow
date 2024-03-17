@@ -1002,7 +1002,7 @@ def get_and_post_inbox(request, id_author):
 
             if likeSerializer.is_valid():
                 likeSerializer.save()
-                requestData["item"] = item
+                requestData["item"] = likeSerializer.data
             else:
                 return Response(likeSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
