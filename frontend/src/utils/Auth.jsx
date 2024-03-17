@@ -1,4 +1,4 @@
-// This file has been adapred from the following source:
+// This file has been adapted from the following source:
 // - https://dev.to/dayvster/use-react-context-for-auth-288g
 // - https://medium.com/@remind.stephen.to.do.sth/hands-on-guide-to-secure-react-routes-with-authentication-context-971f37ede990
 // Accessed 2024-02-22
@@ -9,7 +9,11 @@ import { getRequest, postRequest } from "./Requests.jsx";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-	const [user, setUser] = useState(localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
+	const [user, setUser] = useState(
+		localStorage.getItem("user")
+			? JSON.parse(localStorage.getItem("user"))
+			: null
+	);
 	const [isLoggedIn, setIsLoggedIn] = useState(
 		localStorage.getItem("isLoggedIn") === "true"
 	);
@@ -45,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 			setUser(response);
 			setIsLoggedIn(true);
 
-			console.log("User: ", user)
+			console.log("User: ", user);
 
 			const userId = extractUUID(response.id);
 			response.id = userId;
@@ -89,13 +93,17 @@ export const AuthProvider = ({ children }) => {
 		profileimage
 	) => {
 		try {
-			const response = await postRequest("register/", {
-				email: email,
-				password: password,
-				display_name: displayname,
-				github: github,
-				profile_image: profileimage,
-			}, false);
+			const response = await postRequest(
+				"register/",
+				{
+					email: email,
+					password: password,
+					display_name: displayname,
+					github: github,
+					profile_image: profileimage,
+				},
+				false
+			);
 
 			return new Promise((resolve) => {
 				resolve(true);
@@ -109,9 +117,7 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	return (
-		<AuthContext.Provider
-			value={{ user, isLoggedIn, login, logout, register }}
-		>
+		<AuthContext.Provider value={{ user, isLoggedIn, login, logout, register }}>
 			{children}
 		</AuthContext.Provider>
 	);
@@ -121,8 +127,7 @@ export const useAuth = () => {
 	return useContext(AuthContext);
 };
 
-
-function extractUUID(url) {
+export function extractUUID(url) {
 	let parts = url.split("/");
 	return parts[parts.length - 1];
 }

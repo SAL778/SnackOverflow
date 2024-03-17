@@ -1,38 +1,49 @@
 import "./NewPost.css";
 import React from "react";
 import MakePostCard from "../components/MakePostCard";
-import { postRequest } from "../utils/Requests.jsx";
+import { postRequest, putRequest, getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import Alert from "@mui/material/Alert";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
-const NewPost = () => {
+const NewPost = ({ editMode }) => {
+	const { authorId, postId } = useParams();
+	const [initialPostData, setInitialPostData] = useState(null);
 	const auth = useAuth();
 	const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+
+	useEffect(() => {
+		if (editMode) {
+			// Fetch the post data and set it as initial data
+			getRequest(`authors/${authorId}/posts/${postId}`)
+				.then((data) => setInitialPostData(data))
+				.catch((error) => console.error("Fetch error:", error));
+		}
+	}, [editMode, authorId, postId]);
 
 	const handlePostSubmit = async (postData) => {
 		if (!postData.title || !postData.postType) {
 			return;
 		}
 		let contentType = "text/plain";
-		if (postData.isMarkdown){
+		if (postData.isMarkdown) {
 			contentType = "text/markdown";
-		} 
-		else if (postData.isImage){
+		} else if (postData.isImage) {
 			contentType = "image/png;base64";
 		}
 		const dataToSend = new FormData();
 		dataToSend.append("title", postData.title);
 		dataToSend.append("description", postData.description);
 		dataToSend.append("contentType", contentType);
-		if (postData.content){
+		if (postData.content) {
 			dataToSend.append("content", postData.content);
 		}
 		dataToSend.append("visibility", postData.postType.toUpperCase());
-		if (postData.image){
+		if (postData.image) {
 			dataToSend.append("image", postData.image || null, postData.image.name); // Only one image for now (to be updated later)
 		}
-		
+
 		try {
 			const data = await postRequest(
 				`authors/${auth.user.id}/posts/`,
@@ -74,7 +85,13 @@ const NewPost = () => {
 					Post Successful
 				</Alert>
 			)}
-			<MakePostCard onSubmit={handlePostSubmit} onCancel={handleCancel} />
+			<MakePostCard
+				onSubmit={handlePostSubmit}
+				onCancel={handleCancel}
+				initialData={initialPostData}
+				authorId={authorId}
+				postId={postId}
+			/>
 		</div>
 	);
 };

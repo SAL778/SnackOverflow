@@ -13,6 +13,28 @@ import PrivateRoute from "./utils/PrivateRoute.jsx";
 import { AuthProvider, useAuth } from "./utils/Auth.jsx";
 import Signup from "./pages/Signup.jsx";
 
+const routes = [
+	{ path: "/login", component: Login },
+	{ path: "/signup", component: Signup },
+	{ path: "/profile", component: Profile, isPrivate: true },
+	{ path: "/profile/:source", component: Profile, isPrivate: true },
+	{ path: "/", component: Feed, isPrivate: true },
+	{ path: "/feed", component: Feed, isPrivate: true },
+	{ path: "/explore", component: Explore, isPrivate: true },
+	{ path: "/newpost", component: NewPost, isPrivate: true },
+	{
+		path: "/profile/:authorId/posts/:postId",
+		component: SinglePost,
+		isPrivate: true,
+	},
+	{
+		path: "/edit-post/:authorId/:postId",
+		component: NewPost,
+		isPrivate: true,
+		props: { editMode: true },
+	},
+];
+
 function App() {
 	const auth = useAuth();
 
@@ -26,65 +48,23 @@ function App() {
 				) : null}
 
 				<Routes>
-					<Route path="/login" element={<Login />} />
-					<Route path="/signup" element={<Signup />} />
-
-					<Route
-						path="/profile"
-						element={
-							<PrivateRoute>
-								<Profile />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/profile/:source"
-						element={
-							<PrivateRoute>
-								<Profile />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/"
-						element={
-							<PrivateRoute>
-								<Feed />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/feed"
-						element={
-							<PrivateRoute>
-								<Feed />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/explore"
-						element={
-							<PrivateRoute>
-								<Explore />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/newpost"
-						element={
-							<PrivateRoute>
-								<NewPost />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/profile/:authorId/posts/:postId"
-						element={
-							<PrivateRoute>
-								<SinglePost />
-							</PrivateRoute>
-						}
-					/>
+					{routes.map(
+						({ path, component: Component, isPrivate, props }, index) => (
+							<Route
+								key={index}
+								path={path}
+								element={
+									isPrivate ? (
+										<PrivateRoute>
+											<Component {...props} />
+										</PrivateRoute>
+									) : (
+										<Component {...props} />
+									)
+								}
+							/>
+						)
+					)}
 				</Routes>
 			</div>
 		</Router>
