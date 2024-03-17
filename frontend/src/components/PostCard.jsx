@@ -28,6 +28,7 @@ function PostCard({
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
+	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
 	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
 	const serviceUrl = window.location.protocol + '//' + window.location.host;
@@ -250,7 +251,7 @@ function PostCard({
 				</Link>
 			)}
       
-			{postVisibility === "UNLISTED" && (!(sharedBy === "")) && (
+			{(!(sharedBy === "")) && (
 				<a href="/profile" className="username">
 					Shared By: {sharedBy}
 				</a>
