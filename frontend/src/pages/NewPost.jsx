@@ -36,13 +36,14 @@ const NewPost = ({ editMode }) => {
 		dataToSend.append("title", postData.title);
 		dataToSend.append("description", postData.description);
 		dataToSend.append("contentType", contentType);
-		if (postData.content) {
+		dataToSend.append("visibility", postData.postType.toUpperCase());
+		if (!postData.isImage && postData.content) {
 			dataToSend.append("content", postData.content);
 		}
-		dataToSend.append("visibility", postData.postType.toUpperCase());
-		if (postData.image) {
-			dataToSend.append("image", postData.image || null, postData.image.name); // Only one image for now (to be updated later)
+		if (postData.isImage && postData.image) {
+			dataToSend.append("image", postData.image, postData.image.name); // Only one image for now (to be updated later)
 		}
+		// console.log("Data to send:", dataToSend);
 
 		try {
 			const data = await postRequest(
