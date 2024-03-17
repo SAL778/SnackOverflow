@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-import json
+import json, base64
 
 from .models import Author, Post, Comment, Like, FollowRequest, Follower
 
@@ -168,9 +168,15 @@ class UserCreation(TestCase):
         # login despite not setting account active
         response = self.client.post(reverse("api:login"), user)
         self.assertEqual(response.status_code, 403)
+
+    # def test_basic_auth(self):
+    #     """
+    #         test for basic auth access
+    #     """
     
         
 class PostCreation(TestCase):
+    # note: github testing not available as frontend is the one to do polling
     def test_create_post(self):
         """
             tests post creation for a user and the retrieval of posts from the endpoint
@@ -361,20 +367,125 @@ class PostCreation(TestCase):
         # should not exist
         response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}))
         self.assertEqual(response.status_code, 404)
-    
-    # TODO:
-    # def test_edit_own_post(self):
+
+    def test_unlisted_post(self):
+        """
+            tests unlisted post creation
+        """
+        user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
+        self.client.post(reverse("api:login"), user)
+        # create the object internally (not with api)
+        post = create_post("test title", '', '', "unlisted only", "text/plain", "test content", author, "0", "", "UNLISTED" )
+
+        # pull posts from endpoint
+        response = self.client.get(reverse("api:get_and_create_post", kwargs={"id_author": author.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        post_object = retrieved["items"][0]
+
+        # test to ensure some aspects remain the same between both post objects
+        assert post.title == post_object["title"]
+        assert post.content == post_object["content"]
+        assert post.description == post_object["description"]
+        assert post.contentType == post_object["contentType"]
+        assert post.visibility == post_object["visibility"]
+        assert post_object["author"]["displayName"] == author.display_name
+        assert post_object["author"]["github"] == author.github
+        # proper url has been serialized by backend for comments url and id of post
+        assert post_object["comments"] != ""
+        assert post_object["id"] != ""
+
+    def test_edit_own_post(self):
+        """
+            tests editing posts
+        """
+        user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user)
+        author = Author.objects.get(display_name="test user")
+        set_active(author)
+        self.client.post(reverse("api:login"), user)
+        # create the object internally (not with api)
+        post = create_post("test title", '', '', "public", "text/plain", "test content", author, "0", "", "PUBLIC" )
+
+        # pull post to edit content
+        response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        retrieved["content"] = "edited content"
+        retrieved["title"] = "edited title"
+
+        # send a put request
+        response = self.client.put(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}), retrieved, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+        # fetch the given edited post
+        response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved1 = json.loads(response.content)
+
+        assert retrieved["title"] == retrieved1["title"]
+        assert retrieved["content"] == retrieved1["content"]
+        assert retrieved["description"] == retrieved1["description"]
+        assert post.contentType == retrieved1["contentType"]
+        assert post.visibility == retrieved1["visibility"]
+        assert retrieved1["author"]["displayName"] == author.display_name
+        assert retrieved1["author"]["github"] == author.github
+        # proper url has been serialized by backend for comments url and id of post
+        assert retrieved1["comments"] != ""
+        assert retrieved1["id"] != ""
+
+    def test_edit_others_post(self):
+        """
+            tests editing posts from other users
+        """
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
+        self.client.post(reverse("api:login"), user2)
+
+        # create the post
+        post = create_post("test title", '', '', "public", "text/plain", "test content", author1_obj, "0", "", "PUBLIC" )
+        # pull post to edit content
+        response = self.client.get(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post.id}))
+        self.assertEqual(response.status_code, 200)
+        retrieved = json.loads(response.content)
+        retrieved["content"] = "edited content"
+        retrieved["title"] = "edited title"
+
+        response = self.client.put(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author1_obj.id, "id_post": post.id}), retrieved, content_type="application/json")
+        self.assertEqual(response.status_code, 401)
         
-    # def test_edit_others_post(self):
+    def test_share_post(self):
+        """
+            test sharing of posts
+        """
+        # note, cannot test restriction of sharing public posts as frontend is the one to check whether or not sharing is applicable
+        user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
+        user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
+        self.client.post(reverse("api:register"), user1)
+        self.client.post(reverse("api:register"), user2)
+        author1_obj = Author.objects.get(display_name="test user")
+        author2_obj = Author.objects.get(display_name="test1 user1")
+        set_active(author1_obj)
+        set_active(author2_obj)
+        self.client.post(reverse("api:login"), user1)
+
+        # create the post
+        post = create_post("test title", '', '', "public", "text/plain", "test content", author1_obj, "0", "", "PUBLIC" )
         
-    # def test_share_post(self):
+    #TODO
         
     # def test_image_post(self):
         
     # def test_share_image_post(self):
-    
-    # def test_share_others_post(self):
-
             
 class FeedTests(TestCase):
     def test_all_public_posts(self):
@@ -967,8 +1078,7 @@ class InboxTests(TestCase):
         assert request["actor"]["displayName"] == request_obj["actor"]["displayName"]
         assert request["object"]["displayName"] == request_obj["object"]["displayName"]
 
-    # TODO
-    def test_notifications_likes(self):
+    def test_inbox_likes(self):
         """
             test getting likes in the inbox
         """
@@ -1133,7 +1243,6 @@ class LikeTests(TestCase):
         assert item1["author"]["displayName"] == like2.author.display_name
         assert item0["object"] == like1.object
         assert item1["object"] == like2.object
-
         
 class CommentTests(TestCase):
     # TODO some weird bug with /comments api
@@ -1175,7 +1284,6 @@ class CommentTests(TestCase):
         """
         user1 = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         user2 = create_author("test1@test1.ca", "test1 user1", "https://github.com", "", "12345")
-        user3 = create_author("test2@test2.ca", "test2 user2", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user1)
         self.client.post(reverse("api:register"), user2)
         author1_obj = Author.objects.get(display_name="test user")
@@ -1192,13 +1300,16 @@ class CommentTests(TestCase):
         post1 = create_post("test public", '', '', "2 description", "text/plain", "test content", author1_obj, "0", "", "FRIENDS" )
         comment1 = create_comment(author2_obj, "this is a nice comment", post1)
 
-        # from user 1 fetch the comments from the frie
+        # from user 1 fetch the comments from the post
         response = self.client.get(reverse("api:get_and_create_comment", kwargs={"id_author":author1_obj.id, "id_post": post1.id}))
         self.assertEqual(response.status_code, 200)
         retrieved = json.loads(response.content)
         print(retrieved)
         items = retrieved["items"]
         item0 = items[0]
+
+        assert item0["author"]["displayName"] == comment1.author.display_name
+        assert item0["comment"] == comment1.comment
 
 # class NodeTests(TestCase):
     # def add node
