@@ -43,7 +43,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 class AuthorSerializer(serializers.ModelSerializer):
     displayName = serializers.CharField(source='display_name')
-    profileImage = serializers.URLField(source='profile_image')
+    profileImage = serializers.URLField(source='profile_image', required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = Author
