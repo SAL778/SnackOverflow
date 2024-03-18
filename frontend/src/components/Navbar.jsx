@@ -9,6 +9,8 @@ import {
 	SignOut,
 } from "@phosphor-icons/react";
 import { useAuth } from "../utils/Auth.jsx";
+import { useEffect, useState } from "react";
+import { getRequest } from "../utils/Requests.jsx";
 
 // The navigation and links components are adapted and modified from the "Learning Next.js" tutorial written by
 // Vercel inc. and their contributors. Both links below are the source component pages from the repository which showcases the finished
@@ -63,9 +65,35 @@ export default function Navigation() {
 	const auth = useAuth();
 	const navigate = useNavigate();
 
+	const [intervalId, setIntervalId] = useState(null);
+
+
+	// poll data from /checkRemoteFollowRequests every 5 seconds
+	useEffect(() => {
+		const timeout = 5000;	// 5 seconds
+
+		if (auth.user) {
+			const id = setInterval(async () => {
+				await getRequest("checkRemoteFollowRequests/")
+			}, timeout);
+
+			setIntervalId(id);
+
+		} else {
+			clearInterval(id);
+		}
+
+		// Cleanup function to clear the interval when the component unmounts
+		return () => {
+			clearInterval(intervalId);
+		};
+	}, []);
+
+
 	const handleLogout = async (e) => {
 		e.preventDefault();
 		await auth.logout();
+		clearInterval(intervalId);
 		navigate("/login");
 	};
 
