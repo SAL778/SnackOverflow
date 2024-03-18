@@ -16,7 +16,7 @@ function Feed() {
 
 	useEffect(() => {
 		//getRequest(`authors/${auth.user.id}/posts`) // current authors posts
-		getRequest(`friendsFollowerPosts/`) // posts from friends and followers
+		getRequest(`friendsFollowerPosts/${auth.user.id}`) // posts from friends and followers
 			.then((data) => {
 				console.log("GET posts Request Data:", data);
 				const sortedPosts = data.items.sort(

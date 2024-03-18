@@ -54,7 +54,7 @@ urlpatterns = [
 
    # custom urls
    path("publicPosts/", views.get_all_public_posts, name="get_all_public_posts"),
-   path("friendsFollowerPosts/", views.get_all_friends_follows_posts, name="get_all_friends_follows_posts"),
+   path("friendsFollowerPosts/<uuid:id_author>", views.get_all_friends_follows_posts, name="get_all_friends_follows_posts"),
 
 
    # urls for remote stuff
