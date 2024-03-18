@@ -63,7 +63,7 @@ function Feed() {
 						description={post.description}
 						contentType={post.contentType}
 						content={post.content}
-						postId={post.id}
+						postId={postId}
             			sharedBy={post.sharedBy}
 						authorId={authorId}
 						imageSrc={post.image}
