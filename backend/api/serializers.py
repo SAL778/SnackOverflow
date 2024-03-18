@@ -102,14 +102,14 @@ class FollowRequestSerializer(serializers.Serializer):
         )
         return follow_request
 
-
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
             'type', 'id', 'title', 'source', 'origin', 'description', 'contentType',
             'content', 'author', 'count', 'comments', 'published',
-            'visibility', 'image', 'image_url', 'sharedBy'
+            'visibility', 'sharedBy'
+
         ]
         read_only_fields = ['type', 'id', 'author', 'count', 'comments', 'published']
     
@@ -120,8 +120,6 @@ class PostSerializer(serializers.ModelSerializer):
         current_url = f"{request.build_absolute_uri('/')}api/authors/{instance.author.id}/posts"
         data['id'] = f"{current_url}/{instance.id}"
         data["comments"] = f"{current_url}/{instance.id}/comments"
-        if (not data['image']) and (data['image_url']):
-            data['image'] = data['image_url']
         return data
     
 class CommentSerializer(serializers.ModelSerializer):

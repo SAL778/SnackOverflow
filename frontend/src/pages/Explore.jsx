@@ -53,7 +53,6 @@ function Explore() {
 						postId={postId}
             			sharedBy={post.sharedBy}
 						authorId={authorId}
-						imageSrc={post.image}
 						postVisibility={post.visibility}
 					/>
 				);

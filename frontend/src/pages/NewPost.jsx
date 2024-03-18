@@ -26,31 +26,37 @@ const NewPost = ({ editMode }) => {
 		if (!postData.title || !postData.postType) {
 			return;
 		}
+
 		let contentType = "text/plain";
 		if (postData.isMarkdown) {
 			contentType = "text/markdown";
-		} else if (postData.isImage) {
-			contentType = "image/png;base64";
+		} else if (postData.isImage && postData.image) {
+			if (postData.image.slice(5,21) === "image/png;base64") {
+				contentType = "image/png;base64";
+			} else if (postData.image.slice(5,22) === "image/jpeg;base64") {
+				contentType = "image/jpeg;base64";
+			} else {
+				contentType = "application/base64";
+			}
 		}
-		const dataToSend = new FormData();
-		dataToSend.append("title", postData.title);
-		dataToSend.append("description", postData.description);
-		dataToSend.append("contentType", contentType);
-		dataToSend.append("visibility", postData.postType.toUpperCase());
-		if (!postData.isImage && postData.content) {
-			dataToSend.append("content", postData.content);
-		}
+
+		const dataToSend = {
+			title: postData.title,
+			description: postData.description,
+			contentType: contentType,
+			visibility: postData.postType.toUpperCase(),
+			content: postData.content,
+		};
+
 		if (postData.isImage && postData.image) {
-			dataToSend.append("image", postData.image, postData.image.name); // Only one image for now (to be updated later)
+			dataToSend.content = postData.image; // Attach the base64 encoded image string directly to the dataToSend object
 		}
-		// console.log("Data to send:", dataToSend);
 
 		try {
 			const data = await postRequest(
 				`authors/${auth.user.id}/posts/`,
-				//JSON.stringify(dataToSend)
-				dataToSend,
-				true
+				JSON.stringify(dataToSend),
+				true // Ensure your request handler sets the correct content type header for JSON, typically 'application/json'
 			);
 			console.log("POST Request Data:", data);
 			setShowSuccessAlert(true);
