@@ -271,7 +271,7 @@ def get_update_and_delete_follower(request, id_author, id_follower):
     if request.method == 'GET':
         follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
         serializer = AuthorSerializer(follower_object.follower)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'PUT':
         # create a new follower
@@ -1235,15 +1235,40 @@ def check_remote_follow_requests_approved(request):
 
         node = Node.objects.filter(host_url = follow_request.to_user.host).first()
         request_url = f'{follow_request.to_user.url}/followers/{follow_request.from_user.id}'
+        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
 
-
-        user = get_remote_request(f'{follow_request.to_user.url}/followers/{follow_request.from_user.id}', follow_request.to_user.host)
-
-        if user is not None:
+        if response.status_code == 200:
             # follow request was approved, local user is now a follower of the remote user
             # create a follower object
             follower = Follower.objects.create(follower_id=foreign_author_id, followed_user_id=author_id)
             # delete the local follow request
-            follow_request.delete()
+            follow_request.delete()            
 
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def check_remote_follower_still_exists(request):
+    """
+    Check if the remote follower still exists
+    """
+    # check if the follower still exists
+    # if it doesn't then delete the follower object
+
+    print("Checking remote followers")
+    # get all followers, with the follower being a remote author
+    # all remote followers that is on our db
+    followers = Follower.objects.filter(follower__is_remote=True)
+    print("Followers: ", followers)
+
+    # loop through all the followers and check if they still exist
+    for follower in followers:
+        node = Node.objects.filter(host_url = follower.follower.url).first()
+        request_url = f"{node.api_url}authors/{follower.followed_user.id}/followers/{follower.follower.id}"
+        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+
+        if response.status_code != 200:
+            # no longer a follower, delete follower object
+            follower.delete()
+        
