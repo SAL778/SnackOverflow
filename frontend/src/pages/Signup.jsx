@@ -34,7 +34,7 @@ function Signup() {
 		try {
 			// check if it is has github in the github field
 			console.log(data.get("github").split("/")[3]);
-			if (data.get("github").slice(8,18) !== "github.com") {
+			if (data.get("github").slice(8, 18) !== "github.com") {
 				throw new Error("Github field does not contain the github website.");
 			}
 			const response = await auth.register(
@@ -54,7 +54,7 @@ function Signup() {
 		} catch (error) {
 			if (error.message.includes("Github")) {
 				setError("Please fill in a valid Github user URL.");
-			} else{
+			} else {
 				setError("An error occured when registering. Please try again.");
 			}
 			setData(null);
@@ -65,11 +65,7 @@ function Signup() {
 		<ThemeProvider theme={theme}>
 			<div className="flex flex-col h-screen w-screen items-center justify-center bg-gray-200 p-5">
 				{/* alerts show up if there is an error or successful registration */}
-				{error && (
-					<Alert severity="error">
-						{error}
-					</Alert>
-				)}
+				{error && <Alert severity="error">{error}</Alert>}
 				{data && (
 					<Alert icon={<CheckIcon fontSize="inherit" />} severity="success">
 						Registration was successful! Redirecting to sign in page...

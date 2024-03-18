@@ -17,6 +17,8 @@ import uuid
 from itertools import chain
 from api.utils import get_remote_request
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
+import base64
+from django.http import Http404
 
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -332,7 +334,7 @@ def get_friends(request, id_author):
 
     # for my following, check if they are also in my followers
     friends = following.filter(followed_user__in=followers.values_list('follower', flat=True))    
-    print(friends)
+    # print(friends)
 
     friends_set = set()
     for friend_object in friends:
@@ -712,15 +714,18 @@ def get_and_create_post(request, id_author):
         # requestData = dict(request.data)
         requestData = request.data
         # REQUest data is query dict
-        # if the image is a url then store the url in the image field
-        image = request.data.get("image")
-        # check if the image type is strin
-        
-        if(not (image is None) and (type(image) == "str") and image.startswith("http")):
-            print("inside if imageURL")
-            requestData["image"] = None
-            requestData["image_url"] = request.data.get("image")
         serializer = PostSerializer(data=requestData, context={'request': request})
+        #requestData = json.loads(requestData)
+        #print("Data: ",requestData, type(requestData))
+
+        # if(requestData.get("origin") is None):
+        #     requestData["origin"] = ""
+
+        # if(requestData.get("source") is None):
+        #     requestData["source"] = ""
+
+        # print("Here2")
+        # print(serializer)
         if serializer.is_valid():
             serializer.save(author=author)
             print("Post created")
@@ -806,49 +811,29 @@ def get_and_create_post(request, id_author):
         print("Here:",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#TODO: not sure what this endpoint means
-# @swagger_auto_schema(
-#         method="get",
-#         operation_summary="gets the image of the post with the given id_post",
-#         operation_description="Returns the image of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error.",
-#         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
-# )
-# @api_view(['GET'])
-# def get_image(request, id_author, id_post):
-#     """
-#     Get the image of a single post
-#     """
-#     user = request.user
-#     if(isinstance(user, Author)):
-#         userId = user.id
-#     else:
-#         userId = None
 
-#     post = get_object_or_404(Post, id=id_post)
-#     if post.contentType.startswith("image"):
-#         try:
-#             response = requests.get(post.image)
-#             response.raise_for_status()
-#             image_content = response.content
-#         except requests.exceptions.RequestException as e:
-#             return Response({'error': f'Error fetching image: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets the image of the post with the given id_post and id_author",
+        operation_description="Returns the image of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 404: "Not found"},
+)
+@api_view(['GET'])
+def get_image(request, id_author, id_post):
+    try:
+        post = Post.objects.get(id=id_post, author__id=id_author)
 
-#         if post.visibility == "PUBLIC" or userId == id_author:
-#             return Response(image_content, status=status.HTTP_200_OK)
+        if not post.contentType.startswith("image/"):
+            raise Http404("No image found.")
 
-#         elif post.visibility == "FRIENDS":
-#             if userId is None:
-#                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-#             follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
-#             following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
-#             if follower and following:
-#                 return Response(image_content, status=status.HTTP_200_OK)
-#             else:
-#                 return Response(status=status.HTTP_404_NOT_FOUND)
+        format, imgstr = post.content.split(';base64,') 
+        ext = format.split('/')[-1] 
+        data = base64.b64decode(imgstr) # Decoding the base64 string to image data
 
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#     else:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
+        return HttpResponse(data, content_type=post.contentType) # correct MIME type
+    
+    except Post.DoesNotExist:
+        raise Http404("Post does not exist.")
 
 @swagger_auto_schema(
         method="get",
@@ -1045,7 +1030,7 @@ def get_and_create_comment(request, id_author, id_post):
                 "author": str(post.author.id),
                 "item": inboxCommentData
             }
-            print(commentInbox)
+            # print(commentInbox)
             inboxSerializer = InboxSerializer(data=commentInbox, context={'request': request})
             if inboxSerializer.is_valid():
                 inboxSerializer.save()
@@ -1147,7 +1132,7 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
-    print("Inbox: ", request.user)
+    # print("Inbox: ", request.user)
 
     user = request.user
     if(isinstance(user, Author)):
@@ -1239,7 +1224,7 @@ def get_and_post_inbox(request, id_author):
                         postId = objectString.split("/")[-3]
                     else:
                         postId = objectString.split("/")[-1]
-                    print("postId: ", postId)
+                    # print("postId: ", postId)
                     likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1476,7 +1461,7 @@ def get_and_post_inbox(request, id_author):
         if inboxSerializer.is_valid():
             inboxSerializer.save()
             return Response(inboxSerializer.data, status=status.HTTP_201_CREATED)
-        print(requestData["item"])
+        # print(requestData["item"])
         print("inboxSerializer.errors")
         print(inboxSerializer.errors)
         return Response(inboxSerializer.errors, status=status.HTTP_400_BAD_REQUEST)

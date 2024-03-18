@@ -87,15 +87,14 @@ class FollowRequestSerializer(serializers.Serializer):
         )
         return follow_request
 
-
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
             'type', 'id', 'title', 'source', 'origin', 'description', 'contentType',
             'content', 'author', 'count', 'comments', 'published',
-            'visibility', 'image', 
-            'image_url'
+            'visibility', 'sharedBy'
+
         ]
         read_only_fields = ['type', 'id', 'author', 'count', 'comments', 'published']
     

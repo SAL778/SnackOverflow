@@ -125,9 +125,9 @@ class Post(models.Model):
     comments = models.CharField(max_length=100)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=50, choices=(('PUBLIC','PUBLIC'),('FRIENDS', 'FRIENDS'),('UNLISTED','UNLISTED')))
-    # image = models.URLField(max_length=200, blank=True, null=True)
-    image = models.ImageField(upload_to='post_images', blank=True, null=True)  
-    image_url = models.URLField(max_length=200, blank=True, null=True)  
+    # image_base64 = models.TextField(blank=True, null=True)  # Store base64 encoded images
+    # image_url = models.URLField(max_length=200, blank=True, null=True)  
+    sharedBy = models.CharField(max_length=100, default="")
 # #comments
 class Comment(models.Model):
     type = models.CharField(max_length=50, default="comment")

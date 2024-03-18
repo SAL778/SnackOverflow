@@ -17,30 +17,6 @@ export const AuthProvider = ({ children }) => {
 	const [isLoggedIn, setIsLoggedIn] = useState(
 		localStorage.getItem("isLoggedIn") === "true"
 	);
-	// const [userId, setUserId] = useState(localStorage.getItem("userId") || null);
-
-	// to determine if the user is logged in
-	// useEffect(() => {
-	// 	const fetchData = async () => {
-	// 		try {
-	// 			const response = await getRequest("user/");
-	// 			console.log("User data:", response);
-
-	// 			setUser(response.displayName);
-	// 			setIsLoggedIn(true);
-
-	// 			let parts = response.id.split("/");
-	// 			let uuid = parts[parts.length - 1];
-	// 			setUserId(uuid);
-	// 			localStorage.setItem("userId", uuid);
-	// 		} catch (error) {
-	// 			setUser(null);
-	// 			setIsLoggedIn(false);
-	// 			console.error("Error fetching user data:", error);
-	// 		}
-	// 	};
-	// 	fetchData();
-	// }, [user]);
 
 	const login = async (email, password) => {
 		try {

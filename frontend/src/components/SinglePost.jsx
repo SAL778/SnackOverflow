@@ -69,7 +69,6 @@ function SinglePost() {
 						description={post.description}
 						contentType={post.contentType}
 						content={post.content}
-						imageSrc={post.image}
 						postId={post.id.split("/").slice(-1)[0]}
 						authorId={post.author.id.split("/").slice(-1)[0]}
 						reload={getPost}

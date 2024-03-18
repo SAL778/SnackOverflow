@@ -6,12 +6,13 @@ axios.defaults.xsrfHeaderName = "X-CSRFToken";
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
-// let baseURL = import.meta.env.VITE_API_URL || "https://dummyapi.com/api/";
-let baseURL = "http://127.0.0.1:7000/api/"
-// if (process.env.NODE_ENV === "development") {
-// 	baseURL = "http://127.0.0.1:8000/api/";
-// }
+//let baseURL = "http://127.0.0.1:8000/api/";
+let baseURL =
+	"https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com/api/";
 
+if (process.env.NODE_ENV === "development") {
+	baseURL = "http://127.0.0.1:8000/api/";
+}
 
 const client = axios.create({
 	baseURL: baseURL,
@@ -31,31 +32,26 @@ async function getRequest(apiEndpoint) {
 		throw new Error(error.message);
 	}
 }
-
 // Function to make a POST request
-async function postRequest(apiEndpoint, postData, formData = false) {
+async function postRequest(apiEndpoint, postData, isJson = false) {
 	try {
-		if (formData) {
-			const response = await client.post(apiEndpoint, postData, {
-				withCredentials: true,
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
-			});
-			return response.data;
-		} else {
-			const response = await client.post(apiEndpoint, postData, {
-				withCredentials: true,
-			});
-			return response.data;
+		const config = {
+			withCredentials: true,
+		};
+
+		if (isJson) {
+			config.headers = {
+				"Content-Type": "application/json",
+			};
 		}
+
+		const response = await client.post(apiEndpoint, postData, config);
+		return response.data;
 	} catch (error) {
 		console.error(
 			`Error making POST request to ${apiEndpoint}: `,
 			error.message
 		);
-		// check if the more specific error exists, top level axios error message does not
-		// provide enough detail for the problem for proper error notifications
 		const value = error?.response?.request?.responseText;
 		if (value !== undefined) {
 			throw new Error(value);
