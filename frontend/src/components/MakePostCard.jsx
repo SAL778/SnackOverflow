@@ -26,11 +26,6 @@ const MakePostCard = ({
 		setPostType(type);
 	};
 
-	// Function to handle the file upload event for images
-	// const handleImageUpload = (event) => {
-	// 	setImage(event.target.files[0]);
-	// };
-
 	const handleImageUpload = (event) => {
 		const file = event.target.files[0];
 		const reader = new FileReader();

@@ -567,29 +567,10 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
-        # print("Here")
-        # print(request)
-        # print("request.data:")
-        # print(request.data)
         # requestData = dict(request.data)
         requestData = request.data
         # REQUest data is query dict
-        # if the image is a url then store the url in the image field
-        # image_data = requestData.get("image_base64")
-        # image = request.data.get("image")
-        # check if the image type is strin
-
-        # Handle the base64 image data
-        # if image_data:
-        #     requestData['image_base64'] = image_data
-
         serializer = PostSerializer(data=requestData, context={'request': request})
-        
-        # if(not (image is None) and (type(image) == "str") and image.startswith("http")):
-        #     print("inside if imageURL")
-        #     requestData["image"] = None
-        #     requestData["image_url"] = request.data.get("image")
-
         #requestData = json.loads(requestData)
         #print("Data: ",requestData, type(requestData))
 

@@ -31,41 +31,6 @@ async function getRequest(apiEndpoint) {
 		throw new Error(error.message);
 	}
 }
-
-// old postRequest. Can remove later if no bugs with the new one.
-// // Function to make a POST request
-// async function postRequest(apiEndpoint, postData, formData = false) {
-// 	try {
-// 		if (formData) {
-// 			const response = await client.post(apiEndpoint, postData, {
-// 				withCredentials: true,
-// 				headers: {
-// 					"Content-Type": "multipart/form-data",
-// 				},
-// 			});
-// 			return response.data;
-// 		} else {
-// 			const response = await client.post(apiEndpoint, postData, {
-// 				withCredentials: true,
-// 			});
-// 			return response.data;
-// 		}
-// 	} catch (error) {
-// 		console.error(
-// 			`Error making POST request to ${apiEndpoint}: `,
-// 			error.message
-// 		);
-// 		// check if the more specific error exists, top level axios error message does not
-// 		// provide enough detail for the problem for proper error notifications
-// 		const value = error?.response?.request?.responseText;
-// 		if (value !== undefined) {
-// 			throw new Error(value);
-// 		} else {
-// 			throw new Error(error.message);
-// 		}
-// 	}
-// }
-
 // Function to make a POST request
 async function postRequest(apiEndpoint, postData, isJson = false) {
 	try {
