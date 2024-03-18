@@ -531,6 +531,7 @@ def get_all_friends_follows_posts(request, id_author):
                     print("remote_following_posts error: ", response.status_code)
             # get all the friends whose is_remote is true            
             remote_friends = friends.filter(followed_user__is_remote=True)
+            print("remote_friends: ", remote_friends)
             remote_friends_posts_list = []
             # get all the posts of the remote friends
             for remote_author in remote_friends:
@@ -540,11 +541,13 @@ def get_all_friends_follows_posts(request, id_author):
                 response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code == 200:
                     all_posts = response.json().get('items')
+                    print("all_posts: ", all_posts)
                     for post in all_posts:
                         # check if the post type is public
                         if post.get('visibility').upper() == "FRIENDS":
+                            print("freins post")
                             remote_friends_posts_list.append(post)
-
+            print("remote_friends_posts_list: ", remote_friends_posts_list)
             # if remote following post contains github in the title, then remove it
             # remote_following_posts = [post for post in remote_following_posts if "github" not in post.get('title').lower()]
             # remote_friends_posts = [post for post in remote_friends_posts if "github" not in post.get('title').lower()]  
@@ -652,23 +655,18 @@ def get_and_create_post(request, id_author):
                         if follower and following:
                             if post.get('visibility').upper() == "FRIENDS":
                                 posts.append(post)
-
-                posts = sorted(posts, key=lambda x: x['published'], reverse=True)
-
                 if int(page_number) and int(size):
                     paginator = Paginator(posts, size)
                     posts = paginator.get_page(page_number)
-                    serializer = PostSerializer(posts, context={'request': request}, many=True)
                     response = {
                         "type": "posts",
-                        "items": serializer.data,
+                        "items": posts,
                     }
                     return Response(response)
                 else:
-                    serializer = PostSerializer(posts, context={'request': request}, many=True)
                     response = {
                         "type": "posts",
-                        "items": serializer.data,
+                        "items": posts,
                     }
                     return Response(response)
         else:
@@ -909,12 +907,9 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
                 response_json["author"] = Author.objects.filter(id = response_json["author"]).first()
                 new_post = Post(response_json)
                 new_post.author = response_json["author"]
+                new_post.id = response_json.get('id').split("/")[-1]
                 postSerializer = PostSerializer(new_post, context={'request': request})
-                try:
-                    return Response(postSerializer.data)
-                except Exception as e:
-                    print(str(e))
-                    return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+                return Response(postSerializer.data)
             else:
                 return Response(response.text, status=response.status_code)
         print("before post")
@@ -984,7 +979,6 @@ def get_and_create_comment(request, id_author, id_post):
     else:
         userId = None
     # if the post is not in our server, we have to send a request to the server where the post is and get that specific post
-    post = get_object_or_404(Post, id=id_post)
     if request.method == 'GET':
         post_author = get_object_or_404(Author, id=id_author)
         if post_author.is_remote:
@@ -997,6 +991,7 @@ def get_and_create_comment(request, id_author, id_post):
                 return Response(response.json())
             else:
                 return Response(response.text, status=response.status_code)
+        post = get_object_or_404(Post, id=id_post)
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
         comments = Comment.objects.filter(post=post).order_by('-published')
@@ -1198,14 +1193,12 @@ def get_and_post_inbox(request, id_author):
             items = [items]
         item = items[0]
 
-        print("items: ", items)
-
         if item is None:
             return Response({"details":"item is required"}, status=status.HTTP_400_BAD_REQUEST)
         itemType = item.get("type").lower()
 
         author = Author.objects.filter(id=id_author).first()
-
+        
         if itemType == "like":
             # send the like to the author of the post/comments inbox - frontend
             likeAuthor = get_object_or_404(Author, id=item.get("author").get("id").split("/")[-1])
@@ -1214,7 +1207,7 @@ def get_and_post_inbox(request, id_author):
                 # then send the inbox request to another server and do nothing on local server 
                 # except create the payload for the request, else do what we are doing currently
                 # send the request to the remote server
-                host_url = likeAuthor.host
+                host_url = author.host
                 node = Node.objects.filter(host_url=host_url).first()
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
                 like_payload = {

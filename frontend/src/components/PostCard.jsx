@@ -24,6 +24,7 @@ function PostCard({
 	authorId,
 	postVisibility,
 	reload,
+	owner,
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
@@ -185,7 +186,7 @@ function PostCard({
 					Post Deleted
 				</Alert>
 			)}
-			{profilePage && (
+			{profilePage && owner && (
 				<div className="post-edit-delete">
 					<div className="post-edit-delete">
 						<button

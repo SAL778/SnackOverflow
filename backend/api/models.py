@@ -113,7 +113,7 @@ class Post(models.Model):
         ('image/jpeg;base64', 'image/jpeg;base64')
     )
     type = models.CharField(max_length=50, default="post")
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     title = models.CharField(max_length=100)
     source = models.URLField(default="",max_length=200, blank=True)
     origin = models.URLField(default="",max_length=200, blank=True)
