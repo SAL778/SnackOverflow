@@ -26,9 +26,13 @@ const MakePostCard = ({
 		setPostType(type);
 	};
 
-	// Function to handle the file upload event for images
 	const handleImageUpload = (event) => {
-		setImage(event.target.files[0]);
+		const file = event.target.files[0];
+		const reader = new FileReader();
+		reader.onloadend = () => {
+			setImage(reader.result); // base64 string
+		};
+		reader.readAsDataURL(file);
 	};
 
 	useEffect(() => {
@@ -56,21 +60,6 @@ const MakePostCard = ({
 
 		setShowValidationError(false);
 
-		let contentType = "text/plain";
-		if (isMarkdown) {
-			contentType = "text/markdown";
-		} else if (isImage && image) {
-			contentType = image.type;
-		}
-
-		const editPostData = {
-			title,
-			visibility: postType.toUpperCase(),
-			description,
-			content,
-			contentType,
-		};
-
 		const postData = {
 			title,
 			postType,
@@ -79,6 +68,27 @@ const MakePostCard = ({
 			isMarkdown,
 			image,
 			isImage,
+		};
+
+		let contentType = "text/plain";
+		if (isMarkdown) {
+			contentType = "text/markdown";
+		} else if (isImage && image) {
+			if (postData.image.slice(5,21) === "image/png;base64") {
+				contentType = "image/png;base64";
+			} else if (postData.image.slice(5,22) === "image/jpeg;base64") {
+				contentType = "image/jpeg;base64";
+			} else {
+				contentType = "application/base64";
+			}
+		}
+
+		const editPostData = {
+			title,
+			visibility: postType.toUpperCase(),
+			description,
+			content,
+			contentType,
 		};
 		// console.log("Post Data:", postData);
 		// console.log("Initial Data:", initialData);

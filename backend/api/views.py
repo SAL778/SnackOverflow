@@ -567,22 +567,10 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
-        # print("Here")
-        # print(request)
-        # print("request.data:")
-        # print(request.data)
         # requestData = dict(request.data)
         requestData = request.data
         # REQUest data is query dict
-        # if the image is a url then store the url in the image field
-        image = request.data.get("image")
-        # check if the image type is strin
-        
-        if(not (image is None) and (type(image) == "str") and image.startswith("http")):
-            print("inside if imageURL")
-            requestData["image"] = None
-            requestData["image_url"] = request.data.get("image")
-
+        serializer = PostSerializer(data=requestData, context={'request': request})
         #requestData = json.loads(requestData)
         #print("Data: ",requestData, type(requestData))
 
@@ -592,7 +580,6 @@ def get_and_create_post(request, id_author):
         # if(requestData.get("source") is None):
         #     requestData["source"] = ""
 
-        serializer = PostSerializer(data=requestData, context={'request': request})
         # print("Here2")
         # print(serializer)
         if serializer.is_valid():
@@ -629,7 +616,7 @@ def get_and_create_post(request, id_author):
         print("Here:",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#TODO: not sure what this endpoint means
+#TODO:
 # @swagger_auto_schema(
 #         method="get",
 #         operation_summary="gets the image of the post with the given id_post",
