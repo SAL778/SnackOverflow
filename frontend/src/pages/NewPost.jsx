@@ -31,9 +31,9 @@ const NewPost = ({ editMode }) => {
 		if (postData.isMarkdown) {
 			contentType = "text/markdown";
 		} else if (postData.isImage && postData.image) {
-			if (postData.image.slice(5,21) === "image/png;base64") {
+			if (postData.image.slice(5, 21) === "image/png;base64") {
 				contentType = "image/png;base64";
-			} else if (postData.image.slice(5,22) === "image/jpeg;base64") {
+			} else if (postData.image.slice(5, 22) === "image/jpeg;base64") {
 				contentType = "image/jpeg;base64";
 			} else {
 				contentType = "application/base64";
@@ -56,7 +56,7 @@ const NewPost = ({ editMode }) => {
 			const data = await postRequest(
 				`authors/${auth.user.id}/posts/`,
 				JSON.stringify(dataToSend),
-				true // Ensure your request handler sets the correct content type header for JSON, typically 'application/json'
+				true
 			);
 			console.log("POST Request Data:", data);
 			setShowSuccessAlert(true);

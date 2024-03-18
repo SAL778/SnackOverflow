@@ -179,19 +179,21 @@ function Profile() {
 				//change={changeProfile}
 			/>
 
-			<div className="flex-initial flex-col h-56 grid-cols-5 gap-14 content-center">
-				{buttons.map((button, index) => (
-					<button
-						key={index}
-						onClick={() => {
-							buttons.forEach((btn) => btn.stateSetter(false));
-							button.stateSetter(true);
-						}}
-						class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:bg-orange-500"
-					>
-						{button.name}
-					</button>
-				))}
+			<div className="flex justify-center mt-24">
+				<div className="flex-initial flex-col h-56 grid-cols-5 gap-14 content-center">
+					{buttons.map((button, index) => (
+						<button
+							key={index}
+							onClick={() => {
+								buttons.forEach((btn) => btn.stateSetter(false));
+								button.stateSetter(true);
+							}}
+							class="text-white bg-slate-800 hover:bg-orange-500 focus:bg-orange-600 font-medium rounded-lg text-sm px-5 py-2.5 mr-8 mb-2 focus:outline-none dark:focus:bg-orange-500"
+						>
+							{button.name}
+						</button>
+					))}
+				</div>
 			</div>
 
 			<div class="overflow-y-scroll h-96 max-h-screen">
@@ -286,7 +288,11 @@ function Profile() {
 								dates.getMonth() + 1
 							).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
 							let limitedContent = "";
-							if (post.content !== "" && (post.contentType === "text/plain" || post.contentType === "text/markdown")) {
+							if (
+								post.content !== "" &&
+								(post.contentType === "text/plain" ||
+									post.contentType === "text/markdown")
+							) {
 								limitedContent =
 									post.content.length > 100
 										? post.content.substring(0, 100) + "... See More"

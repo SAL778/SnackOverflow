@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
+import { Link } from "react-router-dom";
 import { deleteRequest, postRequest, getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { Pencil, Trash } from "@phosphor-icons/react";
@@ -20,7 +20,7 @@ function PostCard({
 	setAuthPosts,
 	authPosts,
 	postId,
-	sharedBy="",
+	sharedBy = "",
 	authorId,
 	postVisibility,
 	reload,
@@ -32,7 +32,7 @@ function PostCard({
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
 	const serviceUrl = window.location.protocol + "//" + window.location.host;
 	const navigate = useNavigate();
-  
+
 	const handleLike = () => {
 		// check if the user has already liked the post
 		let alreadyLiked = false;
@@ -113,14 +113,13 @@ function PostCard({
 	const handleShare = () => {
 		//authors/<uuid:id_author>/posts/<uuid:id_post>
 		//get the post, get data and visibility from it
-		let name = ""
-		console.log(auth)
-		console.log("CHECK ID: ", postId)
-		getRequest(`authors/${authorId}/posts/${postId}`)
-			.then((data) => {
-				console.log("Getting post: ", data)
-				name = data.author.displayName;
-			})
+		let name = "";
+		console.log(auth);
+		console.log("CHECK ID: ", postId);
+		getRequest(`authors/${authorId}/posts/${postId}`).then((data) => {
+			console.log("Getting post: ", data);
+			name = data.author.displayName;
+		});
 		/*
 		const dataToSend = {
 			title: title,
@@ -133,24 +132,24 @@ function PostCard({
 		}
 		*/
 
-
 		const dataToSend = new FormData();
 
-		dataToSend.append("title",title);
-		dataToSend.append("description",description);
-		dataToSend.append("contentType",contentType);
-		dataToSend.append("content",content);
-		dataToSend.append("visibility","PUBLIC");
-		dataToSend.append("sharedBy",auth.user.displayName);
-		
+		dataToSend.append("title", title);
+		dataToSend.append("description", description);
+		dataToSend.append("contentType", contentType);
+		dataToSend.append("content", content);
+		dataToSend.append("visibility", "PUBLIC");
+		dataToSend.append("sharedBy", auth.user.displayName);
+
 		//console.log("TEST SHAREDBY: ", dataToSend.sharedBy)
 		postRequest(`authors/${auth.user.id}/posts/`, dataToSend, false)
 			.then((data) => {
-				console.log("SHARED POST POSTED")
-			}).catch((error) => {
+				console.log("SHARED POST POSTED");
+			})
+			.catch((error) => {
 				console.log("ERROR: ", error.message);
 			});
-	}
+	};
 
 	const handleComment = () => {
 		setClickedComment(true);
@@ -248,14 +247,14 @@ function PostCard({
 					</button>
 				</div>
 			)}
-      
-			{!profilePage && (sharedBy === "") && (
+
+			{!profilePage && sharedBy === "" && (
 				<Link to={`/profile/${authorId}`} className="username">
 					User: {username}
 				</Link>
 			)}
-      
-			{(!(sharedBy === "")) && (
+
+			{!(sharedBy === "") && (
 				<a href="/profile" className="username">
 					Shared By: {sharedBy}
 				</a>
@@ -268,7 +267,6 @@ function PostCard({
 			<h1 className="post-header">
 				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
 			</h1>
-      
 
 			<span className="post-date">Date: {date}</span>
 			<p className="post-description">
@@ -281,7 +279,7 @@ function PostCard({
 				<div className="post-content">
 					{contentType === "text/markdown" ? (
 						<ReactMarkdown>{content}</ReactMarkdown>
-					) : ((contentType === "text/plain" ? (
+					) : contentType === "text/plain" ? (
 						<p>{content}</p>
 					) : (
 						<img
@@ -292,20 +290,16 @@ function PostCard({
 								e.target.style.display = "none";
 							}}
 						/>
-						)
-					))
-					}
+					)}
 				</div>
 			)}
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
 
 				<div>
-       
-					{(postVisibility === "PUBLIC") && 
-						<div>
-							{(<button onClick={handleShare}>Share</button>)}
-						</div>}
+					{postVisibility === "PUBLIC" && (
+						<div>{<button onClick={handleShare}>Share</button>}</div>
+					)}
 					<button>Comment</button>
 				</div>
 			</div>

@@ -14,6 +14,8 @@ from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
+import base64
+from django.http import Http404
 
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -616,6 +618,7 @@ def get_and_create_post(request, id_author):
         print("Here:",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 #TODO:
 # @swagger_auto_schema(
 #         method="get",
@@ -623,42 +626,22 @@ def get_and_create_post(request, id_author):
 #         operation_description="Returns the image of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error.",
 #         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
 # )
-# @api_view(['GET'])
-# def get_image(request, id_author, id_post):
-#     """
-#     Get the image of a single post
-#     """
-#     user = request.user
-#     if(isinstance(user, Author)):
-#         userId = user.id
-#     else:
-#         userId = None
+@api_view(['GET'])
+def get_image(request, id_author, id_post):
+    try:
+        post = Post.objects.get(id=id_post, author__id=id_author)
 
-#     post = get_object_or_404(Post, id=id_post)
-#     if post.contentType.startswith("image"):
-#         try:
-#             response = requests.get(post.image)
-#             response.raise_for_status()
-#             image_content = response.content
-#         except requests.exceptions.RequestException as e:
-#             return Response({'error': f'Error fetching image: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if not post.contentType.startswith("image/"):
+            raise Http404("No image found.")
 
-#         if post.visibility == "PUBLIC" or userId == id_author:
-#             return Response(image_content, status=status.HTTP_200_OK)
+        format, imgstr = post.content.split(';base64,') 
+        ext = format.split('/')[-1] 
+        data = base64.b64decode(imgstr) # Decoding the base64 string to image data
 
-#         elif post.visibility == "FRIENDS":
-#             if userId is None:
-#                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-#             follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
-#             following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
-#             if follower and following:
-#                 return Response(image_content, status=status.HTTP_200_OK)
-#             else:
-#                 return Response(status=status.HTTP_404_NOT_FOUND)
-
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#     else:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
+        return HttpResponse(data, content_type=post.contentType) # correct MIME type
+    
+    except Post.DoesNotExist:
+        raise Http404("Post does not exist.")
 
 @swagger_auto_schema(
         method="get",
