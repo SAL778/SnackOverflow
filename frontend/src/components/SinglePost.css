@@ -1,5 +1,6 @@
-body {
-    overflow: auto;
+.single-view {
+	height: 100%; 
+	overflow: auto;
 }
 .comments-list {
 	background-color: rgb(252, 241, 241);
