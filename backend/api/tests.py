@@ -160,8 +160,9 @@ class UserCreation(TestCase):
         
     def test_restrict_signup(self):
         """
-            test for active user setup
+            test for active user setup (fails if not set up properly)
         """
+        # this test will fail if the IS_ACTIVE env var is not set up for the current django server
         user = create_author("test@test.ca", "test user", "https://github.com", "", "12345")
         self.client.post(reverse("api:register"), user)
         author = Author.objects.get(display_name="test user")
@@ -410,6 +411,7 @@ class PostCreation(TestCase):
         retrieved = json.loads(response.content)
         retrieved["content"] = "edited content"
         retrieved["title"] = "edited title"
+        retrieved["sharedBy"] = "a"
 
         # send a put request
         response = self.client.put(reverse("api:get_update_and_delete_specific_post", kwargs={"id_author":author.id, "id_post": post.id}), retrieved, content_type="application/json")
@@ -491,14 +493,8 @@ class PostCreation(TestCase):
         assert post.title == item["title"]
         assert post.content == item["content"]
         assert author2_obj.display_name == item["author"]["displayName"]
-        # assert post.sharedby == item["sharedBy"]
+        assert author2_obj.display_name == item["sharedBy"]
 
-    #TODO
-        
-    # def test_image_post(self):
-        
-    # def test_share_image_post(self):
-            
 class FeedTests(TestCase):
     def test_all_public_posts(self):
         """
