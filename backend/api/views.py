@@ -485,18 +485,14 @@ def get_all_public_posts(request):
         responses={200: "Ok", 401: "Unauthorized", 400: "Bad Request"},
 )
 @api_view(['GET'])
-def get_all_friends_follows_posts(request):
+def get_all_friends_follows_posts(request, id_author):
     """
     Get all friends and follows posts
     primary used in the home feed (friends stream)
     This will have all the public posts of the people I am following 
     and the friends only posts of the people I am friends with (they follow and I follow them)
     """
-    user = request.user
-    if(isinstance(user, Author)):
-        userId = user.id
-    else:
-        userId = None
+    userId = id_author
     print("userId: ", userId)
     print("getting all friends and follows posts")
     if request.method == 'GET':
@@ -689,11 +685,7 @@ def get_and_create_post(request, id_author):
                 print("user: ", user)
                 print("user remote", user.is_remote)
                 if (follower and following) or user.is_remote:
-                    print("inside iff statemetn")
-                    try:
-                        posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS"])
-                    except Exception as e:
-                        str(e)
+                    posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS"])
                 else:
                     posts = Post.objects.filter(author=author, visibility="PUBLIC")
             print("all posts",posts)
@@ -908,11 +900,21 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
             # send the request to the remote server
             host_url = post_author.host
             node = Node.objects.filter(host_url=host_url).first()
-            request_url = f"{node.api_url}posts/{id_post}"
+            request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}"
 
             response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
             if response.status_code == 200:
-                return Response(response.json())
+                response_json = response.json()
+                response_json["author"] = response_json.get('author').get("id").split("/")[-1]
+                response_json["author"] = Author.objects.filter(id = response_json["author"]).first()
+                new_post = Post(response_json)
+                new_post.author = response_json["author"]
+                postSerializer = PostSerializer(new_post, context={'request': request})
+                try:
+                    return Response(postSerializer.data)
+                except Exception as e:
+                    print(str(e))
+                    return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
             else:
                 return Response(response.text, status=response.status_code)
         print("before post")
