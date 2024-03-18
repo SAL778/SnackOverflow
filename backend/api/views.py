@@ -302,7 +302,7 @@ def get_friends(request, id_author):
 
     # for my following, check if they are also in my followers
     friends = following.filter(followed_user__in=followers.values_list('follower', flat=True))    
-    print(friends)
+    # print(friends)
 
     friends_set = set()
     for friend_object in friends:
@@ -619,13 +619,12 @@ def get_and_create_post(request, id_author):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-#TODO:
-# @swagger_auto_schema(
-#         method="get",
-#         operation_summary="gets the image of the post with the given id_post",
-#         operation_description="Returns the image of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error.",
-#         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
-# )
+@swagger_auto_schema(
+        method="get",
+        operation_summary="gets the image of the post with the given id_post and id_author",
+        operation_description="Returns the image of the post with the given id_post. The post has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 404: "Not found"},
+)
 @api_view(['GET'])
 def get_image(request, id_author, id_post):
     try:
@@ -787,7 +786,7 @@ def get_and_create_comment(request, id_author, id_post):
                 "author": str(post.author.id),
                 "item": inboxCommentData
             }
-            print(commentInbox)
+            # print(commentInbox)
             inboxSerializer = InboxSerializer(data=commentInbox, context={'request': request})
             if inboxSerializer.is_valid():
                 inboxSerializer.save()
@@ -887,7 +886,7 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
-    print("Inbox")
+    # print("Inbox")
     user = request.user
     if(isinstance(user, Author)):
         userId = user.id
@@ -943,7 +942,7 @@ def get_and_post_inbox(request, id_author):
             if objectString is not None or objectString != "":
                 if "comments" in objectString:
                     commentId = objectString.split("/")[-1]
-                    print("commentId: ", commentId)
+                    # print("commentId: ", commentId)
                     likeData["comment"] = get_object_or_404(Comment, id=commentId).id
                 else:
                     likeData["comment"] = None
@@ -952,7 +951,7 @@ def get_and_post_inbox(request, id_author):
                         postId = objectString.split("/")[-3]
                     else:
                         postId = objectString.split("/")[-1]
-                    print("postId: ", postId)
+                    # print("postId: ", postId)
                     likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1053,7 +1052,7 @@ def get_and_post_inbox(request, id_author):
         if inboxSerializer.is_valid():
             inboxSerializer.save()
             return Response(inboxSerializer.data, status=status.HTTP_201_CREATED)
-        print(requestData["item"])
+        # print(requestData["item"])
         print("inboxSerializer.errors")
         print(inboxSerializer.errors)
         return Response(inboxSerializer.errors, status=status.HTTP_400_BAD_REQUEST)

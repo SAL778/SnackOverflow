@@ -81,4 +81,3 @@ For testing, you can use `python manage.py test` to get all the tests running.
 - For deployment: https://stackoverflow.com/questions/68590569/heroku-deploy-with-vitejs-error-h10-vite-not-found
 - For deployment: https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs
 - For deployment: https://stackoverflow.com/questions/51187161/deploy-an-app-to-heroku-that-isnt-in-the-project-root
-
