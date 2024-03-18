@@ -884,15 +884,26 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
             host_url = post_author.host
             node = Node.objects.filter(host_url=host_url).first()
             request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}"
-
             response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
             if response.status_code == 200:
                 response_json = response.json()
                 response_json["author"] = response_json.get('author').get("id").split("/")[-1]
                 response_json["author"] = Author.objects.filter(id = response_json["author"]).first()
                 new_post = Post(response_json)
+                new_post.type = response_json.get('type')
+                new_post.count = response_json.get('count')
+                new_post.comments = response_json.get('comments')
                 new_post.author = response_json["author"]
                 new_post.id = response_json.get('id').split("/")[-1]
+                new_post.title = response_json.get('title')
+                new_post.source = response_json.get('source')
+                new_post.origin = response_json.get('origin')
+                new_post.contentType = response_json.get('contentType')
+                new_post.content = response_json.get('content')
+                new_post.description = response_json.get('description')
+                new_post.published = response_json.get('published')
+                new_post.visibility = response_json.get('visibility')
+                new_post.sharedBy = response_json.get('sharedBy')
                 postSerializer = PostSerializer(new_post, context={'request': request})
                 return Response(postSerializer.data)
             else:

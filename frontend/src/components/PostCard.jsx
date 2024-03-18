@@ -301,7 +301,7 @@ function PostCard({
 					{postVisibility === "PUBLIC" && (
 						<div>{<button onClick={handleShare}>Share</button>}</div>
 					)}
-					<button>Comment</button>
+					<button onClick={handleComment}>Comment</button>
 				</div>
 			</div>
 			{clickedComment && (
