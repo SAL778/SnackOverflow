@@ -169,7 +169,7 @@ function Profile() {
 				url={authProfile.url}
 				host={authProfile.host}
 				username={authProfile.displayName}
-				imageSrc={defaultPFP}
+				imageSrc={authProfile.profileImage}
 				github={authProfile.github}
 				buttontype={"Follow"}
 				altId={profileUUID}
@@ -203,7 +203,7 @@ function Profile() {
 								url={follower.url}
 								host={follower.host}
 								username={follower.displayName}
-								imageSrc={dummyimage}
+								imageSrc={follower.profileImage}
 								authId={profileUUID}
 								github={follower.github}
 								owner={owner}
@@ -224,7 +224,7 @@ function Profile() {
 								url={following.url}
 								host={following.host}
 								username={following.displayName}
-								imageSrc={dummyimage}
+								imageSrc={following.profileImage}
 								github={following.github}
 								buttontype={"Following"}
 								authId={profileUUID}
@@ -245,7 +245,7 @@ function Profile() {
 								url={friend.url}
 								host={friend.host}
 								username={friend.displayName}
-								imageSrc={dummyimage}
+								imageSrc={friend.profileImage}
 								github={friend.github}
 								authId={profileUUID}
 								owner={owner}
@@ -265,7 +265,7 @@ function Profile() {
 								url={request["actor"].url}
 								host={request["actor"].host}
 								username={request["actor"].displayName}
-								imageSrc={dummyimage}
+								imageSrc={request["actor"].profileImage}
 								github={request["actor"].github}
 								buttontype={"Request"}
 								authId={profileUUID}

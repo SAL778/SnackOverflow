@@ -32,7 +32,7 @@ function ProfileCard({
 
 	let cardUUID = "";
 	const [showCard, setShowCard] = useState(true); //IF A FOLLOWER IS UNFOLLOWED OR REQUEST DEALT WITH, THIS WILL BE CHANGED AS TO NOT SHOW IT? HOPEFULLY?
-
+	console.log("IMAGEEEEE", imageSrc)
 	if (authId != "") {
 		let parts = url.split("/");
 		cardUUID = parts[parts.length - 1];
