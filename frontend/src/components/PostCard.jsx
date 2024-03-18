@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; //can be used later to link to the user's profile, replace <a> with <Link>
-import { deleteRequest, getRequest, postRequest } from "../utils/Requests.jsx";
+import { deleteRequest, postRequest, getRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { Pencil, Trash } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
@@ -20,6 +20,7 @@ function PostCard({
 	setAuthPosts,
 	authPosts,
 	postId,
+	sharedBy="",
 	authorId,
 	postVisibility,
 	reload,
@@ -31,7 +32,7 @@ function PostCard({
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
 	const serviceUrl = window.location.protocol + "//" + window.location.host;
 	const navigate = useNavigate();
-
+  
 	const handleLike = () => {
 		// check if the user has already liked the post
 		let alreadyLiked = false;
@@ -108,6 +109,48 @@ function PostCard({
 				console.error("Error deleting the post: ", error.message);
 			});
 	};
+
+	const handleShare = () => {
+		//authors/<uuid:id_author>/posts/<uuid:id_post>
+		//get the post, get data and visibility from it
+		let name = ""
+		console.log(auth)
+		console.log("CHECK ID: ", postId)
+		getRequest(`authors/${authorId}/posts/${postId}`)
+			.then((data) => {
+				console.log("Getting post: ", data)
+				name = data.author.displayName;
+			})
+		/*
+		const dataToSend = {
+			title: title,
+			username: name,
+			description: description,
+			contentType: contentType,
+			content: content,
+			visibility: "PUBLIC",
+			sharedBy: auth.user.displayName
+		}
+		*/
+
+
+		const dataToSend = new FormData();
+
+		dataToSend.append("title",title);
+		dataToSend.append("description",description);
+		dataToSend.append("contentType",contentType);
+		dataToSend.append("content",content);
+		dataToSend.append("visibility","PUBLIC");
+		dataToSend.append("sharedBy",auth.user.displayName);
+		
+		//console.log("TEST SHAREDBY: ", dataToSend.sharedBy)
+		postRequest(`authors/${auth.user.id}/posts/`, dataToSend, false)
+			.then((data) => {
+				console.log("SHARED POST POSTED")
+			}).catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
+	}
 
 	const handleComment = () => {
 		setClickedComment(true);
@@ -205,11 +248,19 @@ function PostCard({
 					</button>
 				</div>
 			)}
-			{!profilePage && (
+      
+			{!profilePage && (sharedBy === "") && (
 				<Link to={`/profile/${authorId}`} className="username">
 					User: {username}
 				</Link>
 			)}
+      
+			{(!(sharedBy === "")) && (
+				<a href="/profile" className="username">
+					Shared By: {sharedBy}
+				</a>
+			)}
+
 			{postVisibility === "UNLISTED" && (
 				<p>Link: {`${serviceUrl}/profile/${authorId}/posts/${postId}`} </p>
 			)}
@@ -217,6 +268,8 @@ function PostCard({
 			<h1 className="post-header">
 				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
 			</h1>
+      
+
 			<span className="post-date">Date: {date}</span>
 			<p className="post-description">
 				Description:
@@ -246,9 +299,14 @@ function PostCard({
 			)}
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
+
 				<div>
-					<button>Share</button>
-					<button onClick={handleComment}>Comment</button>
+       
+					{(postVisibility === "PUBLIC") && 
+						<div>
+							{(<button onClick={handleShare}>Share</button>)}
+						</div>}
+					<button>Comment</button>
 				</div>
 			</div>
 			{clickedComment && (
