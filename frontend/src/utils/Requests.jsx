@@ -8,7 +8,7 @@ axios.defaults.withXSRFToken = true;
 
 //let baseURL = "http://127.0.0.1:8000/api/";
 let baseURL =
-	"https://snackoverflow-deployment-test-37cd2b94a62f.herokuapp.com/api/";
+	"https://snackoverflow-7f593e547e10.herokuapp.com/api/";
 
 if (process.env.NODE_ENV === "development") {
 	baseURL = "http://127.0.0.1:8000/api/";
