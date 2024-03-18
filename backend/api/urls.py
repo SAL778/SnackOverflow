@@ -39,7 +39,7 @@ urlpatterns = [
 
    # apis for posts
    path("authors/<uuid:id_author>/posts/", views.get_and_create_post, name="get_and_create_post"),
-   # path("authors/<uuid:id_author>/posts/<uuid:id_post>/image", views.get_image, name="get_image"),
+   path("authors/<uuid:id_author>/posts/<uuid:id_post>/image", views.get_image, name="get_image"),
    path("authors/<uuid:id_author>/posts/<uuid:id_post>", views.get_update_and_delete_specific_post, name="get_update_and_delete_specific_post"),
 
    # apis for comments
