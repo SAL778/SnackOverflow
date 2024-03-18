@@ -31,7 +31,13 @@ const NewPost = ({ editMode }) => {
 		if (postData.isMarkdown) {
 			contentType = "text/markdown";
 		} else if (postData.isImage && postData.image) {
-			contentType = "image/png;base64"; // TODO: should dynamically set based on the image type
+			if (postData.image.slice(5,21) === "image/png;base64") {
+				contentType = "image/png;base64";
+			} else if (postData.image.slice(5,22) === "image/jpeg;base64") {
+				contentType = "image/jpeg;base64";
+			} else {
+				contentType = "application/base64";
+			}
 		}
 
 		const dataToSend = {
@@ -43,7 +49,7 @@ const NewPost = ({ editMode }) => {
 		};
 
 		if (postData.isImage && postData.image) {
-			dataToSend.image_base64 = postData.image; // Attach the base64 encoded image string directly to the dataToSend object
+			dataToSend.content = postData.image; // Attach the base64 encoded image string directly to the dataToSend object
 		}
 
 		try {

@@ -13,7 +13,6 @@ function PostCard({
 	username,
 	title,
 	date,
-	imageSrc,
 	description,
 	contentType,
 	content,
@@ -93,7 +92,7 @@ function PostCard({
 	};
 
 	const handleDelete = () => {
-		deleteRequest(`${postId}`) // why is it this url? It works but I don't know why figure it out
+		deleteRequest(`authors/${authorId}/posts/${postId}`) // why is it this url? It works but I don't know why figure it out
 			.then((response) => {
 				console.log("Post deleted successfully");
 				setShowDeleteAlert(true); // Show "Post Deleted" alert
@@ -166,8 +165,8 @@ function PostCard({
 
 	// debugging console log. Print the base64 image source
 	useEffect(() => {
-		console.log("Base64 Image Source:", imageSrc);
-	}, [imageSrc]);
+		console.log("Base64 Image Source:", content);
+	}, [content]);
 
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
@@ -219,34 +218,30 @@ function PostCard({
 				<Link to={`/profile/${authorId}/posts/${postId}`}>{title}</Link>
 			</h1>
 			<span className="post-date">Date: {date}</span>
-
-			{/* {imageSrc && <img src={imageSrc} alt="Post" />} */}
-			{/* {imageSrc && (
-				<img src={`data:image/jpeg;base64,${imageSrc}`} alt="Post" />
-			)} */}
-			{imageSrc && (
-				<img
-					src={imageSrc}
-					alt="Post"
-					onError={(e) => {
-						console.log("Error loading image");
-						e.target.style.display = "none";
-					}}
-				/>
-			)}
-
 			<p className="post-description">
 				Description:
 				<br />
 				{description}
 			</p>
+			{/* Check the content type and show accordingly */}
 			{content && (
 				<div className="post-content">
 					{contentType === "text/markdown" ? (
 						<ReactMarkdown>{content}</ReactMarkdown>
-					) : (
+					) : ((contentType === "text/plain" ? (
 						<p>{content}</p>
-					)}
+					) : (
+						<img
+							src={content}
+							alt="Post"
+							onError={(e) => {
+								console.log("Error loading image");
+								e.target.style.display = "none";
+							}}
+						/>
+						)
+					))
+					}
 				</div>
 			)}
 			<div className="post-footer">
