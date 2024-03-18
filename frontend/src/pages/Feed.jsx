@@ -64,7 +64,7 @@ function Feed() {
 						contentType={post.contentType}
 						content={post.content}
 						postId={postId}
-            			sharedBy={post.sharedBy}
+						sharedBy={post.sharedBy}
 						authorId={authorId}
 						postVisibility={post.visibility}
 					/>
