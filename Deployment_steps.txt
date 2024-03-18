@@ -1,0 +1,45 @@
+Deployment steps:
+1. heroku login
+2. Update Profile (current file in 2024 good)
+3. Create app in heroku UI
+
+4. for an existing app:
+	heroku git:remote -a example-app
+
+
+4.1. Set env variables:
+heroku config:set IS_ACTIVE=true
+heroku config:set VITE_API_URL=https://<whatever>.herokuapp.com/api/
+
+VITE_API_URL will be needed when we merge later, but it's fine to set it up. The domain name can be found when you clock on "Open app" in the heroku UI for the app you created.
+
+
+Also, set:
+	(a) heroku config:set NODE_ENV=staging (this will enable devDependencies from package.json to be installed, hence vite will be installed)
+
+	(b) Add node buildpack as first buildpack (order matters):
+	heroku buildpacks:add --index 1 heroku/nodejs (will allow you to use npm command on heroku to be able to build frontend)
+	heroku buildpacks:set heroku/python (make sure this is after heroku/nodejs)
+
+
+5. Deploy your code from non-main branch:
+	git push heroku testbranch:main
+
+
+6. Make a Postgres Database on Heroku (see if there's an option other than mini??):
+heroku addons:create heroku-postgresql:mini
+
+
+7. heroku run "python3 backend/manage.py diffsettings"
+The output should contain a line like this that says 'default' and has 'ENGINE': 'django.db.backends.postgresql'.
+
+DATABASES = {'default': {'NAME': 'random letters', 'USER': 'random letters', 'PASSWORD': 'big hex number', 'HOST': 'something.amazonaws.com', 'PORT': 5432, 'CONN_MAX_AGE': 600, 'CONN_HEALTH_CHECKS': False, 'ENGINE': 'django.db.backends.postgresql', 'OPTIONS': {'sslmode': 'require'}, 'ATOMIC_REQUESTS': False, 'AUTOCOMMIT': True, 'TIME_ZONE': None, 'TEST': {'CHARSET': None, 'COLLATION': None, 'MIGRATE': True, 'MIRROR': None, 'NAME': None}}}
+If it contains sqlite3, something is wrong. Please check that you followed the steps starting with adding django-on-heroku correctly.
+
+8. Run your migrations, create a Superuser, and ensure your application functionality works.
+
+$ heroku run python backend/manage.py migrate
+$ heroku run python backend/manage.py createsuperuser
+
+
+
