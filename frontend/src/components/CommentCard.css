@@ -30,14 +30,3 @@
     border-radius: 6px;
 
 }
-
-.comment-card .comment-card-likes button{
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-}
-
-.comment-card .comment-card-likes button:focus{
-    outline: none;
-}

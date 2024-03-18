@@ -22,53 +22,38 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}, 'id': {'read_only': True}}
 
     def create(self, validated_data):
+        # create() creates an entry in the database, so it calls .save() internally
         author = Author.objects.create(
             email=validated_data['email'],
+            password=validated_data['password'],
             display_name=validated_data['display_name'],
             github=validated_data['github'],
-            profile_image=validated_data['profile_image']
+            profile_image=validated_data['profile_image'],
         )
-        author.set_password(validated_data['password'])
+
+        # since this is only used by our frontend, we can get the host from the request and set the host field, and url field
+        request = self.context.get('request')
+        author.host = f"{request.build_absolute_uri('/')}"
+        author.url = f"{request.build_absolute_uri('/api/authors/')}{author.id}"
+
         author.save()
 
         return author
 
 
-class AuthorSerializer(serializers.Serializer):
-    type = serializers.CharField(default="author", read_only=True)
-    id = serializers.CharField(read_only=True)
-    url = serializers.SerializerMethodField(source='get_url', read_only=True)
-    host = serializers.SerializerMethodField(source='get_host', read_only=True)
-    # only these fields can be updated (not read_only) on POST request:
+class AuthorSerializer(serializers.ModelSerializer):
     displayName = serializers.CharField(source='display_name')
-    github = serializers.CharField()
-    profileImage = serializers.CharField(source='profile_image')
+    profileImage = serializers.URLField(source='profile_image', required=False, allow_null=True, allow_blank=True)
 
     class Meta:
-        fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
-
-    def update(self, instance, validated_data):
-        instance.display_name = validated_data.get('display_name', instance.display_name)
-        instance.github = validated_data.get('github', instance.github)
-        instance.profile_image = validated_data.get('profile_image', instance.profile_image)
-        instance.save()
-        return instance
+        model = Author
+        fields = ['type', 'id', 'host', 'displayName', 'url', 'github', 'profileImage']
+        read_only_fields = ['type', 'id', 'url', 'host']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        request = self.context.get('request')
-        data['id'] = f"{request.build_absolute_uri('/api/authors/')}{instance.id}"
+        data['id'] = instance.url
         return data
-
-    def get_url(self, obj):
-        request = self.context.get('request')
-        url = f"{request.build_absolute_uri('/api/authors/')}{obj.id}"
-        return url
-
-    def get_host(self, obj):
-        request = self.context.get('request')
-        host = f"{request.build_absolute_uri('/')}"
-        return host
 
 
 class FollowRequestSerializer(serializers.Serializer):
@@ -119,7 +104,7 @@ class PostSerializer(serializers.ModelSerializer):
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
         current_url = f"{request.build_absolute_uri('/')}api/authors/{instance.author.id}/posts"
         data['id'] = f"{current_url}/{instance.id}"
-        data["comments"] = f"{current_url}/{instance.id}/comments"
+        data["comments"] = f"{data['id']}/comments"
         return data
     
 class CommentSerializer(serializers.ModelSerializer):
@@ -141,19 +126,14 @@ class CommentSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = [ 'type', 'summary', 'author', 'post', 'comment', 'object']
+        fields = [ 'type', 'summary', 'author', 'post', 'object']
         read_only_fields = ['type']
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data["author"] = AuthorSerializer(instance.author, context=self.context).data
         request = self.context.get('request')
-        if instance.comment:
-            if data['object'] == None or data['object'] == '':
-                data["object"] = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}/comments/{instance.comment.id}"
-            if data['summary'] == None or data['summary'] == '':
-                data['summary'] = f"{instance.author.displayName} liked the comment"
-        elif instance.post:
+        if instance.post:
             if data['object'] == None or data['object'] == '':
                 data["object"] = f"{request.build_absolute_uri('/')}api/authors/{instance.post.author.id}/posts/{instance.post.id}"
             if data['summary'] == None or data['summary'] == '':

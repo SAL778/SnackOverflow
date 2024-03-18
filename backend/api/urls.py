@@ -47,7 +47,6 @@ urlpatterns = [
 
    # apis for likes
    path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes", views.get_post_likes, name="get_post_likes"),
-   path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments/<uuid:id_comment>/likes", views.get_comment_likes, name="get_comment_likes"),
    path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
 
    # apis for inbox
@@ -55,5 +54,12 @@ urlpatterns = [
 
    # custom urls
    path("publicPosts/", views.get_all_public_posts, name="get_all_public_posts"),
-   path("friendsFollowerPosts/", views.get_all_friends_follows_posts, name="get_all_friends_follows_posts"),
+   path("friendsFollowerPosts/<uuid:id_author>", views.get_all_friends_follows_posts, name="get_all_friends_follows_posts"),
+
+
+   # urls for remote stuff
+   path("remote-authors/", views.get_remote_authors, name="get_remote_authors"),
+   # this should be called every x seconds from frontend
+   path("checkRemoteFollowRequests/", views.check_remote_follow_requests_approved, name="check_remote_follow_requests_approved"),
+   path("checkRemoteFollowers/", views.check_remote_follower_still_exists, name="check_remote_follower_still_exists"),
 ]

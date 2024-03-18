@@ -1,3 +1,7 @@
+.single-view {
+	height: 100%; 
+	overflow: auto;
+}
 .comments-list {
 	background-color: rgb(252, 241, 241);
 	border-radius: 6px;

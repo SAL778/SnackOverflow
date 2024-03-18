@@ -145,15 +145,29 @@ function Profile() {
 	//console.log('TEST followReqs OUT OF REQUEST:', authFollowReqs);
 
 	useEffect(() => {
-		console.log("Requesting Posts...");
-		console.log("showPosts: ", showPosts);
 		getRequest(`authors/${profileUUID}/posts`)
 			.then((data) => {
-				console.log("GET posts Request Data:", data);
 				const sortedPosts = data.items.sort(
 					(a, b) => new Date(b.published) - new Date(a.published)
 				); // Sort the posts by their published date in descending order
-				setAuthPosts(sortedPosts);
+				if(owner){
+					setAuthPosts(sortedPosts);
+				}
+				//check i profileuuid is a friend of the current user
+				else if (friends["items"].some((friend) => friend.id.split("/").slice(-1)[0] === auth.user.id)) {
+					// only show public and friends posts uppercase
+					const filteredPosts = sortedPosts.filter(
+						(post) => post.visibility.toUpperCase() === "PUBLIC" || post.visibility.toUpperCase() === "FRIENDS"
+					);
+					setAuthPosts(sortedPosts);
+				}
+				else {
+					// only show public posts
+					const filteredPosts = sortedPosts.filter(
+						(post) => post.visibility.toUpperCase() === "PUBLIC"
+					);
+					setAuthPosts(filteredPosts);
+				}
 			})
 			.catch((error) => {
 				console.log("ERROR: ", error.message);
@@ -321,6 +335,7 @@ function Profile() {
 									authorId={authorId}
 									postId={postId}
 									postVisibility={post.visibility}
+									owner={owner}
 								/>
 							);
 						})}

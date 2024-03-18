@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from .models import Author, Follower, FollowRequest, Post, Comment, Like, Inbox
+from .models import Author, Follower, FollowRequest, Post, Comment, Like, Inbox, Node
 from .serializers import AuthorSerializer, FollowRequestSerializer, UserRegisterSerializer, UserLoginSerializer, PostSerializer, CommentSerializer, LikeSerializer, InboxSerializer
 from django.contrib.auth import login, logout
 from rest_framework import status, permissions
@@ -13,6 +13,9 @@ import requests, json, os
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
+import uuid
+from itertools import chain
+from api.utils import get_remote_request
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 import base64
 from django.http import Http404
@@ -35,7 +38,7 @@ class UserRegister(APIView):
     )
     def post(self, request):
         # clean_data = custom_validation(request.data)
-        serializer = UserRegisterSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -77,7 +80,7 @@ class UserLogin(APIView):
                     return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
             
             else:
-                serializer = AuthorSerializer(user, data=request.data, context={'request': request}, partial=True)
+                serializer = AuthorSerializer(user, data=request.data, partial=True)
                 if serializer.is_valid():
                     login(request, user)
                     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -118,7 +121,7 @@ class UserView(APIView):
         responses={200: "Ok"},
     )
     def get(self, request):
-        serializer = AuthorSerializer(request.user, context={'request': request})
+        serializer = AuthorSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(
@@ -153,7 +156,7 @@ def get_authors(request):
         response["page"] = authors.number
         response["size"] = size
 
-    serializer = AuthorSerializer(authors, context={'request': request}, many=True)
+    serializer = AuthorSerializer(authors, many=True)
     response["items"] = serializer.data
     return Response(response)
 
@@ -164,30 +167,59 @@ def get_authors(request):
         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
 )
 @swagger_auto_schema(
-        method="post",
+        method="put",
         operation_summary="creates an authors on the server",   
         operation_description="It creates an author on the server. If the author exists then it will throw an error. It will return the author's data.",
         request_body=AuthorSerializer,
         responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
 )
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'PUT', 'POST'])
 def get_and_update_author(request, id):
     """
     Get a single profile on the server by ID
     """
     if request.method == 'GET':
         author = get_object_or_404(Author, id=id)
-        serializer = AuthorSerializer(author, context={'request': request})
+        serializer = AuthorSerializer(author)
         return Response(serializer.data)
 
-    if request.method == 'POST':
+    if request.method == 'PUT':
         author = get_object_or_404(Author, id=id)
-        serializer = AuthorSerializer(author, data=request.data, context={'request': request}, partial=True)
+        serializer = AuthorSerializer(author, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        
+    if request.method == 'POST':
+        # mainly to create a remote author in our local db
+        serializer = AuthorSerializer(data=request.data)
+        if serializer.is_valid():
+            print("ahahahahhaha")
+            # remove trailing slash from url
+            request.data['id'] = request.data.get('id').rstrip('/')
+            # extract uuid from url/full id
+            author_id = request.data.get('id').split('/')[-1]
+
+            print("lollll")
+            print("id: ", uuid.UUID(author_id))
+            
+            author = Author.objects.create(
+                type=request.data.get('type'),
+                id=uuid.UUID(author_id),
+                host=request.data.get('host'),
+                display_name=request.data.get('displayName'),
+                url=request.data.get('url'),
+                github=request.data.get('github'),
+                profile_image=request.data.get('profileImage'),
+                is_remote=True
+            )
+
+            print("wtfffffff")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+    
+
 @swagger_auto_schema(
         method="get",
         operation_summary="gets all the followers of the author with the given id",   
@@ -206,7 +238,7 @@ def get_followers(request, id):
     for follower_object in followers:
         followers_set.add(follower_object.follower)
 
-    serializer = AuthorSerializer(followers_set, context={'request': request}, many=True)
+    serializer = AuthorSerializer(followers_set, many=True)
     response = {
         "type": "followers",
         "items": serializer.data,
@@ -241,8 +273,8 @@ def get_update_and_delete_follower(request, id_author, id_follower):
 
     if request.method == 'GET':
         follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
-        serializer = AuthorSerializer(follower_object.follower, context={'request': request})
-        return Response(serializer.data)
+        serializer = AuthorSerializer(follower_object.follower)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'PUT':
         # create a new follower
@@ -277,7 +309,7 @@ def get_followings(request, id_author):
     for following_object in followings:
         followings_set.add(following_object.followed_user)
 
-    serializer = AuthorSerializer(followings_set, context={'request': request}, many=True)
+    serializer = AuthorSerializer(followings_set, many=True)
     response = {
         "type": "followings",
         "items": serializer.data,
@@ -308,7 +340,7 @@ def get_friends(request, id_author):
     for friend_object in friends:
         friends_set.add(friend_object.followed_user)
 
-    serializer = AuthorSerializer(friends_set, context={'request': request}, many=True)
+    serializer = AuthorSerializer(friends_set, many=True)
     response = {
         "type": "friends",
         "items": serializer.data,
@@ -380,7 +412,10 @@ def get_create_delete_and_accept_follow_request(request, id_author, id_sender):
         # create a new follow request
         author = Author.objects.filter(id=id_sender)
 
-        if author.exists() and author.count() == 1:
+        # if sending follow request to remote author, make sure that remote author has been added to our local db before hand.
+        author_receiver = Author.objects.filter(id=id_author)
+
+        if author.exists() and author.count() == 1 and author_receiver.exists() and author_receiver.count() == 1:
             follow_request, created = FollowRequest.objects.get_or_create(from_user_id=id_sender, to_user_id=id_author)
             # send it to the inbox of the author
             return Response(status=status.HTTP_201_CREATED)
@@ -452,29 +487,87 @@ def get_all_public_posts(request):
         responses={200: "Ok", 401: "Unauthorized", 400: "Bad Request"},
 )
 @api_view(['GET'])
-def get_all_friends_follows_posts(request):
+def get_all_friends_follows_posts(request, id_author):
     """
     Get all friends and follows posts
     primary used in the home feed (friends stream)
     This will have all the public posts of the people I am following 
     and the friends only posts of the people I am friends with (they follow and I follow them)
     """
-    user = request.user
-    if(isinstance(user, Author)):
-        userId = user.id
-    else:
-        userId = None
+    userId = id_author
+    print("userId: ", userId)
+    print("getting all friends and follows posts")
     if request.method == 'GET':
+        print("inside get")
         if userId is None:
             return Response({"details":"User is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             following = Follower.objects.filter(follower__id=userId)
+
             followers = Follower.objects.filter(followed_user__id=userId)
+
             friends = following.filter(followed_user__in=followers.values_list('follower', flat=True))
 
             public_posts = Post.objects.filter(author__in=following.values_list('followed_user', flat=True), visibility="PUBLIC")
+
             friends_posts = Post.objects.filter(author__in=friends.values_list('followed_user', flat=True), visibility="FRIENDS")
-            posts = public_posts.union(friends_posts).order_by('-published')
+
+            own_friends_only_posts = Post.objects.filter(author__id=userId, visibility="FRIENDS")
+            
+            # get all the following whose is_remote is true
+            remote_following = following.filter(followed_user__is_remote=True)
+            remote_following_posts_list = []
+            # get all the posts of the remote following
+            for remote_author in remote_following:
+                host_url = remote_author.followed_user.host
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{remote_author.followed_user.id}/posts/"
+                response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                if response.status_code == 200:
+                    all_posts = response.json().get('items')
+                    for post in all_posts:
+                        # check if the post type is public
+                        if post.get('visibility').upper() == "PUBLIC":
+                            remote_following_posts_list.append(post)
+                else:
+                    print("remote_following_posts error: ", response.status_code)
+            # get all the friends whose is_remote is true            
+            remote_friends = friends.filter(followed_user__is_remote=True)
+            print("remote_friends: ", remote_friends)
+            remote_friends_posts_list = []
+            # get all the posts of the remote friends
+            for remote_author in remote_friends:
+                host_url = remote_author.followed_user.host
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{remote_author.followed_user.id}/posts/"
+                response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                if response.status_code == 200:
+                    all_posts = response.json().get('items')
+                    print("all_posts: ", all_posts)
+                    for post in all_posts:
+                        # check if the post type is public
+                        if post.get('visibility').upper() == "FRIENDS":
+                            print("freins post")
+                            remote_friends_posts_list.append(post)
+            print("remote_friends_posts_list: ", remote_friends_posts_list)
+            # if remote following post contains github in the title, then remove it
+            # remote_following_posts = [post for post in remote_following_posts if "github" not in post.get('title').lower()]
+            # remote_friends_posts = [post for post in remote_friends_posts if "github" not in post.get('title').lower()]  
+
+            posts = public_posts.union(friends_posts)
+            print("posts: after friends post ", posts)
+            posts = posts.union(own_friends_only_posts)
+            # print("posts: after own friends only post ", posts)
+            # try:
+            #     posts = chain(posts, remote_following_posts)
+            #     # posts = posts.union(remote_following_posts)
+            # except Exception as e:
+            #     print(str(e))
+            # print("posts: after remote following post ", posts)
+            # posts = chain(posts, remote_friends_posts)
+            # print("posts: after remote friends post ", posts)
+            # posts = posts.order_by('-published')
+
             # pagination
             page_number = request.query_params.get('page', 0)
             size = request.query_params.get('size', 0)
@@ -482,17 +575,31 @@ def get_all_friends_follows_posts(request):
                 paginator = Paginator(posts, size)
                 posts = paginator.get_page(page_number)
                 serializer = PostSerializer(posts, context={'request': request}, many=True)
+            
+                #responseSerializer = PostSerializer(remote_following_posts.union(remote_friends_posts), context={'request': request}, many=True)
+                items = serializer.data + remote_following_posts_list + remote_friends_posts_list
+                print("items: ", items)
+                # items = serializer.data + responseSerializer.data
                 response = {
                     "type": "posts",
-                    "items": serializer.data,
+                    "items": items,
                 }
                 return Response(response)
             else:
-                serializer = PostSerializer(posts, context={'request': request}, many=True)
-                response = {
-                    "type": "posts",
-                    "items": serializer.data,
-                }
+                print("before serializer")
+                try:
+                    serializer = PostSerializer(posts, context={'request': request}, many=True)
+                    #responseSerializer = PostSerializer(remote_following_posts.union(remote_friends_posts), context={'request': request}, many=True)
+                    items = serializer.data + remote_following_posts_list + remote_friends_posts_list
+                    print("items: ", items)
+                    # items = serializer.data + responseSerializer.data
+                    response = {
+                        "type": "posts",
+                        "items": items,
+                    }
+                    return Response(response)
+                except Exception as e:
+                    print(str(e))
                 return Response(response)
 
 @swagger_auto_schema(
@@ -531,10 +638,42 @@ def get_and_create_post(request, id_author):
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
         if author is None:
-            # send a request to team 1 and then to team 2 to see if a user with that id exists
             return Response(status=status.HTTP_404_NOT_FOUND)
+        elif author.is_remote:
+            host_url = author.host
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}authors/{id_author}/posts/"
+            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+            if response.status_code == 200:
+                all_posts = response.json().get('items')
+                posts = []
+                for post in all_posts:
+                    # check if the post type is public
+                    if post.get('visibility').upper() == "PUBLIC":
+                        posts.append(post)
+                    if userId is not None:
+                        follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
+                        following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
+                        if follower and following:
+                            if post.get('visibility').upper() == "FRIENDS":
+                                posts.append(post)
+                if int(page_number) and int(size):
+                    paginator = Paginator(posts, size)
+                    posts = paginator.get_page(page_number)
+                    response = {
+                        "type": "posts",
+                        "items": posts,
+                    }
+                    return Response(response)
+                else:
+                    response = {
+                        "type": "posts",
+                        "items": posts,
+                    }
+                    return Response(response)
         else:
             # the author is in our local server
+            print("userId remote",userId)
             if userId is None:
                 posts = Post.objects.filter(author=author, visibility="PUBLIC")
             elif userId == id_author:
@@ -543,12 +682,14 @@ def get_and_create_post(request, id_author):
                 # check if the user is a friend of the author
                 follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
                 following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
-
-                if follower and following:
+                print("user: ", user)
+                print("user remote", user.is_remote)
+                if (follower and following) or user.is_remote:
                     posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS"])
                 else:
                     posts = Post.objects.filter(author=author, visibility="PUBLIC")
-
+            print("all posts",posts)
+            posts = posts.order_by('-published')
             if int(page_number) and int(size):
                 paginator = Paginator(posts, size)
                 posts = paginator.get_page(page_number)
@@ -567,6 +708,7 @@ def get_and_create_post(request, id_author):
                 return Response(response)
 
     if request.method == 'POST':
+        print("inside post")
         if userId != id_author:
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
         # requestData = dict(request.data)
@@ -586,31 +728,82 @@ def get_and_create_post(request, id_author):
         # print(serializer)
         if serializer.is_valid():
             serializer.save(author=author)
+            print("Post created")
             # send the serializer.data (post) to the inbox of the author's followers
             # send the post to the author's followers or friends
             # check if the post is coming from our host. If its from our host do this else just add that to the inbox (everything is correct in that case)
+
             postId = serializer.data.get("id").split("/")[-1]
             post = Post.objects.filter(id=postId).first()
             postType = post.visibility
+            
             if postType == "PUBLIC":
+                print("Public post")
                 followers = Follower.objects.filter(followed_user__id=id_author)
                 for follower in followers:
                     # check if the follower is in another server and if it is then send the request
-                    requestData["author"] = follower.follower.id
-                    inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
-                    if inboxSerializer.is_valid():
-                        inboxSerializer.save()
+                    followerAuthor = Author.objects.filter(id=follower.follower.id).first()
+                    if followerAuthor.is_remote:
+                        print("Remote author")
+                        # send the request to the remote server
+                        host_url = followerAuthor.host
+                        print(host_url)
+                        node = Node.objects.filter(host_url=host_url).first()
+                        print(node)
+                        print(node.api_url)
+                        print(follower.follower.id)
+                        print(serializer.data)
+                        request_url = f"{node.api_url}authors/{follower.follower.id}/inbox"
+                        post_payload = {
+                            "type":"inbox",
+                            "author": f"{node.api_url}authors/{follower.follower.id}",
+                            "items":[serializer.data],
+                        }
+                        print("node api ulr")
+                        print(node.api_url)
+                        print("node afert")
+                        response = requests.post(request_url, json=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                        if response.status_code ==200:
+                            print("Post sent to the remote server inbox")
+                        else:
+                            print("Error sending the post to the remote server inbox")
+                            print(response.status_code, response.text)
+                            return Response(response.text, status=response.status_code)
+                    else:
+                        requestData = serializer.data
+                        inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
+                        if inboxSerializer.is_valid():
+                            inboxSerializer.save()
             elif postType == "FRIENDS":
+                print("Friends post")
                 followers = Follower.objects.filter(followed_user__id=id_author)
                 for follower in followers:
                     followerObject = Follower.objects.filter(follower__id=id_author, followed_user__id=follower.follower.id).first()
                     if followerObject is not None:
-                        requestData["author"] = follower.follower.id
-                        inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
-                        if inboxSerializer.is_valid():
-                            inboxSerializer.save()
-                # what if the follower is in another server, how do we know its a friend?
-                # we have to know its a friend so that we can send it to their inbox
+                        friendAuthor = Author.objects.filter(id=follower.follower.id).first()
+                        if friendAuthor.is_remote:
+                            # send the request to the remote server
+                            host_url = friendAuthor.host
+                            node = Node.objects.filter(host_url=host_url).first()
+                            request_url = f"{node.api_url}authors/{follower.follower.id}/inbox"
+                            post_payload = {
+                                "type":"inbox",
+                                "author": f"{node.api_url}authors/{follower.follower.id}",
+                                "items":[serializer.data],
+                            }
+
+                            response = requests.post(request_url, json=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                            if response.status_code ==200:
+                                print("Post sent to the remote server inbox")
+                            else:
+                                print("Error sending the post to the remote server inbox")
+                                print(response.status_code, response.text)
+                                return Response(response.text, status=response.status_code)
+                        else:
+                            requestData = serializer.data
+                            inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
+                            if inboxSerializer.is_valid():
+                                inboxSerializer.save()
             else:
                 print("unlisted post")
 
@@ -675,6 +868,7 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
     """
     Get, update, or delete a single post
     """
+    print("wasdasdjasjdnasdjnasdjn")
     user = request.user
     if(isinstance(user, Author)):
         userId = user.id
@@ -682,18 +876,55 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
         userId = None
 
     if request.method == 'GET':
+        print("id_author", id_author)
+        post_author = get_object_or_404(Author, id=id_author)
+        print("post_author",post_author)
+        if post_author.is_remote:
+            # send the request to the remote server
+            host_url = post_author.host
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}"
+            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+            if response.status_code == 200:
+                response_json = response.json()
+                response_json["author"] = response_json.get('author').get("id").split("/")[-1]
+                response_json["author"] = Author.objects.filter(id = response_json["author"]).first()
+                new_post = Post(response_json)
+                new_post.type = response_json.get('type')
+                new_post.count = response_json.get('count')
+                new_post.comments = response_json.get('comments')
+                new_post.author = response_json["author"]
+                new_post.id = response_json.get('id').split("/")[-1]
+                new_post.title = response_json.get('title')
+                new_post.source = response_json.get('source')
+                new_post.origin = response_json.get('origin')
+                new_post.contentType = response_json.get('contentType')
+                new_post.content = response_json.get('content')
+                new_post.description = response_json.get('description')
+                new_post.published = response_json.get('published')
+                new_post.visibility = response_json.get('visibility')
+                new_post.sharedBy = response_json.get('sharedBy')
+                postSerializer = PostSerializer(new_post, context={'request': request})
+                return Response(postSerializer.data)
+            else:
+                return Response(response.text, status=response.status_code)
+        print("before post")
         post = get_object_or_404(Post, id=id_post)
+        print("after post")
         serializer = PostSerializer(post, context={'request': request})
         if post.visibility == "PUBLIC" or userId == id_author:
+            print("public post")
             return Response(serializer.data)
         elif post.visibility == "FRIENDS":
+            print("friends post")
             if userId is None:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             follower = Follower.objects.filter(follower__id=id_author, followed_user__id=userId).exists()
             following = Follower.objects.filter(follower__id=userId, followed_user__id=id_author).exists()
-            if follower and following:
+            if (follower and following) or user.is_remote:
                 return Response(serializer.data)
             else:
+                print("Post not found with friends")
                 return Response(status=status.HTTP_404_NOT_FOUND)
         elif post.visibility == "UNLISTED":
             return Response(serializer.data)
@@ -736,6 +967,7 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
 def get_and_create_comment(request, id_author, id_post):
     """
     Get all comments of a single post or create a new comment
+    not using this endpoint
     """
     user = request.user
     if(isinstance(user, Author)):
@@ -743,8 +975,19 @@ def get_and_create_comment(request, id_author, id_post):
     else:
         userId = None
     # if the post is not in our server, we have to send a request to the server where the post is and get that specific post
-    post = get_object_or_404(Post, id=id_post)
     if request.method == 'GET':
+        post_author = get_object_or_404(Author, id=id_author)
+        if post_author.is_remote:
+            # send the request to the remote server
+            host_url = post_author.host
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}/comments"
+            response = requests.get(request_url,headers={'Authorization': f'Basic {node.base64_authorization}'})
+            if response.status_code == 200:
+                return Response(response.json())
+            else:
+                return Response(response.text, status=response.status_code)
+        post = get_object_or_404(Post, id=id_post)
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
         comments = Comment.objects.filter(post=post).order_by('-published')
@@ -766,6 +1009,18 @@ def get_and_create_comment(request, id_author, id_post):
             return Response(response)
 
     if request.method == 'POST':
+        post_author = get_object_or_404(Author, id=id_author)
+        if post_author.is_remote:
+            # send the request to the remote server
+            host_url = post_author.host
+            node = Node.objects.filter(host_url=host_url).first()
+            request_url = f"{node.api_url}/authors/{id_author}/posts/{id_post}/comments"
+            response = requests.post(request_url, json=request.data, headers={'Authorization': f'Basic {node.base64_authorization}'})
+            if response.status_code == 201:
+                return Response(response.json(), status=response.status_code)
+            else:
+                return Response(response.text, status=response.status_code)
+            
         if userId is None:
             return Response({"details":"can't create a comment anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
         commentAuthor = get_object_or_404(Author, id=userId)
@@ -806,31 +1061,22 @@ def get_post_likes(request, id_author, id_post):
     """
     Get all likes of a single post
     """
-    #TODO: get likes from other servers or create a like when it comes to an inbox
-    post = get_object_or_404(Post, id=id_post, author__id=id_author)
-    # get all the likes of the post and the like doesn't have comments
-    likes = Like.objects.filter(post=post, comment=None)
-    
-    serializer = LikeSerializer(likes, context={'request': request}, many=True)
-    response = {
-        "type": "likes",
-        "items": serializer.data,
-    }
-    return Response(response)
+    post_author = get_object_or_404(Author, id=id_author)
+    if post_author.is_remote:
+        # send the request to the remote server
+        host_url = post_author.host
+        node = Node.objects.filter(host_url=host_url).first()
+        request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}/likes"
 
-@swagger_auto_schema(
-        method="get",
-        operation_summary="gets all the likes of the comment with the given id_comment",
-        operation_description="Returns all the likes of the comment with the given id_comment. The comment has to be in the server. Otherwise it will return a 404 error.",
-        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
-)
-@api_view(['GET'])
-def get_comment_likes(request, id_author, id_post, id_comment):
-    """
-    Get all likes of a single comment
-    """
-    comment = get_object_or_404(Comment, id=id_comment, post__id=id_post, post__author__id=id_author)
-    likes = Like.objects.filter(comment=comment)
+        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+        if response.status_code == 200:
+            return Response(response.json())
+        else:
+            return Response(response.text, status=response.status_code)
+        
+    post = get_object_or_404(Post, id=id_post, author__id=id_author)
+    likes = Like.objects.filter(post=post)
+    
     serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
         "type": "likes",
@@ -850,6 +1096,17 @@ def get_liked(request, id_author):
     Get all likes of a single author
     """
     author = get_object_or_404(Author, id=id_author)
+    if author.is_remote:
+        # send the request to the remote server
+        host_url = author.host
+        node = Node.objects.filter(host_url=host_url).first()
+        request_url = f"{node.api_url}authors/{id_author}/liked"
+
+        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+        if response.status_code == 200:
+            return Response(response.json())
+        else:
+            return Response(response.text, status=response.status_code)
     likes = Like.objects.filter(author=author)
     serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
@@ -886,15 +1143,19 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
-    # print("Inbox")
+    # print("Inbox: ", request.user)
+
     user = request.user
     if(isinstance(user, Author)):
         userId = user.id
     else:
         userId = None
-    author = get_object_or_404(Author, id=id_author)
+
+    print("User: ", userId)
 
     if request.method == 'GET':
+        author = get_object_or_404(Author, id=id_author)
+
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
         if userId is None:
@@ -922,7 +1183,7 @@ def get_and_post_inbox(request, id_author):
         if userId is None:
             return Response({"details":"Can't post to inbox anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
         requestData = request.data.copy()
-        requestData["author"] = author.id
+        requestData["author"] = id_author
         items = requestData.get("items")
         if not (isinstance(items, list)):
             items = [items]
@@ -932,20 +1193,43 @@ def get_and_post_inbox(request, id_author):
             return Response({"details":"item is required"}, status=status.HTTP_400_BAD_REQUEST)
         itemType = item.get("type").lower()
 
+        author = Author.objects.filter(id=id_author).first()
+        
         if itemType == "like":
             # send the like to the author of the post/comments inbox - frontend
             likeAuthor = get_object_or_404(Author, id=item.get("author").get("id").split("/")[-1])
+            if author.is_remote:
+                # Send it to the post author’s inbox, if it’s a remote author, 
+                # then send the inbox request to another server and do nothing on local server 
+                # except create the payload for the request, else do what we are doing currently
+                # send the request to the remote server
+                host_url = author.host
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{id_author}/inbox"
+                like_payload = {
+                    "type":"inbox",
+                    "author": f"{node.api_url}authors/{id_author}",
+                    "items":[{
+                        "type":"like",
+                        "author": AuthorSerializer(likeAuthor, context={'request': request}).data,
+                        "summary": likeAuthor.display_name + " liked your post",
+                        "object": item.get("object"),
+                    }],
+                }
+
+                response = requests.post(request_url, json=like_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                if response.status_code ==200:
+                    print("Like sent to the remote server inbox")
+                    return Response(response.json(), status=response.status_code)
+                else:
+                    print("Error sending the like to the remote server inbox")
+                    print(response.status_code, response.text)
+                    return Response(response.text, status=response.status_code)
             likeData = item.copy()
             likeData["author"] = likeAuthor.id
             objectString = likeData.get("object")
             
             if objectString is not None or objectString != "":
-                if "comments" in objectString:
-                    commentId = objectString.split("/")[-1]
-                    # print("commentId: ", commentId)
-                    likeData["comment"] = get_object_or_404(Comment, id=commentId).id
-                else:
-                    likeData["comment"] = None
                 if "posts" in objectString:
                     if "comments" in objectString:
                         postId = objectString.split("/")[-3]
@@ -957,14 +1241,10 @@ def get_and_post_inbox(request, id_author):
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"details":"object is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-            if likeData["comment"] is not None:
-                likeExists = Like.objects.filter(author=likeAuthor, comment=likeData["comment"]).exists()
-            else:
-                likeExists = Like.objects.filter(author=likeAuthor, post=likeData["post"]).exists()
+            
+            likeExists = Like.objects.filter(author=likeAuthor, post=likeData["post"]).exists()
             
             if likeExists:
-                # unlike them
                 return Response({"details":"like already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             likeSerializer = LikeSerializer(data=likeData, context={'request': request})
@@ -977,13 +1257,132 @@ def get_and_post_inbox(request, id_author):
 
         elif itemType == "follow":
             # send the follow request to the objectAuthor's inbox - frontend
+            print("we are in follow")
+
             actor = item.get("actor")
             object = item.get("object")
+
+            print("actor: ", actor)
+            print("object: ", object)
             if actor is None or object is None:
                 return Response({"details":"actor and object are required"}, status=status.HTTP_400_BAD_REQUEST)
             
-            actorAuthor = Author.objects.filter(id = actor.get("id").split("/")[-1]).first()
-            objectAuthor = Author.objects.filter(id = object.get("id").split("/")[-1]).first()
+            # actor - the person sending the request
+            # object - the person receiving the request
+            actorId = actor.get("id").split("/")[-1]
+            objectId = object.get("id").split("/")[-1]
+
+            print("actorId: ", actorId)
+            print("objectId: ", objectId)
+
+            if objectId != str(id_author):
+                return Response({"details":"Can't send follow request to someone else's inbox"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            # TODO: 
+            # check if person sending the request is from another server
+            # if the person is from another server then store that remote author in our Author table
+            # create a follow request object and store it in our database (our ui should be able to retrieve it after that)
+            # if follow request accepted, create a follower object and store it in our database and delete follow request object
+            # if follow request declined, delete the follow request object and the remote author from our Author table
+
+            
+            actorAuthor = Author.objects.filter(id = actorId).first()
+            objectAuthor = Author.objects.filter(id = objectId).first()
+            if actorAuthor is None:
+                # actorAuthor is most likely from another server
+                # create a new author with the actor's details
+                print("Creating actor author...")
+                actorAuthor = Author.objects.create(
+                    id=actorId, 
+                    host=actor.get("host"), 
+                    display_name=actor.get("displayName"), 
+                    url=actor.get("url"),
+                    github=actor.get("github"),
+                    profile_image=actor.get("profileImage"),
+                    is_remote=True
+                )
+                print("after creating actor author...")
+            if objectAuthor is None or objectAuthor.is_remote:
+                # the id_author is remote now
+                # most likely a remote author,  create the author
+                # need to send to the remote user inbox
+                print("Creating object author...")
+                if objectAuthor is None:
+                    objectAuthor = Author.objects.create(
+                        id=objectId, 
+                        host=object.get("host"), 
+                        display_name=object.get("displayName"), 
+                        url=object.get("url"),
+                        github=object.get("github"),
+                        profile_image=object.get("profileImage"),
+                        is_remote=True
+                    )
+
+                print("after creating object author...")
+                
+                author = Author.objects.filter(id=id_author).first()
+
+                print("Author in creating object author: ", author)
+
+                # now we need to send it to remote server
+                node = Node.objects.filter(host_url = author.host).first()
+                print("Node: ", node)
+
+                request_url = f"{node.api_url}authors/{id_author}/inbox"
+                print("Request url: ", request_url)
+
+                payload = {
+                    "type": "inbox",
+                    "author": f"{node.api_url}/authors/{id_author}",
+                    "items": [
+                        {
+                            "type": "follow",
+                            "summary": f"{actor.get('displayName')} wants to follow {object.get('displayName')}",
+                            "actor": actor,
+                            "object": object
+                        }
+                    ]
+                }
+
+                print("encoding: ", node.base64_authorization)
+                response = requests.post(request_url, json=payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+                print("Response: ", response.status_code, response.json())
+
+                if response.status_code != 201:
+                    print("Not 201")
+                    print(response.status_code)
+                    print(response.json())
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    print("Yes 201")
+
+                    followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
+            
+                    if followRequest:
+                        return Response({"details":f"{actorAuthor.display_name} already follows {objectAuthor.display_name}"}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    followRequestData = {
+                        "from_user": actorAuthor,
+                        "to_user": objectAuthor
+                    }
+                    # create a follow request
+                    try:
+                        newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
+                        serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
+                        print("follow request created")
+                        requestData["item"] = serializer.data
+                    except Exception as e:
+                        return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+                    return Response(response.json(), status=response.status_code)
+
+            
+           
+            print("after create")
 
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
@@ -997,34 +1396,55 @@ def get_and_post_inbox(request, id_author):
             # create a follow request
             try:
                 newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
-                newFollowRequest.save()
                 serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
-                requestData["item"] = dict(serializer.data)
+                print("follow request created")
+                requestData["item"] = serializer.data
             except Exception as e:
                 return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # if its a post or comment check if the post or comment exists
         elif itemType == "post":
-            postId = item.get("id").split("/")[-1]
-            if postId is None:
-                return Response({"details":"post id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            try:
-                # if the post is in our host do this else put the post in the requestData item
-                post = Post.objects.get(id=postId)
-                requestData["item"] = item
-            except Post.DoesNotExist:
-                return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            # ignore it
+
+            # postId = item.get("id").split("/")[-1]
+            # if postId is None:
+            #     return Response({"details":"post id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            # try:
+            #     # if the post is in our host do this else put the post in the requestData item
+            #     post = Post.objects.get(id=postId)
+            #     requestData["item"] = item
+            # except Post.DoesNotExist:
+            #     return Response({"details":"post does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_200_OK)
         
         elif itemType == "comment":
             # I think post will always be in our server
             # if the post is not in our server then make a request to the server where the post is and send the comment
-
+            if author.is_remote:
+                # send the request to the remote server
+                host_url = author.host
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{id_author}/inbox"
+                comment_payload = {
+                    "type":"inbox",
+                    "author": f"{node.api_url}authors/{id_author}",
+                    "items":[item],
+                }
+                
+                response = requests.post(request_url, json=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                if response.status_code ==201:
+                    print("Comment sent to the remote server inbox")
+                    return Response(response.json(), status=response.status_code)
+                else:
+                    print("Error sending the comment to the remote server inbox")
+                    print(response.status_code, response.text)
+                    return Response(response.text, status=response.status_code)
             commentAuthorId = item.get("author").get("id").split("/")[-1]
 
             # check if the comment author is in our server
             commentAuthor = Author.objects.filter(id=commentAuthorId).first()
             if commentAuthor is None:
                 # do something - create an author copy
+                print("Comment author is not in our server")
                 return
 
             commentData = item.copy()
@@ -1065,3 +1485,87 @@ def get_and_post_inbox(request, id_author):
         inbox = Inbox.objects.filter(author=author)
         inbox.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+@api_view(['GET'])
+def get_remote_authors(request):
+    """
+    Get all remote authors from all remote servers
+    """
+    remote_nodes = Node.objects.all()
+    allRemoteAuthors = []
+    for node in remote_nodes:
+        response = requests.get(f'{node.host}/authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+        if response.status_code == 200:
+            payload = response.json()
+            authors = payload.get("items")
+            allRemoteAuthors += authors
+
+    data = {
+        "type": "authors",
+        "items": allRemoteAuthors
+    }
+
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def check_remote_follow_requests_approved(request):
+    """
+    Check if the remote follow request is approved
+    """
+    # check if the follow request is approved
+    # if it is then create a follower object and delete the follow request object
+
+    print("Checking remote follow requests")
+    # get all follow requests, with receiver being a remote author
+    follow_requests = FollowRequest.objects.filter(to_user__is_remote=True)
+    print("Follow requests: ", follow_requests)
+
+    # loop through all the follow requests and check if they are approved
+    for follow_request in follow_requests:
+        print(follow_request.from_user.id, follow_request.to_user.id)
+        foreign_author_id = follow_request.from_user.id # the person who sent the follow request
+        author_id = follow_request.to_user.id # the person who received the follow request
+
+        node = Node.objects.filter(host_url = follow_request.to_user.host).first()
+        request_url = f'{follow_request.to_user.url}/followers/{follow_request.from_user.id}'
+        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+        if response.status_code == 200:
+            # follow request was approved, local user is now a follower of the remote user
+            # create a follower object
+            follower = Follower.objects.create(follower_id=foreign_author_id, followed_user_id=author_id)
+            # delete the local follow request
+            follow_request.delete()            
+
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def check_remote_follower_still_exists(request):
+    """
+    Check if the remote follower still exists
+    """
+    # check if the follower still exists
+    # if it doesn't then delete the follower object
+
+    print("Checking remote followers")
+    # get all followers, with the follower being a remote author
+    # all remote followers that is on our db
+    followers = Follower.objects.filter(follower__is_remote=True)
+    print("Followers: ", followers)
+
+    # loop through all the followers and check if they still exist
+    for follower in followers:
+        node = Node.objects.filter(host_url = follower.follower.url).first()
+        request_url = f"{node.api_url}authors/{follower.followed_user.id}/followers/{follower.follower.id}"
+        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+
+        if response.status_code != 200:
+            # no longer a follower, delete follower object
+            follower.delete()
+        

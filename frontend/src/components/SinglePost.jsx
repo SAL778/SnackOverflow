@@ -58,7 +58,7 @@ function SinglePost() {
 	).padStart(2, "0")}-${String(dates.getDate()).padStart(2, "0")}`;
 
 	return (
-		<div>
+		<div className="single-view">
 			<div>
 				{post ? (
 					<PostCard

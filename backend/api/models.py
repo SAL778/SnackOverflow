@@ -7,17 +7,22 @@ import uuid
 import os
 
 class Author(AbstractBaseUser, PermissionsMixin):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True)
-
+    type = models.CharField(max_length=30, default="author")
+    # leave id as uuid to minimize the number of changes to be done to views
+    id = models.UUIDField(primary_key=True, editable=False)
+    host = models.URLField(max_length=500, editable=False)
+    url = models.URLField(max_length=500, editable=False)
     display_name = models.CharField(max_length=100)
     github = models.URLField(max_length=100)
     profile_image = models.URLField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False, editable=False)
     is_active = models.BooleanField(default=True)
 
+    is_remote = models.BooleanField(default=False)
+
+    email = models.EmailField(unique=True)
     objects = CustomAuthorManager()
 
     EMAIL_FIELD = 'email'
@@ -33,14 +38,40 @@ class Author(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         isActive = os.getenv('IS_ACTIVE')
 
-        if self._state.adding:
+        print("into save method")
+        print("id: ", self.id)
+        print("email: ", self.email)
+
+        # add uuid if not provided
+        if not self.id:
+            self.id = uuid.uuid4()
+
+        if self._state.adding and not self.is_staff:
+
+            print("into addinggg in save")
+
+            if self.password:
+                self.set_password(self.password)
+
+            if not self.email:
+                # generate a random email
+                self.email = f'{self.id}@{self.id}.com' 
+
+            print("email 2: ", self.email)
+
             # set is_active to isActive only when user is created, and not when updated
             if isActive and isActive.lower() == 'false':
                 self.is_active = False
             else:
                 self.is_active = True
 
-        super().save(*args, **kwargs)
+        print("lallalalalalalallalal")
+
+        try:
+            super().save(*args, **kwargs)
+        except Exception as e:
+            print("wtf")
+            print(e)
     
     
 
@@ -82,7 +113,7 @@ class Post(models.Model):
         ('image/jpeg;base64', 'image/jpeg;base64')
     )
     type = models.CharField(max_length=50, default="post")
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     title = models.CharField(max_length=100)
     source = models.URLField(default="",max_length=200, blank=True)
     origin = models.URLField(default="",max_length=200, blank=True)
@@ -113,11 +144,22 @@ class Like(models.Model):
     summary = models.CharField(max_length=248)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="likes_author")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="like_post", null=True)
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="like_comment", null=True)
     object = models.CharField(max_length=250, null=False, blank=False, default="")
+
 # #inbox
 class Inbox(models.Model):
     type = models.CharField(max_length=50, default="inbox")
     author = models.ForeignKey(Author, related_name='author', on_delete=models.CASCADE)
     item = models.JSONField()
     published = models.DateTimeField(auto_now_add=True)
+
+
+class Node(models.Model):
+    team_name = models.CharField(max_length=100)
+    api_url = models.URLField(max_length=200)
+    base64_authorization = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    host_url = models.URLField(max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.team_name}: {self.api_url}'
