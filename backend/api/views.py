@@ -1132,7 +1132,6 @@ def get_and_post_inbox(request, id_author):
     """
     Get all items in the inbox of a single author or create a new item
     """
-    # print("Inbox: ", request.user)
 
     user = request.user
     if(isinstance(user, Author)):
@@ -1224,7 +1223,7 @@ def get_and_post_inbox(request, id_author):
                         postId = objectString.split("/")[-3]
                     else:
                         postId = objectString.split("/")[-1]
-                    # print("postId: ", postId)
+
                     likeData["post"] = get_object_or_404(Post, id=postId).id
                 else:
                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1266,13 +1265,6 @@ def get_and_post_inbox(request, id_author):
 
             if objectId != str(id_author):
                 return Response({"details":"Can't send follow request to someone else's inbox"}, status=status.HTTP_401_UNAUTHORIZED)
-
-            # TODO: 
-            # check if person sending the request is from another server
-            # if the person is from another server then store that remote author in our Author table
-            # create a follow request object and store it in our database (our ui should be able to retrieve it after that)
-            # if follow request accepted, create a follower object and store it in our database and delete follow request object
-            # if follow request declined, delete the follow request object and the remote author from our Author table
 
             
             actorAuthor = Author.objects.filter(id = actorId).first()
@@ -1359,7 +1351,6 @@ def get_and_post_inbox(request, id_author):
                     try:
                         newFollowRequest = FollowRequest.objects.create(from_user=actorAuthor, to_user=objectAuthor)
                         serializer = FollowRequestSerializer(newFollowRequest, context={'request': request})
-                        print("follow request created")
                         requestData["item"] = serializer.data
                     except Exception as e:
                         return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -1369,9 +1360,6 @@ def get_and_post_inbox(request, id_author):
 
                     return Response(response.json(), status=response.status_code)
 
-            
-           
-            print("after create")
 
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
@@ -1461,7 +1449,7 @@ def get_and_post_inbox(request, id_author):
         if inboxSerializer.is_valid():
             inboxSerializer.save()
             return Response(inboxSerializer.data, status=status.HTTP_201_CREATED)
-        # print(requestData["item"])
+
         print("inboxSerializer.errors")
         print(inboxSerializer.errors)
         return Response(inboxSerializer.errors, status=status.HTTP_400_BAD_REQUEST)

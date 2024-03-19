@@ -55,6 +55,8 @@ To have static files served locally, go to the frontend/ folder, install all pac
 Then you can at backend/ `python manage.py runserver` to see the server work properly.
 For testing, you can use `python manage.py test` to get all the tests running. 
 
+To deploy remotely, look at the deployment steps at the top level of the repo.
+
 ## Resources
 - Django Serializers: https://www.django-rest-framework.org/api-guide/serializers/
 - https://stackoverflow.com/questions/58794639/how-to-make-follower-following-system-with-django-model
