@@ -370,6 +370,26 @@ def get_received_follow_requests(request, id):
 
 @swagger_auto_schema(
         method="get",
+        operation_summary="gets all the sent follow requests of the author with the given id",
+        operation_description="Returns all the sent follow requests of the author with the given id. The author has to be in the server. Otherwise it will return a 404 error.",
+        responses={200: "Ok", 400: "Bad Request", 404: "Not found"},
+)
+@api_view(['GET'])
+def get_sent_follow_requests(request,id):
+    """
+    Get all sent friend requests
+    """
+    print(id)
+    author= get_object_or_404(Author, id=id)
+    sent_follow_requests = FollowRequest.objects.filter(from_user_id=id)
+    serializer = FollowRequestSerializer(sent_follow_requests, context={'request': request}, many=True)
+    response = {
+        "type": "followrequests",
+        "items": serializer.data,
+    }
+    return Response(response)
+@swagger_auto_schema(
+        method="get",
         operation_summary="gets the specific follow request with id_sender of the author with the given id_author",
         operation_description="Returns the specific follow request with id_sender of the author with the given id_author. \
         The follow request has to be in the server. Otherwise it will return a 404 error.",
@@ -1473,13 +1493,13 @@ def get_remote_authors(request):
     remote_nodes = Node.objects.all()
     allRemoteAuthors = []
     for node in remote_nodes:
-        response = requests.get(f'{node.host}/authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
+        response = requests.get(f'{node.api_url}authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
 
         if response.status_code == 200:
             payload = response.json()
             authors = payload.get("items")
             allRemoteAuthors += authors
-
+    print("allremoteAuthors",allRemoteAuthors)
     data = {
         "type": "authors",
         "items": allRemoteAuthors

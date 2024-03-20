@@ -28,6 +28,7 @@ function Links() {
 		{ content: "Feed", href: "/feed", icon: UsersThree },
 		{ content: "Explore", href: "/explore", icon: Sparkle },
 		{ content: "New Post", href: "/newpost", icon: UploadSimple },
+		{ content: "Lookup", href: "/lookup", icon: UsersThree },
 	];
 
 	return (

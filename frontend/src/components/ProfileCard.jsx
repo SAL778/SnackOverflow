@@ -24,6 +24,7 @@ function ProfileCard({
 	altId = "",
 	changeProfileFunc,
 	change,
+	showLink = true,
 }) {
 	//authId is just author/"host" page's uuid, key is the id of the profile card being displayed
 	//altId is a copy of authId that won't be considered/operated on
@@ -43,7 +44,7 @@ function ProfileCard({
 
 	//API METHODS BEGIN
 	// TODO author needs to be full URL from author object, not just ID
-	const follow = (authorUUID, followerUUID) => {
+	const follow = (receivingId, sendingId) => {
 		var dataToSend = {
 			type: "inbox",
 			author: `http://127.0.0.1:5454/authors/${authorUUID}`,
@@ -52,11 +53,16 @@ function ProfileCard({
 					type: "Follow",
 					actor: {
 						type: "author",
-						id: `http://127.0.0.1:5454/authors/${followerUUID}`,
+						id: `http://127.0.0.1:5454/authors/${sendingId}`,
 					},
 					object: {
 						type: "author",
-						id: `http://127.0.0.1:5454/authors/${authorUUID}`,
+						id: `http://127.0.0.1:5454/authors/${receivingId}`,
+						host: host,
+						displayName: username,
+						url:url,
+						github: github,
+						profileImage: imageSrc,
 					},
 				},
 			],
@@ -151,13 +157,20 @@ function ProfileCard({
 								)}
 							</div>
 						)}
-
-						<Link
-							onClick={() => changeProfileFunc(change)}
+						{ showLink &&
+							<Link
+							onClick={() => {
+									if (changeProfileFunc) {
+										changeProfileFunc(change);
+									}
+								}
+							}
 							to={`/profile/${cardUUID}/`}
-						>
-							Profile
-						</Link>
+							>
+								Profile
+							</Link>
+						}
+
 					</div>
 				</a>
 			)}
