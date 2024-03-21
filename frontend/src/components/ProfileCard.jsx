@@ -44,20 +44,22 @@ function ProfileCard({
 
 	//API METHODS BEGIN
 	// TODO author needs to be full URL from author object, not just ID
+	// sending a follow request object to the object's inbox
 	const follow = (receivingId, sendingId) => {
 		var dataToSend = {
 			type: "inbox",
-			author: `http://127.0.0.1:5454/authors/${authorUUID}`,
+			// only the uuids are used by the backend, so, the first part of the url is just dummy data
+			author: `http://127.0.0.1:5454/api/authors/${receivingId}`,
 			items: [
 				{
 					type: "Follow",
 					actor: {
 						type: "author",
-						id: `http://127.0.0.1:5454/authors/${sendingId}`,
+						id: `http://127.0.0.1:5454/api/authors/${sendingId}`,
 					},
 					object: {
 						type: "author",
-						id: `http://127.0.0.1:5454/authors/${receivingId}`,
+						id: `http://127.0.0.1:5454/api/authors/${receivingId}`,
 						host: host,
 						displayName: username,
 						url:url,
@@ -67,7 +69,7 @@ function ProfileCard({
 				},
 			],
 		};
-		postRequest(`authors/${authorUUID}/inbox`, dataToSend)
+		postRequest(`authors/${receivingId}/inbox`, dataToSend)
 			.then((data) => {
 				console.log("Follow Req POSTed.");
 			})

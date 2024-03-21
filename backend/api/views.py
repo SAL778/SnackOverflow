@@ -1491,10 +1491,14 @@ def get_remote_authors(request):
     """
     Get all remote authors from all remote servers
     """
-    remote_nodes = Node.objects.all()
+    remote_nodes = Node.objects.filter(is_active=True)
     allRemoteAuthors = []
     for node in remote_nodes:
-        response = requests.get(f'{node.api_url}authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
+        try:
+            response = requests.get(f'{node.api_url}authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
+        except requests.exceptions.RequestException as e:
+            print("Request failed for node: ", node.team_name, node.api_url)
+            continue
 
         if response.status_code == 403:
             print("Authorization failed for node: ", node.team_name, node.api_url)
@@ -1548,24 +1552,29 @@ def check_remote_follow_requests_approved(request):
 
 
 @api_view(['GET'])
-def check_remote_follower_still_exists(request):
+def check_remote_follower_still_exists(request, id_author):
     """
-    Check if the remote follower still exists
+    Check if the remote followers of id_author still exists
     """
     # check if the follower still exists
     # if it doesn't then delete the follower object
 
     print("Checking remote followers")
-    # get all followers, with the follower being a remote author
+    # get all remote followers if id_author
     # all remote followers that is on our db
-    followers = Follower.objects.filter(follower__is_remote=True)
-    print("Followers: ", followers)
+    followers = Follower.objects.filter(follower__is_remote=True, followed_user__id=id_author)
+    print("Remote Followers: ", followers)
 
     # loop through all the followers and check if they still exist
     for follower in followers:
         node = Node.objects.filter(host_url = follower.follower.url).first()
         request_url = f"{node.api_url}authors/{follower.followed_user.id}/followers/{follower.follower.id}"
-        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+        try:
+            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+        except requests.exceptions.RequestException as e:
+            print("Request failed for node: ", node.team_name, node.api_url)
+            continue
 
 
         if response.status_code != 200:
