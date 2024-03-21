@@ -20,7 +20,7 @@ def get_request_remote(host_url, path):
             print("Internal server error for node: ", node.team_name, node.api_url)
 
         elif response.status_code == 404:
-            print("Requested url not found for node: ", node.team_name, node.api_url)
+            print(f"Requested url {request_url} not found for node: ", node.team_name, node.api_url)
         
         # add more error code handling as needed
         return response

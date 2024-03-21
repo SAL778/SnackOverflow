@@ -1502,15 +1502,16 @@ def get_remote_authors(request):
     for node in remote_nodes:
         response = get_request_remote(host_url=node.host_url, path="authors/")
 
-        if response and response.status_code == 200:
-            payload = response.json()
-            authors = payload.get("items")
+        if response is not None:
+            if response.status_code == 200:
+                payload = response.json()
+                authors = payload.get("items")
 
-            # discard author whose host field is not a valid url
-            # discard author who is a local author, that is, its host field is the same as the current server's host
-            request_domain = request.build_absolute_uri('/')[:-1]
-            authors = [author for author in authors if validators.url(author.get("host")) and not author.get("host").startswith(request_domain)]
-            allRemoteAuthors += authors
+                # discard author whose host field is not a valid url
+                # discard author who is a local author, that is, its host field is the same as the current server's host
+                request_domain = request.build_absolute_uri('/')[:-1]
+                authors = [author for author in authors if validators.url(author.get("host")) and not author.get("host").startswith(request_domain)]
+                allRemoteAuthors += authors
 
     data = {
         "type": "authors",
@@ -1541,13 +1542,14 @@ def check_remote_follow_requests_approved(request, id_author):
 
         response = get_request_remote(host_url=follow_request.to_user.host, path=f"authors/{follow_request.to_user.id}/followers/{follow_request.from_user.id}")
 
-        if response and response.status_code == 200:
-            print("Follow request was approved")
-            # follow request was approved, local user is now a follower of the remote user
-            # create a follower object in our local db
-            follower = Follower.objects.create(follower_id=sender_id, followed_user_id=receiver_id)
-            # delete the local follow request
-            follow_request.delete()            
+        if response is not None:
+            if response.status_code == 200:
+                print("Follow request was approved")
+                # follow request was approved, local user is now a follower of the remote user
+                # create a follower object in our local db
+                follower = Follower.objects.create(follower_id=sender_id, followed_user_id=receiver_id)
+                # delete the local follow request
+                follow_request.delete()            
 
     return Response(status=status.HTTP_200_OK)
 
@@ -1570,8 +1572,9 @@ def check_remote_follower_still_exists(request, id_author):
     for follower in followers:
         response = get_request_remote(host_url=follower.follower.host, path=f"authors/{follower.followed_user.id}/followers/{follower.follower.id}")
 
-        if response and response.status_code == 404:
-            # no longer a follower, delete follower object
-            follower.delete()
+        if response is not None:
+            if response.status_code == 404:
+                # no longer a follower, delete follower object
+                follower.delete()
 
     return Response(status=status.HTTP_200_OK)
