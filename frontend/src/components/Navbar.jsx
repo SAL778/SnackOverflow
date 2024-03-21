@@ -75,7 +75,8 @@ export default function Navigation() {
 
 		if (auth.user) {
 			const id = setInterval(async () => {
-				await getRequest("checkRemoteFollowRequests/")
+				console.log("Checking remote follow requests for user: ", auth.user.id, auth.user.displayName);
+				await getRequest(`checkRemoteFollowRequests/${auth.user.id}`)
 				console.log("Checking remote followers for user: ", auth.user.id, auth.user.displayName);
 				await getRequest(`checkRemoteFollowers/${auth.user.id}`)
 			}, timeout);

@@ -15,7 +15,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
 import uuid
 from itertools import chain
-from api.utils import get_remote_request, check_content
+from api.utils import get_request_remote, check_content
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 import base64
 from django.http import Http404
@@ -1500,20 +1500,16 @@ def get_remote_authors(request):
     remote_nodes = Node.objects.filter(is_active=True)
     allRemoteAuthors = []
     for node in remote_nodes:
-        try:
-            response = requests.get(f'{node.api_url}authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
-        except requests.exceptions.RequestException as e:
-            print("Request failed for node: ", node.team_name, node.api_url)
-            continue
+        response = get_request_remote(host_url=node.host_url, path="authors/")
 
-        if response.status_code == 403:
-            print("Authorization failed for node: ", node.team_name, node.api_url)
-
-        if response.status_code == 200:
+        if response and response.status_code == 200:
             payload = response.json()
             authors = payload.get("items")
+
             # discard author whose host field is not a valid url
-            authors = [author for author in authors if validators.url(author.get("host"))]
+            # discard author who is a local author, that is, its host field is the same as the current server's host
+            request_domain = request.build_absolute_uri('/')[:-1]
+            authors = [author for author in authors if validators.url(author.get("host")) and not author.get("host").startswith(request_domain)]
             allRemoteAuthors += authors
 
     data = {
@@ -1525,33 +1521,31 @@ def get_remote_authors(request):
 
 
 @api_view(['GET'])
-def check_remote_follow_requests_approved(request):
+def check_remote_follow_requests_approved(request, id_author):
     """
     Check if the remote follow request is approved
     """
-    # check if the follow request is approved
+    # check if any of the remote follow requests sent by id_author are approved
     # if it is then create a follower object and delete the follow request object
 
     print("Checking remote follow requests")
-    # get all follow requests, with receiver being a remote author
-    follow_requests = FollowRequest.objects.filter(to_user__is_remote=True)
-    print("Follow requests: ", follow_requests)
+    # get all follow requests, with receiver being a remote author and sender being id_author
+    follow_requests = FollowRequest.objects.filter(to_user__is_remote=True, from_user__id=id_author)
+    print("Remote Follow requests: ", follow_requests)
 
-    # loop through all the follow requests and check if they are approved
+    # loop through all the remote follow requests and check if they are approved
     for follow_request in follow_requests:
         print(follow_request.from_user.id, follow_request.to_user.id)
-        foreign_author_id = follow_request.from_user.id # the person who sent the follow request
-        author_id = follow_request.to_user.id # the person who received the follow request
+        sender_id = follow_request.from_user.id # the person who sent the follow request
+        receiver_id = follow_request.to_user.id # the person who received the follow request
 
-        node = Node.objects.filter(host_url = follow_request.to_user.host).first()
-        request_url = f'{follow_request.to_user.url}/followers/{follow_request.from_user.id}'
-        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+        response = get_request_remote(host_url=follow_request.to_user.host, path=f"authors/{follow_request.to_user.id}/followers/{follow_request.from_user.id}")
 
-        if response.status_code == 200:
+        if response and response.status_code == 200:
             print("Follow request was approved")
             # follow request was approved, local user is now a follower of the remote user
-            # create a follower object
-            follower = Follower.objects.create(follower_id=foreign_author_id, followed_user_id=author_id)
+            # create a follower object in our local db
+            follower = Follower.objects.create(follower_id=sender_id, followed_user_id=receiver_id)
             # delete the local follow request
             follow_request.delete()            
 
@@ -1574,21 +1568,9 @@ def check_remote_follower_still_exists(request, id_author):
 
     # loop through all the followers and check if they still exist
     for follower in followers:
-        node = Node.objects.filter(host_url = follower.follower.host).first()
-        request_url = f"{node.api_url}authors/{follower.followed_user.id}/followers/{follower.follower.id}"
+        response = get_request_remote(host_url=follower.follower.host, path=f"authors/{follower.followed_user.id}/followers/{follower.follower.id}")
 
-        try:
-            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-        except requests.exceptions.RequestException as e:
-            print("Request failed for node: ", node.team_name, node.api_url)
-            continue
-
-        if response.status_code == 403:
-            print("Authorization failed for node: ", node.team_name, node.api_url)
-            continue
-
-
-        if response.status_code == 404:
+        if response and response.status_code == 404:
             # no longer a follower, delete follower object
             follower.delete()
 

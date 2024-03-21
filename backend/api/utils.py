@@ -1,24 +1,35 @@
 import requests
 from .models import Node
 
-def get_remote_request(url, host):
-    
-    # Based on team name, set the authorization
-    if host.startswith('http://remote-nodeA:8000'):
-        headers = {'Authorization': 'Basic YWRtaW46YWR'}
-    elif host.startswith('http://remote-nodeB:8000'):
-        headers = {'Authorization': 'Basic YWR'}
+def get_request_remote(host_url, path):
+
+    node = Node.objects.filter(host_url=host_url, is_active=True).first()
+
+    if node:
+        request_url = f"{node.api_url}{path}"
+        try:
+            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
+        except:
+            print("Request failed for node: ", node.team_name, node.api_url)
+            return None
+
+        if response.status_code == 403:
+            print("Authorization failed for node: ", node.team_name, node.api_url)
+
+        elif response.status_code == 500:
+            print("Internal server error for node: ", node.team_name, node.api_url)
+
+        elif response.status_code == 404:
+            print("Requested url not found for node: ", node.team_name, node.api_url)
+        
+        # add more error code handling as needed
+        return response
+            
     else:
-        headers = {}
-
-
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
+        print("No active node found for host: ", host_url)
         return None
-    
+
+
 def change_image_url(content, check_url ,api_url):
     if f"![image]({check_url}" in content:
         content = content.replace(f"![image]({check_url}", f"![image]({api_url}")
