@@ -125,3 +125,26 @@
 	width: 700px; /* Fixed width */
 	background-color: lightgray;
 }
+
+.interactive-button {
+	background-color: #f0f0f0;
+	color: #333;
+	border: 1px solid #ccc;
+	padding: 10px 20px;
+	border-radius: 5px;
+	transition: all 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	font-size: 16px;
+}
+
+.interactive-button:hover {
+	background-color: #e8e8e8;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	transform: translateY(-2px);
+}
+
+.interactive-button:active {
+	background-color: #dcdcdc;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	transform: translateY(1px);
+}

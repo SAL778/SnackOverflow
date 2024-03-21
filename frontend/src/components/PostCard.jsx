@@ -295,13 +295,23 @@ function PostCard({
 				</div>
 			)}
 			<div className="post-footer">
-				<button onClick={handleLike}>Likes: {likes} 👍</button>
+				<button className="interactive-button" onClick={handleLike}>
+					Likes: {likes} 👍
+				</button>
 
 				<div style={{ display: "flex", justifyContent: "space-between" }}>
 					{postVisibility === "PUBLIC" && (
-						<button onClick={handleShare}>Share</button>
+						<button
+							className="interactive-button"
+							style={{ marginRight: "10px" }}
+							onClick={handleShare}
+						>
+							Share
+						</button>
 					)}
-					<button onClick={handleComment}>Comment</button>
+					<button className="interactive-button" onClick={handleComment}>
+						Comment
+					</button>
 				</div>
 			</div>
 			{clickedComment && (
