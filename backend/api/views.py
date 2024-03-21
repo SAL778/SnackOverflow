@@ -19,6 +19,7 @@ from api.utils import get_remote_request, check_content
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 import base64
 from django.http import Http404
+import validators
 
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -1473,11 +1474,16 @@ def get_remote_authors(request):
     remote_nodes = Node.objects.all()
     allRemoteAuthors = []
     for node in remote_nodes:
-        response = requests.get(f'{node.host}/authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
+        response = requests.get(f'{node.api_url}authors/', headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+        if response.status_code == 403:
+            print("Authorization failed for node: ", node.team_name, node.api_url)
 
         if response.status_code == 200:
             payload = response.json()
             authors = payload.get("items")
+            # discard author whose host field is not a valid url
+            authors = [author for author in authors if validators.url(author.get("host"))]
             allRemoteAuthors += authors
 
     data = {
