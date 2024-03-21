@@ -25,10 +25,10 @@ function PostCard({
 	postVisibility,
 	reload,
 	owner,
+	onPostDeleted,
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
-	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
 	const serviceUrl = window.location.protocol + "//" + window.location.host;
@@ -97,14 +97,15 @@ function PostCard({
 		deleteRequest(`authors/${authorId}/posts/${postId}`) // why is it this url? It works but I don't know why figure it out
 			.then((response) => {
 				console.log("Post deleted successfully");
-				setShowDeleteAlert(true); // Show "Post Deleted" alert
-				setTimeout(() => setShowDeleteAlert(false), 3000); // Hide alert after 3 seconds
 				if (!setAuthPosts) {
 					// this is done from the posts individual page so redirect to profile page
 					return;
 				}
 				var newAuthPosts = authPosts.filter((post) => post.id !== postId);
 				setAuthPosts(newAuthPosts);
+				if (onPostDeleted) {
+					onPostDeleted(postId);
+				}
 			})
 			.catch((error) => {
 				console.error("Error deleting the post: ", error.message);
@@ -232,25 +233,6 @@ function PostCard({
 					}}
 				>
 					Comment Added
-				</Alert>
-			)}
-			{showDeleteAlert && (
-				<Alert
-					severity="success"
-					style={{
-						position: "absolute",
-						zIndex: 2,
-						width: "200px",
-						height: "200px",
-						marginBottom: "200px",
-						marginLeft: "200px",
-						display: "flex",
-						flexDirection: "column",
-						justifyContent: "center",
-						alignItems: "center",
-					}}
-				>
-					Post Deleted
 				</Alert>
 			)}
 			{profilePage && owner && (

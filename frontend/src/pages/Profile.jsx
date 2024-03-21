@@ -10,6 +10,7 @@ import { getRequest, postRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
+import Alert from "@mui/material/Alert";
 
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
 function Profile() {
@@ -176,6 +177,19 @@ function Profile() {
 			});
 	}, [showPosts, changeProfile]);
 
+	const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+	const [deletedPostId, setDeletedPostId] = useState(null);
+
+	const handlePostDeleted = (postId) => {
+		setDeletedPostId(postId);
+		setShowDeleteAlert(true);
+		setTimeout(() => setShowDeleteAlert(false), 3000); // Hide the alert after 3 seconds
+
+		setAuthPosts((currentPosts) =>
+			currentPosts.filter((post) => post.id !== postId)
+		);
+	};
+
 	return (
 		//Current User/Author, uses data from initial fetch.
 		//NOTE: CURRENTLY USES DEFAULT IMAGE NO MATTER WHAT CAUSE STILL NOT SURE HOW THOSE WILL GO
@@ -295,6 +309,25 @@ function Profile() {
 						))}
 					</div>
 				)}
+				{showDeleteAlert && (
+					<Alert
+						severity="success"
+						style={{
+							position: "absolute",
+							zIndex: 2,
+							width: "300px",
+							height: "300px",
+							marginBottom: "400px",
+							marginLeft: "300px",
+							display: "flex",
+							flexDirection: "column",
+							justifyContent: "center",
+							alignItems: "center",
+						}}
+					>
+						Post Deleted
+					</Alert>
+				)}
 
 				{showPosts && (
 					<div class="space-y-6">
@@ -338,6 +371,7 @@ function Profile() {
 									postId={postId}
 									postVisibility={post.visibility}
 									owner={owner}
+									onPostDeleted={handlePostDeleted}
 								/>
 							);
 						})}
