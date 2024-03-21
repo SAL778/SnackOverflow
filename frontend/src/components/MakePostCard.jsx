@@ -74,9 +74,9 @@ const MakePostCard = ({
 		if (isMarkdown) {
 			contentType = "text/markdown";
 		} else if (isImage && image) {
-			if (postData.image.slice(5,21) === "image/png;base64") {
+			if (postData.image.slice(5, 21) === "image/png;base64") {
 				contentType = "image/png;base64";
-			} else if (postData.image.slice(5,22) === "image/jpeg;base64") {
+			} else if (postData.image.slice(5, 22) === "image/jpeg;base64") {
 				contentType = "image/jpeg;base64";
 			} else {
 				contentType = "application/base64";

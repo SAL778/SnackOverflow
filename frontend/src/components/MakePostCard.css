@@ -71,17 +71,7 @@
 	border-radius: 6px;
 }
 
-.make-post-card .form-actions .cancel-button {
-	background-color: red;
-	color: white;
-	border: none;
-	font-size: 1.1em;
-	padding: 15px 30px;
-	border-radius: 6px;
-	cursor: pointer;
-	margin-right: 20px;
-}
-
+.make-post-card .form-actions .cancel-button,
 .make-post-card .form-actions .submit-button {
 	background-color: green;
 	color: white;
@@ -90,6 +80,26 @@
 	padding: 15px 30px;
 	border-radius: 6px;
 	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.make-post-card .form-actions .cancel-button:hover,
+.make-post-card .form-actions .submit-button:hover {
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	transform: translateY(-2px);
+}
+
+.make-post-card .form-actions .cancel-button:active,
+.make-post-card .form-actions .submit-button:active {
+	background-color: #dcdcdc;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	transform: translateY(1px);
+}
+
+.make-post-card .form-actions .cancel-button {
+	background-color: red;
+	margin-right: 20px;
 }
 
 @media (max-width: 1024px) {
