@@ -25,10 +25,10 @@ function PostCard({
 	postVisibility,
 	reload,
 	owner,
+	onPostDeleted,
 }) {
 	const [likes, setLikes] = useState(0); // DUMMY LIKE DATA
 	const auth = useAuth();
-	const [showDeleteAlert, setShowDeleteAlert] = useState(false); // State to control alert visibility
 	const [likesObjet, setLikesObject] = useState([]); // State to store the likes for the post
 	const [clickedComment, setClickedComment] = useState(false); // State to control comment visibility
 	const serviceUrl = window.location.protocol + "//" + window.location.host;
@@ -97,14 +97,15 @@ function PostCard({
 		deleteRequest(`authors/${authorId}/posts/${postId}`) // why is it this url? It works but I don't know why figure it out
 			.then((response) => {
 				console.log("Post deleted successfully");
-				setShowDeleteAlert(true); // Show "Post Deleted" alert
-				setTimeout(() => setShowDeleteAlert(false), 3000); // Hide alert after 3 seconds
 				if (!setAuthPosts) {
 					// this is done from the posts individual page so redirect to profile page
 					return;
 				}
 				var newAuthPosts = authPosts.filter((post) => post.id !== postId);
 				setAuthPosts(newAuthPosts);
+				if (onPostDeleted) {
+					onPostDeleted(postId);
+				}
 			})
 			.catch((error) => {
 				console.error("Error deleting the post: ", error.message);
@@ -196,6 +197,14 @@ function PostCard({
 		}
 	};
 
+	const [showCommentSuccess, setShowCommentSuccess] = useState(false);
+
+	const handleCommentSubmitWrapper = async (commentData) => {
+		await handleCommentSubmit(commentData); // Call the existing submit function
+		setShowCommentSuccess(true); // Show the alert at the PostCard level
+		setTimeout(() => setShowCommentSuccess(false), 3000); // Hide the alert after 3 seconds
+	};
+
 	const handleCommentCancel = () => {
 		setClickedComment(false);
 		console.log("Comment creation canceled");
@@ -213,23 +222,17 @@ function PostCard({
 
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
-			{showDeleteAlert && (
+			{showCommentSuccess && (
 				<Alert
 					severity="success"
 					style={{
-						position: "absolute",
+						position: "fixed",
 						zIndex: 2,
-						width: "200px",
-						height: "200px",
-						marginBottom: "200px",
-						marginLeft: "200px",
-						display: "flex",
-						flexDirection: "column",
-						justifyContent: "center",
-						alignItems: "center",
+						bottom: 40,
+						right: 40,
 					}}
 				>
-					Post Deleted
+					Comment Added
 				</Alert>
 			)}
 			{profilePage && owner && (
@@ -295,19 +298,29 @@ function PostCard({
 				</div>
 			)}
 			<div className="post-footer">
-				<button onClick={handleLike}>Likes: {likes} 👍</button>
+				<button className="interactive-button" onClick={handleLike}>
+					Likes: {likes} 👍
+				</button>
 
-				<div>
+				<div style={{ display: "flex", justifyContent: "space-between" }}>
 					{postVisibility === "PUBLIC" && (
-						<div>{<button onClick={handleShare}>Share</button>}</div>
+						<button
+							className="interactive-button"
+							style={{ marginRight: "10px" }}
+							onClick={handleShare}
+						>
+							Share
+						</button>
 					)}
-					<button onClick={handleComment}>Comment</button>
+					<button className="interactive-button" onClick={handleComment}>
+						Comment
+					</button>
 				</div>
 			</div>
 			{clickedComment && (
 				<div className="new-comment-card">
 					<MakeCommentCard
-						onSubmit={handleCommentSubmit}
+						onSubmit={handleCommentSubmitWrapper}
 						onCancel={handleCommentCancel}
 					/>
 				</div>

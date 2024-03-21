@@ -16,20 +16,31 @@
 	align-items: center;
 }
 
-.make-comment-card .button-group .submit-button {
+.make-comment-card .button-group .submit-button,
+.make-comment-card .button-group .cancel-button {
 	background-color: green;
 	color: white;
 	padding: 7px 15px;
 	border: none;
 	border-radius: 6px;
 	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.make-comment-card .button-group .submit-button:hover,
+.make-comment-card .button-group .cancel-button:hover {
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	transform: translateY(-2px);
+}
+
+.make-comment-card .button-group .submit-button:active,
+.make-comment-card .button-group .cancel-button:active {
+	background-color: #dcdcdc;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	transform: translateY(1px);
 }
 
 .make-comment-card .button-group .cancel-button {
 	background-color: red;
-	color: white;
-	padding: 7px 15px;
-	border: none;
-	border-radius: 6px;
-	cursor: pointer;
 }

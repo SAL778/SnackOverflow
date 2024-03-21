@@ -67,18 +67,16 @@ export default function Navigation() {
 
 	const [intervalId, setIntervalId] = useState(null);
 
-
 	// poll data from /checkRemoteFollowRequests every 5 seconds
 	useEffect(() => {
-		const timeout = 10000;	// 10 seconds
+		const timeout = 10000; // 10 seconds
 
 		if (auth.user) {
 			const id = setInterval(async () => {
-				await getRequest("checkRemoteFollowRequests/")
+				await getRequest("checkRemoteFollowRequests/");
 			}, timeout);
 
 			setIntervalId(id);
-
 		} else {
 			clearInterval(id);
 		}
@@ -88,7 +86,6 @@ export default function Navigation() {
 			clearInterval(intervalId);
 		};
 	}, []);
-
 
 	const handleLogout = async (e) => {
 		e.preventDefault();
