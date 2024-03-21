@@ -20,12 +20,10 @@ const MakeCommentCard = ({ onSubmit, onCancel }) => {
 
 		setShowValidationError(false);
 
-		// Create a commentData object with the input values
 		const commentData = {
 			comment,
 		};
 		console.log("Comment Data:", commentData);
-		// Call the onSubmit function with the commentData
 		onSubmit(commentData);
 	};
 
