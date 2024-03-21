@@ -297,9 +297,9 @@ function PostCard({
 			<div className="post-footer">
 				<button onClick={handleLike}>Likes: {likes} 👍</button>
 
-				<div>
+				<div style={{ display: "flex", justifyContent: "space-between" }}>
 					{postVisibility === "PUBLIC" && (
-						<div>{<button onClick={handleShare}>Share</button>}</div>
+						<button onClick={handleShare}>Share</button>
 					)}
 					<button onClick={handleComment}>Comment</button>
 				</div>
