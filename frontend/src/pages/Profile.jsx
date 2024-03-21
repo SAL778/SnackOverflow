@@ -4,9 +4,6 @@ import React, {
 	useState,
 	forceUpdate,
 } from "react";
-import dummyimage from "../assets/smiley.jpg";
-import dummyimage2 from "../assets/snack-logo.png";
-import defaultPFP from "../assets/Default_pfp.jpg";
 import ProfileCard from "../components/ProfileCard.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { getRequest, postRequest } from "../utils/Requests.jsx";
@@ -150,18 +147,23 @@ function Profile() {
 				const sortedPosts = data.items.sort(
 					(a, b) => new Date(b.published) - new Date(a.published)
 				); // Sort the posts by their published date in descending order
-				if(owner){
+				if (owner) {
 					setAuthPosts(sortedPosts);
 				}
 				//check i profileuuid is a friend of the current user
-				else if (friends["items"].some((friend) => friend.id.split("/").slice(-1)[0] === auth.user.id)) {
+				else if (
+					friends["items"].some(
+						(friend) => friend.id.split("/").slice(-1)[0] === auth.user.id
+					)
+				) {
 					// only show public and friends posts uppercase
 					const filteredPosts = sortedPosts.filter(
-						(post) => post.visibility.toUpperCase() === "PUBLIC" || post.visibility.toUpperCase() === "FRIENDS"
+						(post) =>
+							post.visibility.toUpperCase() === "PUBLIC" ||
+							post.visibility.toUpperCase() === "FRIENDS"
 					);
 					setAuthPosts(sortedPosts);
-				}
-				else {
+				} else {
 					// only show public posts
 					const filteredPosts = sortedPosts.filter(
 						(post) => post.visibility.toUpperCase() === "PUBLIC"
