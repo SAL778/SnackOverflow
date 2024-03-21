@@ -196,6 +196,14 @@ function PostCard({
 		}
 	};
 
+	const [showCommentSuccess, setShowCommentSuccess] = useState(false);
+
+	const handleCommentSubmitWrapper = async (commentData) => {
+		await handleCommentSubmit(commentData); // Call the existing submit function
+		setShowCommentSuccess(true); // Show the alert at the PostCard level
+		setTimeout(() => setShowCommentSuccess(false), 3000); // Hide the alert after 3 seconds
+	};
+
 	const handleCommentCancel = () => {
 		setClickedComment(false);
 		console.log("Comment creation canceled");
@@ -213,6 +221,19 @@ function PostCard({
 
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
+			{showCommentSuccess && (
+				<Alert
+					severity="success"
+					style={{
+						position: "fixed",
+						zIndex: 2,
+						bottom: 40,
+						right: 40,
+					}}
+				>
+					Comment Added
+				</Alert>
+			)}
 			{showDeleteAlert && (
 				<Alert
 					severity="success"
@@ -317,7 +338,7 @@ function PostCard({
 			{clickedComment && (
 				<div className="new-comment-card">
 					<MakeCommentCard
-						onSubmit={handleCommentSubmit}
+						onSubmit={handleCommentSubmitWrapper}
 						onCancel={handleCommentCancel}
 					/>
 				</div>
