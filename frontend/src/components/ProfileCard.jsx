@@ -6,6 +6,7 @@ import {
 	putRequest,
 } from "../utils/Requests.jsx";
 import { Link } from "react-router-dom";
+import {useAuth} from "../utils/Auth.jsx";
 
 //Card modified from this source: https://flowbite.com/docs/components/card/ Accessed Feb 10th
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
@@ -31,6 +32,8 @@ function ProfileCard({
 	//owner -- true if person viewing is the owner of the profile, false if not.
 	//viewerId is the id of the person viewing the page, useful for distinguishing, used for displaying card of the actual owner.
 
+	const auth = useAuth();
+
 	let cardUUID = "";
 	const [showCard, setShowCard] = useState(true); //IF A FOLLOWER IS UNFOLLOWED OR REQUEST DEALT WITH, THIS WILL BE CHANGED AS TO NOT SHOW IT? HOPEFULLY?
 	console.log("IMAGEEEEE", imageSrc)
@@ -55,7 +58,13 @@ function ProfileCard({
 					type: "Follow",
 					actor: {
 						type: "author",
+						// auth.user.id == sendingId, the person sending the request
 						id: `http://127.0.0.1:5454/api/authors/${sendingId}`,
+						host: auth.user.host,
+						displayName: auth.user.displayName,
+						url: auth.user.url,
+						github: auth.user.github,
+						profileImage: auth.user.profileImage,
 					},
 					object: {
 						type: "author",

@@ -95,6 +95,7 @@ function Lookup() {
                 const authorId = author.id.split("/").slice(-1)[0]; // extract the author's id
                 return (
                     <ProfileCard
+                    // author = remote author here
                         key={author.id}
                         url = {author.url}
                         host = {author.host}

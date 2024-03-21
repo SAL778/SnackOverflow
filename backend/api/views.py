@@ -1347,7 +1347,13 @@ def get_and_post_inbox(request, id_author):
                 }
 
                 print("encoding: ", node.base64_authorization)
-                response = requests.post(request_url, json=payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+
+                try:
+                    response = requests.post(request_url, json=payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
+                except Exception as e:
+                    print("Error sending the follow request to the remote server inbox")
+                    print(str(e))
+                    return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
                 print("Response: ", response.status_code, response.json())
 
@@ -1542,6 +1548,7 @@ def check_remote_follow_requests_approved(request):
         response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
 
         if response.status_code == 200:
+            print("Follow request was approved")
             # follow request was approved, local user is now a follower of the remote user
             # create a follower object
             follower = Follower.objects.create(follower_id=foreign_author_id, followed_user_id=author_id)
@@ -1567,7 +1574,7 @@ def check_remote_follower_still_exists(request, id_author):
 
     # loop through all the followers and check if they still exist
     for follower in followers:
-        node = Node.objects.filter(host_url = follower.follower.url).first()
+        node = Node.objects.filter(host_url = follower.follower.host).first()
         request_url = f"{node.api_url}authors/{follower.followed_user.id}/followers/{follower.follower.id}"
 
         try:
