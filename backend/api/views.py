@@ -1576,8 +1576,13 @@ def check_remote_follower_still_exists(request, id_author):
             print("Request failed for node: ", node.team_name, node.api_url)
             continue
 
+        if response.status_code == 403:
+            print("Authorization failed for node: ", node.team_name, node.api_url)
+            continue
 
-        if response.status_code != 200:
+
+        if response.status_code == 404:
             # no longer a follower, delete follower object
             follower.delete()
-        
+
+    return Response(status=status.HTTP_200_OK)

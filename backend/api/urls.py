@@ -62,5 +62,5 @@ urlpatterns = [
    path("remote-authors/", views.get_remote_authors, name="get_remote_authors"),
    # this should be called every x seconds from frontend
    path("checkRemoteFollowRequests/", views.check_remote_follow_requests_approved, name="check_remote_follow_requests_approved"),
-   path("checkRemoteFollowers/", views.check_remote_follower_still_exists, name="check_remote_follower_still_exists"),
+   path("checkRemoteFollowers/<uuid:id_author>", views.check_remote_follower_still_exists, name="check_remote_follower_still_exists"),
 ]
