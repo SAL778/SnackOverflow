@@ -15,7 +15,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate
 import uuid
 from itertools import chain
-from api.utils import get_request_remote, check_content
+from api.utils import get_request_remote, check_content, post_request_remote
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 import base64
 from django.http import Http404
@@ -1212,9 +1212,6 @@ def get_and_post_inbox(request, id_author):
                 # then send the inbox request to another server and do nothing on local server 
                 # except create the payload for the request, else do what we are doing currently
                 # send the request to the remote server
-                host_url = author.host
-                node = Node.objects.filter(host_url=host_url).first()
-                request_url = f"{node.api_url}authors/{id_author}/inbox"
                 like_payload = {
                     "type":"inbox",
                     "author": f"{node.api_url}authors/{id_author}",
@@ -1225,15 +1222,20 @@ def get_and_post_inbox(request, id_author):
                         "object": item.get("object"),
                     }],
                 }
+ 
+                response = post_request_remote(host_url=author.host, path=f"authors/{id_author}/inbox", data=like_payload)
 
-                response = requests.post(request_url, json=like_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
-                if response.status_code ==200:
-                    print("Like sent to the remote server inbox")
-                    return Response(response.json(), status=response.status_code)
+                if response is not None:
+                    if response.status_code ==200:
+                        print("Like sent to the remote server inbox")
+                        return Response(response.json(), status=response.status_code)
+                    else:
+                        print("Error sending the like to the remote server inbox")
+                        print(response.status_code, response.text)
+                        return Response(response.text, status=response.status_code)
                 else:
-                    print("Error sending the like to the remote server inbox")
-                    print(response.status_code, response.text)
-                    return Response(response.text, status=response.status_code)
+                    return Response({"details":"Error sending the like to the remote server inbox"}, status=status.HTTP_400_BAD_REQUEST)
+                
             likeData = item.copy()
             likeData["author"] = likeAuthor.id
             objectString = likeData.get("object")
