@@ -540,37 +540,36 @@ def get_all_friends_follows_posts(request, id_author):
             remote_following_posts_list = []
             # get all the posts of the remote following
             for remote_author in remote_following:
-                host_url = remote_author.followed_user.host
-                node = Node.objects.filter(host_url=host_url).first()
-                request_url = f"{node.api_url}authors/{remote_author.followed_user.id}/posts/"
-                response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-                if response.status_code == 200:
-                    all_posts = response.json().get('items')
-                    for post in all_posts:
-                        # check if the post type is public
-                        if post.get('visibility').upper() == "PUBLIC":
-                            post = check_content(post, request)
-                            remote_following_posts_list.append(post)
-                else:
-                    print("remote_following_posts error: ", response.status_code)
+                response = get_request_remote(host_url=remote_author.followed_user.host, path=f"authors/{remote_author.followed_user.id}/posts/")
+
+                if response is not None:
+                    if response.status_code == 200:
+                        all_posts = response.json().get('items')
+                        for post in all_posts:
+                            # check if the post type is public
+                            if post.get('visibility').upper() == "PUBLIC":
+                                post = check_content(post, request)
+                                remote_following_posts_list.append(post)
+                    else:
+                        print("remote_following_posts error: ", response.status_code)
+
             # get all the friends whose is_remote is true            
             remote_friends = friends.filter(followed_user__is_remote=True)
             print("remote_friends: ", remote_friends)
             remote_friends_posts_list = []
             # get all the posts of the remote friends
             for remote_author in remote_friends:
-                host_url = remote_author.followed_user.host
-                node = Node.objects.filter(host_url=host_url).first()
-                request_url = f"{node.api_url}authors/{remote_author.followed_user.id}/posts/"
-                response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-                if response.status_code == 200:
-                    all_posts = response.json().get('items')
+                response = get_request_remote(host_url=remote_author.followed_user.host, path=f"authors/{remote_author.followed_user.id}/posts/")
+                
+                if response is not None:
+                    if response.status_code == 200:
+                        all_posts = response.json().get('items')
 
-                    for post in all_posts:
-                        if post.get('visibility').upper() == "FRIENDS":
-                            print("freins post")
-                            post = check_content(post, request)
-                            remote_friends_posts_list.append(post)
+                        for post in all_posts:
+                            if post.get('visibility').upper() == "FRIENDS":
+                                print("freins post")
+                                post = check_content(post, request)
+                                remote_friends_posts_list.append(post)
             # print("remote_friends_posts_list: ", remote_friends_posts_list)
 
             posts = public_posts.union(friends_posts)
@@ -648,11 +647,9 @@ def get_and_create_post(request, id_author):
         if author is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         elif author.is_remote:
-            host_url = author.host
-            node = Node.objects.filter(host_url=host_url).first()
-            request_url = f"{node.api_url}authors/{id_author}/posts/"
-            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-            if response.status_code == 200:
+            response = get_request_remote(host_url=author.host, path=f"authors/{id_author}/posts/")
+
+            if response is not None and response.status_code == 200:
                 all_posts = response.json().get('items')
                 posts = []
                 for post in all_posts:
@@ -818,11 +815,9 @@ def get_image(request, id_author, id_post):
     if not author:
         raise Http404("Author does not exist.")
     if author.is_remote:
-        host_url = author.host
-        node = Node.objects.filter(host_url=host_url).first()
-        request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}/image"
-        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-        if response.status_code == 200:
+        response = get_request_remote(host_url=author.host, path=f"authors/{id_author}/posts/{id_post}/image")
+
+        if response is not None and response.status_code == 200:
             print("response", response)
             return HttpResponse(response.content, content_type=response.headers.get('Content-Type'))
     try:
@@ -886,36 +881,36 @@ def get_update_and_delete_specific_post(request, id_author, id_post):
         print("post_author",post_author)
         if post_author.is_remote:
             # send the request to the remote server
-            host_url = post_author.host
-            node = Node.objects.filter(host_url=host_url).first()
-            request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}"
-            response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-            if response.status_code == 200:
-                response_json = response.json()
-                response_json["author"] = response_json.get('author').get("id").split("/")[-1]
-                response_json["author"] = Author.objects.filter(id = response_json["author"]).first()
-                response_json = check_content(response_json, request)
+            response = get_request_remote(host_url=post_author.host, path=f"authors/{id_author}/posts/{id_post}")
 
-                # create the new post object
-                new_post = Post(response_json)
-                new_post.type = response_json.get('type')
-                new_post.count = response_json.get('count')
-                new_post.comments = response_json.get('comments')
-                new_post.author = response_json["author"]
-                new_post.id = response_json.get('id').split("/")[-1]
-                new_post.title = response_json.get('title')
-                new_post.source = response_json.get('source')
-                new_post.origin = response_json.get('origin')
-                new_post.contentType = response_json.get('contentType')
-                new_post.content = response_json.get('content')
-                new_post.description = response_json.get('description')
-                new_post.published = response_json.get('published')
-                new_post.visibility = response_json.get('visibility')
-                new_post.sharedBy = response_json.get('sharedBy')
-                postSerializer = PostSerializer(new_post, context={'request': request})
-                return Response(postSerializer.data)
-            else:
-                return Response(response.text, status=response.status_code)
+            if response is not None:
+                if response.status_code == 200:
+                    response_json = response.json()
+                    response_json["author"] = response_json.get('author').get("id").split("/")[-1]
+                    response_json["author"] = Author.objects.filter(id = response_json["author"]).first()
+                    response_json = check_content(response_json, request)
+
+                    # create the new post object
+                    new_post = Post(response_json)
+                    new_post.type = response_json.get('type')
+                    new_post.count = response_json.get('count')
+                    new_post.comments = response_json.get('comments')
+                    new_post.author = response_json["author"]
+                    new_post.id = response_json.get('id').split("/")[-1]
+                    new_post.title = response_json.get('title')
+                    new_post.source = response_json.get('source')
+                    new_post.origin = response_json.get('origin')
+                    new_post.contentType = response_json.get('contentType')
+                    new_post.content = response_json.get('content')
+                    new_post.description = response_json.get('description')
+                    new_post.published = response_json.get('published')
+                    new_post.visibility = response_json.get('visibility')
+                    new_post.sharedBy = response_json.get('sharedBy')
+                    postSerializer = PostSerializer(new_post, context={'request': request})
+                    return Response(postSerializer.data)
+                else:
+                    return Response(response.text, status=response.status_code)
+                        
         print("before post")
         post = get_object_or_404(Post, id=id_post)
         print("after post")
@@ -987,14 +982,14 @@ def get_and_create_comment(request, id_author, id_post):
         post_author = get_object_or_404(Author, id=id_author)
         if post_author.is_remote:
             # send the request to the remote server
-            host_url = post_author.host
-            node = Node.objects.filter(host_url=host_url).first()
-            request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}/comments"
-            response = requests.get(request_url,headers={'Authorization': f'Basic {node.base64_authorization}'})
-            if response.status_code == 200:
-                return Response(response.json())
-            else:
-                return Response(response.text, status=response.status_code)
+            response = get_request_remote(host_url=post_author.host, path=f"authors/{id_author}/posts/{id_post}/comments")
+
+            if response is not None:
+                if response.status_code == 200:
+                    return Response(response.json())
+                else:
+                    return Response(response.text, status=response.status_code)
+                
         post = get_object_or_404(Post, id=id_post)
         page_number = request.query_params.get('page', 0)
         size = request.query_params.get('size', 0)
@@ -1019,15 +1014,16 @@ def get_and_create_comment(request, id_author, id_post):
     if request.method == 'POST':
         post_author = get_object_or_404(Author, id=id_author)
         if post_author.is_remote:
-            # send the request to the remote server
-            host_url = post_author.host
-            node = Node.objects.filter(host_url=host_url).first()
-            request_url = f"{node.api_url}/authors/{id_author}/posts/{id_post}/comments"
-            response = requests.post(request_url, json=request.data, headers={'Authorization': f'Basic {node.base64_authorization}'})
-            if response.status_code == 201:
-                return Response(response.json(), status=response.status_code)
+            # send the request to the remote server            
+            response = post_request_remote(host_url=post_author.host, path=f"authors/{id_author}/posts/{id_post}/comments", data=request.data)
+            
+            if response is not None:
+                if response.status_code == 201:
+                    return Response(response.json(), status=response.status_code)
+                else:
+                    return Response(response.text, status=response.status_code)
             else:
-                return Response(response.text, status=response.status_code)
+                return Response({"details": "Error posting comment to remote server"}, status=status.HTTP_400_BAD_REQUEST)
             
         if userId is None:
             return Response({"details":"can't create a comment anonymously"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -1072,15 +1068,13 @@ def get_post_likes(request, id_author, id_post):
     post_author = get_object_or_404(Author, id=id_author)
     if post_author.is_remote:
         # send the request to the remote server
-        host_url = post_author.host
-        node = Node.objects.filter(host_url=host_url).first()
-        request_url = f"{node.api_url}authors/{id_author}/posts/{id_post}/likes"
+        response = get_request_remote(host_url=post_author.host, path=f"authors/{id_author}/posts/{id_post}/likes")
 
-        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-        if response.status_code == 200:
-            return Response(response.json())
-        else:
-            return Response(response.text, status=response.status_code)
+        if response is not None:
+            if response.status_code == 200:
+                return Response(response.json())
+            else:
+                return Response(response.text, status=response.status_code)
         
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
     likes = Like.objects.filter(post=post)
@@ -1106,17 +1100,16 @@ def get_liked(request, id_author):
     author = get_object_or_404(Author, id=id_author)
     if author.is_remote:
         # send the request to the remote server
-        host_url = author.host
-        node = Node.objects.filter(host_url=host_url).first()
-        request_url = f"{node.api_url}authors/{id_author}/liked"
+        response = get_request_remote(host_url=author.host, path=f"authors/{id_author}/liked")
 
-        response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-        if response.status_code == 200:
-            # never used
-            #TODO: change url
-            return Response(response.json())
-        else:
-            return Response(response.text, status=response.status_code)
+        if response is not None:
+            if response.status_code == 200:
+                # never used
+                #TODO: change url
+                return Response(response.json())
+            else:
+                return Response(response.text, status=response.status_code)
+            
     likes = Like.objects.filter(author=author)
     serializer = LikeSerializer(likes, context={'request': request}, many=True)
     response = {
@@ -1212,6 +1205,9 @@ def get_and_post_inbox(request, id_author):
                 # then send the inbox request to another server and do nothing on local server 
                 # except create the payload for the request, else do what we are doing currently
                 # send the request to the remote server
+                host_url = author.host
+                node = Node.objects.filter(host_url=host_url).first()
+                request_url = f"{node.api_url}authors/{id_author}/inbox"
                 like_payload = {
                     "type":"inbox",
                     "author": f"{node.api_url}authors/{id_author}",

@@ -9,8 +9,9 @@ def get_request_remote(host_url, path):
         request_url = f"{node.api_url}{path}"
         try:
             response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
-        except:
+        except requests.exceptions.RequestException as e:
             print("Request failed for node: ", node.team_name, node.api_url)
+            print("Error: ", e)
             return None
 
         if response.status_code == 403:
@@ -38,8 +39,9 @@ def post_request_remote(host_url, path, data):
             request_url = f"{node.api_url}{path}"
             try:
                 response = requests.post(request_url, json=data, headers={'Authorization': f'Basic {node.base64_authorization}'})
-            except:
+            except requests.exceptions.RequestException as e:
                 print("Request failed for node: ", node.team_name, node.api_url)
+                print("Error: ", e)
                 return None
     
             if response.status_code == 403:
