@@ -4,15 +4,13 @@ import React, {
 	useState,
 	forceUpdate,
 } from "react";
-import dummyimage from "../assets/smiley.jpg";
-import dummyimage2 from "../assets/snack-logo.png";
-import defaultPFP from "../assets/Default_pfp.jpg";
 import ProfileCard from "../components/ProfileCard.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { getRequest, postRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
+import Alert from "@mui/material/Alert";
 
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
 function Profile() {
@@ -150,18 +148,23 @@ function Profile() {
 				const sortedPosts = data.items.sort(
 					(a, b) => new Date(b.published) - new Date(a.published)
 				); // Sort the posts by their published date in descending order
-				if(owner){
+				if (owner) {
 					setAuthPosts(sortedPosts);
 				}
 				//check i profileuuid is a friend of the current user
-				else if (friends["items"].some((friend) => friend.id.split("/").slice(-1)[0] === auth.user.id)) {
+				else if (
+					friends["items"].some(
+						(friend) => friend.id.split("/").slice(-1)[0] === auth.user.id
+					)
+				) {
 					// only show public and friends posts uppercase
 					const filteredPosts = sortedPosts.filter(
-						(post) => post.visibility.toUpperCase() === "PUBLIC" || post.visibility.toUpperCase() === "FRIENDS"
+						(post) =>
+							post.visibility.toUpperCase() === "PUBLIC" ||
+							post.visibility.toUpperCase() === "FRIENDS"
 					);
 					setAuthPosts(sortedPosts);
-				}
-				else {
+				} else {
 					// only show public posts
 					const filteredPosts = sortedPosts.filter(
 						(post) => post.visibility.toUpperCase() === "PUBLIC"
@@ -173,6 +176,19 @@ function Profile() {
 				console.log("ERROR: ", error.message);
 			});
 	}, [showPosts, changeProfile]);
+
+	const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+	const [deletedPostId, setDeletedPostId] = useState(null);
+
+	const handlePostDeleted = (postId) => {
+		setDeletedPostId(postId);
+		setShowDeleteAlert(true);
+		setTimeout(() => setShowDeleteAlert(false), 3000); // Hide the alert after 3 seconds
+
+		setAuthPosts((currentPosts) =>
+			currentPosts.filter((post) => post.id !== postId)
+		);
+	};
 
 	return (
 		//Current User/Author, uses data from initial fetch.
@@ -293,6 +309,25 @@ function Profile() {
 						))}
 					</div>
 				)}
+				{showDeleteAlert && (
+					<Alert
+						severity="success"
+						style={{
+							position: "absolute",
+							zIndex: 2,
+							width: "300px",
+							height: "300px",
+							marginBottom: "400px",
+							marginLeft: "300px",
+							display: "flex",
+							flexDirection: "column",
+							justifyContent: "center",
+							alignItems: "center",
+						}}
+					>
+						Post Deleted
+					</Alert>
+				)}
 
 				{showPosts && (
 					<div class="space-y-6">
@@ -336,6 +371,7 @@ function Profile() {
 									postId={postId}
 									postVisibility={post.visibility}
 									owner={owner}
+									onPostDeleted={handlePostDeleted}
 								/>
 							);
 						})}
