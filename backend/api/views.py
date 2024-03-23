@@ -20,6 +20,7 @@ from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 import base64
 from django.http import Http404
 import validators
+from urllib.parse import unquote, quote
 
 #TODO: does a post not have a like value?
 #TODO: should comment have content type like post?
@@ -271,6 +272,19 @@ def get_update_and_delete_follower(request, id_author, id_follower):
     """
     Get, update, or delete a single follower
     """
+
+    # check if id_follower is a uuid or percent encoded url
+    if validators.uuid(id_follower):
+        id_follower = uuid.UUID(id_follower)
+    else:
+        try:
+            id_follower = unquote(id_follower)
+            # extract uuid from url
+            id_follower = id_follower.split('/')[-1]
+            # confirm it is a uuid
+            id_follower = uuid.UUID(id_follower)
+        except:
+            return Response({'details': 'id_follower can either be a uuid or percent encoded url with uuid in it'}, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == 'GET':
         follower_object = get_object_or_404(Follower, follower_id=id_follower, followed_user_id=id_author)
@@ -732,6 +746,13 @@ def get_and_create_post(request, id_author):
             postId = serializer.data.get("id").split("/")[-1]
             post = Post.objects.filter(id=postId).first()
             postType = post.visibility
+
+            # slice out the data:image... section of the base64 string
+            if post.contentType == "image/jpeg;base64":
+                post.content = post.content[23:]
+            elif post.contentType == "image/png;base64":
+                post.content = post.content[22:]
+            post.save()
             
             if postType == "PUBLIC":
                 print("Public post")
@@ -826,9 +847,12 @@ def get_image(request, id_author, id_post):
         if not post.contentType.startswith("image/"):
             raise Http404("No image found.")
 
-        format, imgstr = post.content.split(';base64,') 
-        ext = format.split('/')[-1] 
-        data = base64.b64decode(imgstr) # Decoding the base64 string to image data
+        # if full dataURL given, parse out, otherwise decode as given
+        if post.content[:4] == "data":
+            format, imgstr = post.content.split(';base64,') 
+            data = base64.b64decode(imgstr) # Decoding the base64 string to image data
+        else:
+            data = base64.b64decode(post.content)
 
         return HttpResponse(data, content_type=post.contentType) # correct MIME type
     
@@ -1538,7 +1562,7 @@ def check_remote_follow_requests_approved(request, id_author):
         sender_id = follow_request.from_user.id # the person who sent the follow request
         receiver_id = follow_request.to_user.id # the person who received the follow request
 
-        response = get_request_remote(host_url=follow_request.to_user.host, path=f"authors/{follow_request.to_user.id}/followers/{follow_request.from_user.id}")
+        response = get_request_remote(host_url=follow_request.to_user.host, path=f"authors/{follow_request.to_user.id}/followers/{quote(follow_request.from_user.url)}")
 
         if response is not None:
             if response.status_code == 200:
@@ -1568,7 +1592,7 @@ def check_remote_follower_still_exists(request, id_author):
 
     # loop through all the followers and check if they still exist
     for follower in followers:
-        response = get_request_remote(host_url=follower.follower.host, path=f"authors/{follower.followed_user.id}/followers/{follower.follower.id}")
+        response = get_request_remote(host_url=follower.follower.host, path=f"authors/{follower.followed_user.id}/followers/{quote(follower.follower.url)}")
 
         if response is not None:
             if response.status_code == 404:

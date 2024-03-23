@@ -1,5 +1,5 @@
 .single-view {
-	height: 100%; 
+	height: 100%;
 	overflow: auto;
 }
 .comments-list {
@@ -12,12 +12,12 @@
 	margin: 20px;
 	scrollbar-width: none;
 }
-.comment-card{
+.comment-card {
 	margin: 20px;
 	padding: 10px;
 	border-radius: 6px;
 	border: 1px solid #ddd;
-	background-color: white;	
+	background-color: white;
 }
 .no-comment-card {
 	text-align: center;

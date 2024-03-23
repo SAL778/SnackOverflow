@@ -1,15 +1,9 @@
-import React, {
-	useEffect,
-	useInsertionEffect,
-	useState,
-	forceUpdate,
-} from "react";
+import React, { useEffect, useState } from "react";
 import ProfileCard from "../components/ProfileCard.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { getRequest, postRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
@@ -60,8 +54,6 @@ function Profile() {
 		owner = false;
 	}
 
-	//BEGIN AUTHOR FETCH
-
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}`)
 			.then((data) => {
@@ -74,14 +66,11 @@ function Profile() {
 	}, [changeProfile]);
 	//console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
 
-	//END AUTHOR FETCH
-
-	//BEGIN AUTHOR FOLLOWERS FETCH
 	useEffect(() => {
 		async function checkRemoteFollowers(id_author) {
 			await getRequest(`checkRemoteFollowers/${id_author}`);
 		}
-	
+
 		console.log("CHECKING REMOTE FOLLOWERS");
 		checkRemoteFollowers(profileUUID);
 
@@ -97,10 +86,6 @@ function Profile() {
 
 	//console.log("TEST followers OUT OF REQUEST:", followers);
 
-	//END AUTHOR FOLLOWERS FETCH
-
-	//BEGIN AUTHOR FOLLOWINGS FETCH
-
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/followings`)
 			.then((data) => {
@@ -112,11 +97,7 @@ function Profile() {
 			});
 	}, [showFollowing, changeProfile]);
 
-	//END AUTHOR FOLLOWINGS FETCH
-
 	//console.log("TEST: AUTHOR followings DATA:", followings);
-
-	//BEGIN AUTHOR FRIENDS FETCH
 
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/friends`)
@@ -129,13 +110,8 @@ function Profile() {
 			});
 	}, [showFriends, changeProfile]);
 
-	//END AUTHOR FOLLOWINGS FETCH
-
 	//console.log("TEST: AUTHOR friends DATA:", friends);
 
-	//END AUTHOR FOLLOWERS FETCH
-
-	//BEGIN AUTHOR FOLLOWREQS FETCH
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/followrequests`)
 			.then((data) => {
