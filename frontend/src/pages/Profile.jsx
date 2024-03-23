@@ -78,6 +78,13 @@ function Profile() {
 
 	//BEGIN AUTHOR FOLLOWERS FETCH
 	useEffect(() => {
+		async function checkRemoteFollowers(id_author) {
+			await getRequest(`checkRemoteFollowers/${id_author}`);
+		}
+	
+		console.log("CHECKING REMOTE FOLLOWERS");
+		checkRemoteFollowers(profileUUID);
+
 		getRequest(`authors/${profileUUID}/followers`)
 			.then((data) => {
 				console.log("GET followers Request Data:", data);

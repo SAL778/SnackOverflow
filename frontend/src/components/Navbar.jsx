@@ -28,6 +28,7 @@ function Links() {
 		{ content: "Feed", href: "/feed", icon: UsersThree },
 		{ content: "Explore", href: "/explore", icon: Sparkle },
 		{ content: "New Post", href: "/newpost", icon: UploadSimple },
+		{ content: "Lookup", href: "/lookup", icon: UsersThree },
 	];
 
 	return (
@@ -69,11 +70,19 @@ export default function Navigation() {
 
 	// poll data from /checkRemoteFollowRequests every 5 seconds
 	useEffect(() => {
-		const timeout = 10000; // 10 seconds
+		const timeout = 5000; // 5 seconds
 
 		if (auth.user) {
+			async function checkRemoteFollowers(id_author) {
+				await getRequest(`checkRemoteFollowers/${id_author}`);
+			}
+			// run once when the component mounts
+			console.log("CHECKING REMOTE FOLLOWERS");
+			checkRemoteFollowers(auth.user.id);
+
 			const id = setInterval(async () => {
-				await getRequest("checkRemoteFollowRequests/");
+				console.log("Checking remote follow requests for user: ", auth.user.id, auth.user.displayName);
+				await getRequest(`checkRemoteFollowRequests/${auth.user.id}`)
 			}, timeout);
 
 			setIntervalId(id);

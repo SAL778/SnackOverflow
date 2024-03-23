@@ -35,6 +35,7 @@ urlpatterns = [
 
    # custom apis for follow requests? needed? Not sure
    path("authors/<uuid:id>/followrequests", views.get_received_follow_requests, name="get_received_follow_requests"),
+   path("authors/<uuid:id>/sentFollowRequests", views.get_sent_follow_requests, name="get_sent_follow_requests"),
    path("authors/<uuid:id_author>/followrequests/<uuid:id_sender>", views.get_create_delete_and_accept_follow_request, name="get_and_delete_a_follow_request"),
 
    # apis for posts
@@ -60,6 +61,6 @@ urlpatterns = [
    # urls for remote stuff
    path("remote-authors/", views.get_remote_authors, name="get_remote_authors"),
    # this should be called every x seconds from frontend
-   path("checkRemoteFollowRequests/", views.check_remote_follow_requests_approved, name="check_remote_follow_requests_approved"),
-   path("checkRemoteFollowers/", views.check_remote_follower_still_exists, name="check_remote_follower_still_exists"),
+   path("checkRemoteFollowRequests/<uuid:id_author>", views.check_remote_follow_requests_approved, name="check_remote_follow_requests_approved"),
+   path("checkRemoteFollowers/<uuid:id_author>", views.check_remote_follower_still_exists, name="check_remote_follower_still_exists"),
 ]

@@ -12,7 +12,7 @@ import Login from "./pages/Login.jsx";
 import PrivateRoute from "./utils/PrivateRoute.jsx";
 import { AuthProvider, useAuth } from "./utils/Auth.jsx";
 import Signup from "./pages/Signup.jsx";
-
+import Lookup from "./pages/Lookup.jsx";
 const routes = [
 	{ path: "/login", component: Login },
 	{ path: "/signup", component: Signup },
@@ -21,6 +21,7 @@ const routes = [
 	{ path: "/", component: Feed, isPrivate: true },
 	{ path: "/feed", component: Feed, isPrivate: true },
 	{ path: "/explore", component: Explore, isPrivate: true },
+	{ path: "/lookup", component: Lookup, isPrivate: true },
 	{ path: "/newpost", component: NewPost, isPrivate: true },
 	{
 		path: "/profile/:authorId/posts/:postId",

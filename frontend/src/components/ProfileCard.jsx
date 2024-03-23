@@ -6,6 +6,7 @@ import {
 	putRequest,
 } from "../utils/Requests.jsx";
 import { Link } from "react-router-dom";
+import {useAuth} from "../utils/Auth.jsx";
 
 //Card modified from this source: https://flowbite.com/docs/components/card/ Accessed Feb 10th
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
@@ -24,11 +25,14 @@ function ProfileCard({
 	altId = "",
 	changeProfileFunc,
 	change,
+	showLink = true,
 }) {
 	//authId is just author/"host" page's uuid, key is the id of the profile card being displayed
 	//altId is a copy of authId that won't be considered/operated on
 	//owner -- true if person viewing is the owner of the profile, false if not.
 	//viewerId is the id of the person viewing the page, useful for distinguishing, used for displaying card of the actual owner.
+
+	const auth = useAuth();
 
 	let cardUUID = "";
 	const [showCard, setShowCard] = useState(true); //IF A FOLLOWER IS UNFOLLOWED OR REQUEST DEALT WITH, THIS WILL BE CHANGED AS TO NOT SHOW IT? HOPEFULLY?
@@ -43,25 +47,38 @@ function ProfileCard({
 
 	//API METHODS BEGIN
 	// TODO author needs to be full URL from author object, not just ID
-	const follow = (authorUUID, followerUUID) => {
+	// sending a follow request object to the object's inbox
+	const follow = (receivingId, sendingId) => {
 		var dataToSend = {
 			type: "inbox",
-			author: `http://127.0.0.1:5454/authors/${authorUUID}`,
+			// only the uuids are used by the backend, so, the first part of the url is just dummy data
+			author: `http://127.0.0.1:5454/api/authors/${receivingId}`,
 			items: [
 				{
 					type: "Follow",
 					actor: {
 						type: "author",
-						id: `http://127.0.0.1:5454/authors/${followerUUID}`,
+						// auth.user.id == sendingId, the person sending the request
+						id: `http://127.0.0.1:5454/api/authors/${sendingId}`,
+						host: auth.user.host,
+						displayName: auth.user.displayName,
+						url: auth.user.url,
+						github: auth.user.github,
+						profileImage: auth.user.profileImage,
 					},
 					object: {
 						type: "author",
-						id: `http://127.0.0.1:5454/authors/${authorUUID}`,
+						id: `http://127.0.0.1:5454/api/authors/${receivingId}`,
+						host: host,
+						displayName: username,
+						url:url,
+						github: github,
+						profileImage: imageSrc,
 					},
 				},
 			],
 		};
-		postRequest(`authors/${authorUUID}/inbox`, dataToSend)
+		postRequest(`authors/${receivingId}/inbox`, dataToSend)
 			.then((data) => {
 				console.log("Follow Req POSTed.");
 			})
@@ -151,13 +168,20 @@ function ProfileCard({
 								)}
 							</div>
 						)}
-
-						<Link
-							onClick={() => changeProfileFunc(change)}
+						{ showLink &&
+							<Link
+							onClick={() => {
+									if (changeProfileFunc) {
+										changeProfileFunc(change);
+									}
+								}
+							}
 							to={`/profile/${cardUUID}/`}
-						>
-							Profile
-						</Link>
+							>
+								Profile
+							</Link>
+						}
+
 					</div>
 				</a>
 			)}
