@@ -732,6 +732,13 @@ def get_and_create_post(request, id_author):
             postId = serializer.data.get("id").split("/")[-1]
             post = Post.objects.filter(id=postId).first()
             postType = post.visibility
+
+            # slice out the data:image... section of the base64 string
+            if post.contentType == "image/jpeg;base64":
+                post.content = post.content[23:]
+            elif post.contentType == "image/png;base64":
+                post.content = post.content[22:]
+            post.save()
             
             if postType == "PUBLIC":
                 print("Public post")
@@ -826,9 +833,12 @@ def get_image(request, id_author, id_post):
         if not post.contentType.startswith("image/"):
             raise Http404("No image found.")
 
-        format, imgstr = post.content.split(';base64,') 
-        ext = format.split('/')[-1] 
-        data = base64.b64decode(imgstr) # Decoding the base64 string to image data
+        # if full dataURL given, parse out, otherwise decode as given
+        if post.content[:4] == "data":
+            format, imgstr = post.content.split(';base64,') 
+            data = base64.b64decode(imgstr) # Decoding the base64 string to image data
+        else:
+            data = base64.b64decode(post.content)
 
         return HttpResponse(data, content_type=post.contentType) # correct MIME type
     

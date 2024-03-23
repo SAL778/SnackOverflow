@@ -34,6 +34,13 @@ function PostCard({
 	const serviceUrl = window.location.protocol + "//" + window.location.host;
 	const navigate = useNavigate();
 
+	// if image content and no full dataURL, parse together dataURL
+	if (contentType === "image/jpeg;base64" || contentType === "image/png;base64") {
+		if (content.slice(0,4) !== "data" ) {
+			content = "data:" + contentType + "," + content
+		}
+	}
+
 	const handleLike = () => {
 		// check if the user has already liked the post
 		let alreadyLiked = false;
