@@ -27,7 +27,7 @@ urlpatterns = [
    path("authors/", views.get_authors, name="get_authors"),
    path("authors/<uuid:id>", views.get_and_update_author, name="get_and_update_author"),
    path("authors/<uuid:id>/followers", views.get_followers, name="get_followers"),
-   path("authors/<uuid:id_author>/followers/<uuid:id_follower>", views.get_update_and_delete_follower, name="get_update_and_delete_follower"),
+   path("authors/<uuid:id_author>/followers/<path:id_follower>", views.get_update_and_delete_follower, name="get_update_and_delete_follower"),
 
     # custom apis for followings and friends
    path("authors/<uuid:id_author>/followings", views.get_followings, name="get_followings"),
