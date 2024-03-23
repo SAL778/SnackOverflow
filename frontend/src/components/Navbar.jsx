@@ -7,6 +7,7 @@ import {
 	Sparkle,
 	UploadSimple,
 	SignOut,
+	MagnifyingGlass,
 } from "@phosphor-icons/react";
 import { useAuth } from "../utils/Auth.jsx";
 import { useEffect, useState } from "react";
@@ -28,7 +29,7 @@ function Links() {
 		{ content: "Feed", href: "/feed", icon: UsersThree },
 		{ content: "Explore", href: "/explore", icon: Sparkle },
 		{ content: "New Post", href: "/newpost", icon: UploadSimple },
-		{ content: "Lookup", href: "/lookup", icon: UsersThree },
+		{ content: "Lookup", href: "/lookup", icon: MagnifyingGlass },
 	];
 
 	return (
@@ -81,8 +82,12 @@ export default function Navigation() {
 			checkRemoteFollowers(auth.user.id);
 
 			const id = setInterval(async () => {
-				console.log("Checking remote follow requests for user: ", auth.user.id, auth.user.displayName);
-				await getRequest(`checkRemoteFollowRequests/${auth.user.id}`)
+				console.log(
+					"Checking remote follow requests for user: ",
+					auth.user.id,
+					auth.user.displayName
+				);
+				await getRequest(`checkRemoteFollowRequests/${auth.user.id}`);
 			}, timeout);
 
 			setIntervalId(id);
