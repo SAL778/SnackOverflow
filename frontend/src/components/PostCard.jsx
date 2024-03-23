@@ -264,9 +264,11 @@ function PostCard({
 			)}
 
 			{!(sharedBy === "") && (
-				<a href="/profile" className="username">
-					Shared By: {sharedBy}
-				</a>
+				<div className="shared-post-content">
+					<Link href="/profile" className="username">
+						Shared By: {sharedBy}
+					</Link>
+				</div>
 			)}
 
 			{postVisibility === "UNLISTED" && (

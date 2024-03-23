@@ -148,3 +148,17 @@
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 	transform: translateY(1px);
 }
+
+.shared-post-content {
+	border: 1px solid #e0e0e0;
+	background-color: #f9f9f9;
+	padding: 15px;
+	margin: -20px -20px 10px -20px;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.shared-post-content .username {
+	font-size: 20px;
+	display: block;
+}
