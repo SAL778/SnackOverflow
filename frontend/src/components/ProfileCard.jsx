@@ -6,7 +6,7 @@ import {
 	putRequest,
 } from "../utils/Requests.jsx";
 import { Link } from "react-router-dom";
-import {useAuth} from "../utils/Auth.jsx";
+import { useAuth } from "../utils/Auth.jsx";
 
 //Card modified from this source: https://flowbite.com/docs/components/card/ Accessed Feb 10th
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
@@ -71,7 +71,7 @@ function ProfileCard({
 						id: `http://127.0.0.1:5454/api/authors/${receivingId}`,
 						host: host,
 						displayName: username,
-						url:url,
+						url: url,
 						github: github,
 						profileImage: imageSrc,
 					},
@@ -168,20 +168,18 @@ function ProfileCard({
 								)}
 							</div>
 						)}
-						{ showLink &&
+						{showLink && (
 							<Link
-							onClick={() => {
+								onClick={() => {
 									if (changeProfileFunc) {
 										changeProfileFunc(change);
 									}
-								}
-							}
-							to={`/profile/${cardUUID}/`}
+								}}
+								to={`/profile/${cardUUID}/`}
 							>
 								Profile
 							</Link>
-						}
-
+						)}
 					</div>
 				</a>
 			)}

@@ -1,36 +1,33 @@
-import React, {useState, useEffect} from "react";
-import { getRequest, postRequest } from "../utils/Requests";
 import { useAuth } from "../utils/Auth";
 import "./CommentCard.css";
 import ReactMarkdown from "react-markdown";
 
 function CommentCard({
-    username,
-    date,
-    contentType,
-    comment,
-    authorId,
-    postId,
-    commentId,
-}){
-    const auth = useAuth();
-    const serviceUrl = "https://socialapp-api.herokuapp.com";
-    
+	username,
+	date,
+	contentType,
+	comment,
+	authorId,
+	postId,
+	commentId,
+}) {
+	const auth = useAuth();
+	const serviceUrl = "https://socialapp-api.herokuapp.com";
 
-    return (
-        <div className="comment-card">
-            <div className="comment-card-header">
-                <div className="comment-card-username">{username}</div>
-                <div className="comment-card-date">Date: {date}</div>
-            </div>
-            <div className="comment-card-content">
-                {contentType === "text/markdown" ? (
+	return (
+		<div className="comment-card">
+			<div className="comment-card-header">
+				<div className="comment-card-username">{username}</div>
+				<div className="comment-card-date">Date: {date}</div>
+			</div>
+			<div className="comment-card-content">
+				{contentType === "text/markdown" ? (
 					<ReactMarkdown>{comment}</ReactMarkdown>
 				) : (
-                    <p>{comment}</p>
+					<p>{comment}</p>
 				)}
-            </div>
-        </div>
-    )
+			</div>
+		</div>
+	);
 }
 export default CommentCard;
