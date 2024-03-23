@@ -4,8 +4,8 @@
 	padding: 20px;
 	border-radius: 8px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	width: 800px; /* Fixed width */
-	/* height: 600px; Fixed height */
+	width: 800px;
+	/* height: 600px;  */
 	display: flex;
 	flex-direction: column;
 }
@@ -15,7 +15,7 @@
 	padding: 20px;
 	border-radius: 8px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	width: 800px; /* Fixed width */
+	width: 800px;
 	display: flex;
 	flex-direction: column;
 }
@@ -43,7 +43,7 @@
 }
 
 .post-card img {
-	max-height: 400px; /* Fixed max-height for the image */
+	max-height: 400px;
 	width: 80%; /* Fixed width for the image */
 	/* max-width: 800px; Fixed max-width for the image */
 	object-fit: cover;
@@ -52,10 +52,10 @@
 }
 
 .post-content {
-	flex-grow: 1; /* Content takes up remaining space */
+	flex-grow: 1;
 	overflow-y: auto; /* Scroll if content is too long */
-	margin: 20px 0 10px 0; /* Margin for spacing */
-	max-height: 400px; /* Fixed max-height for the content */
+	margin: 20px 0 10px 0;
+	max-height: 400px;
 	padding: 6px;
 }
 
@@ -124,4 +124,27 @@
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	width: 700px; /* Fixed width */
 	background-color: lightgray;
+}
+
+.interactive-button {
+	background-color: #f0f0f0;
+	color: #333;
+	border: 1px solid #ccc;
+	padding: 10px 20px;
+	border-radius: 5px;
+	transition: all 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	font-size: 16px;
+}
+
+.interactive-button:hover {
+	background-color: #e8e8e8;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	transform: translateY(-2px);
+}
+
+.interactive-button:active {
+	background-color: #dcdcdc;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	transform: translateY(1px);
 }

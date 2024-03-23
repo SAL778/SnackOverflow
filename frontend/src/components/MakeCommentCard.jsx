@@ -5,6 +5,7 @@ import "./MakeCommentCard.css";
 const MakeCommentCard = ({ onSubmit, onCancel }) => {
 	const [comment, setComment] = useState(""); // State for storing the comment input value
 	const [showValidationError, setShowValidationError] = useState(false); // State for showing/hiding validation error message
+	// const [showSuccessAlert, setShowSuccessAlert] = useState(false); // State for showing/hiding success alert
 
 	// Function to handle the form submission
 	const handleSubmit = (event) => {
@@ -20,13 +21,14 @@ const MakeCommentCard = ({ onSubmit, onCancel }) => {
 
 		setShowValidationError(false);
 
-		// Create a commentData object with the input values
 		const commentData = {
 			comment,
 		};
 		console.log("Comment Data:", commentData);
-		// Call the onSubmit function with the commentData
 		onSubmit(commentData);
+
+		setShowSuccessAlert(true); // Show success alert
+		setTimeout(() => setShowSuccessAlert(false), 3000); // Hide success alert after 3 seconds
 	};
 
 	// Function to handle the cancel button click event
@@ -41,7 +43,6 @@ const MakeCommentCard = ({ onSubmit, onCancel }) => {
 		<div className="make-comment-card">
 			<form onSubmit={handleSubmit}>
 				<div className="input-group">
-					{/* need to increase width and height input field */}
 					<textarea
 						value={comment}
 						onChange={(e) => setComment(e.target.value)}
@@ -51,6 +52,7 @@ const MakeCommentCard = ({ onSubmit, onCancel }) => {
 				{showValidationError && (
 					<Alert severity="error">Fields Missing. Please Check Again.</Alert>
 				)}
+				{/* {showSuccessAlert && <Alert severity="success">Comment Added</Alert>} */}
 				<div className="button-group">
 					<button type="submit" className="submit-button">
 						Submit

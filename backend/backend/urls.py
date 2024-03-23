@@ -30,6 +30,7 @@ urlpatterns = [
     path('feed/', TemplateView.as_view(template_name='index.html'), name='index'),
     path('explore/', TemplateView.as_view(template_name='index.html'), name='index'),
     path('newpost/', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('lookup/', TemplateView.as_view(template_name='index.html'), name='index'),
 
     path('api/', include('api.urls')),
     path('admin/', admin.site.urls),

@@ -38,17 +38,11 @@ class Author(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         isActive = os.getenv('IS_ACTIVE')
 
-        print("into save method")
-        print("id: ", self.id)
-        print("email: ", self.email)
-
         # add uuid if not provided
         if not self.id:
             self.id = uuid.uuid4()
 
         if self._state.adding and not self.is_staff:
-
-            print("into addinggg in save")
 
             if self.password:
                 self.set_password(self.password)
@@ -57,21 +51,13 @@ class Author(AbstractBaseUser, PermissionsMixin):
                 # generate a random email
                 self.email = f'{self.id}@{self.id}.com' 
 
-            print("email 2: ", self.email)
-
             # set is_active to isActive only when user is created, and not when updated
             if isActive and isActive.lower() == 'false':
                 self.is_active = False
             else:
                 self.is_active = True
 
-        print("lallalalalalalallalal")
-
-        try:
-            super().save(*args, **kwargs)
-        except Exception as e:
-            print("wtf")
-            print(e)
+        super().save(*args, **kwargs)
     
     
 
