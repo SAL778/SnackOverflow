@@ -112,47 +112,6 @@ function PostCard({
 			});
 	};
 
-	const handleShare = () => {
-		//authors/<uuid:id_author>/posts/<uuid:id_post>
-		//get the post, get data and visibility from it
-		let name = "";
-		console.log(auth);
-		console.log("CHECK ID: ", postId);
-		getRequest(`authors/${authorId}/posts/${postId}`).then((data) => {
-			console.log("Getting post: ", data);
-			name = data.author.displayName;
-		});
-		/*
-		const dataToSend = {
-			title: title,
-			username: name,
-			description: description,
-			contentType: contentType,
-			content: content,
-			visibility: "PUBLIC",
-			sharedBy: auth.user.displayName
-		}
-		*/
-
-		const dataToSend = new FormData();
-
-		dataToSend.append("title", title);
-		dataToSend.append("description", description);
-		dataToSend.append("contentType", contentType);
-		dataToSend.append("content", content);
-		dataToSend.append("visibility", "PUBLIC");
-		dataToSend.append("sharedBy", auth.user.displayName);
-
-		//console.log("TEST SHAREDBY: ", dataToSend.sharedBy)
-		postRequest(`authors/${auth.user.id}/posts/`, dataToSend, false)
-			.then((data) => {
-				console.log("SHARED POST POSTED");
-			})
-			.catch((error) => {
-				console.log("ERROR: ", error.message);
-			});
-	};
-
 	const handleComment = () => {
 		setClickedComment(true);
 	};
@@ -198,10 +157,11 @@ function PostCard({
 	};
 
 	const [showCommentSuccess, setShowCommentSuccess] = useState(false);
+	const [showShareSuccess, setShowShareSuccess] = useState(false);
 
 	const handleCommentSubmitWrapper = async (commentData) => {
-		await handleCommentSubmit(commentData); // Call the existing submit function
-		setShowCommentSuccess(true); // Show the alert at the PostCard level
+		await handleCommentSubmit(commentData);
+		setShowCommentSuccess(true);
 		setTimeout(() => setShowCommentSuccess(false), 3000); // Hide the alert after 3 seconds
 	};
 
@@ -220,6 +180,38 @@ function PostCard({
 		console.log("Base64 Image Source:", content);
 	}, [content]);
 
+	const handleShare = () => {
+		//authors/<uuid:id_author>/posts/<uuid:id_post>
+		//get the post, get data and visibility from it
+		let name = "";
+		console.log(auth);
+		console.log("CHECK ID: ", postId);
+		getRequest(`authors/${authorId}/posts/${postId}`).then((data) => {
+			console.log("Getting post: ", data);
+			name = data.author.displayName;
+		});
+
+		const dataToSend = new FormData();
+
+		dataToSend.append("title", title);
+		dataToSend.append("description", description);
+		dataToSend.append("contentType", contentType);
+		dataToSend.append("content", content);
+		dataToSend.append("visibility", "PUBLIC");
+		dataToSend.append("sharedBy", auth.user.displayName);
+
+		//console.log("TEST SHAREDBY: ", dataToSend.sharedBy)
+		postRequest(`authors/${auth.user.id}/posts/`, dataToSend, false)
+			.then((data) => {
+				console.log("SHARED POST POSTED");
+				setShowShareSuccess(true);
+				setTimeout(() => setShowShareSuccess(false), 3000); // Hide the alert after 3 seconds
+			})
+			.catch((error) => {
+				console.log("ERROR: ", error.message);
+			});
+	};
+
 	return (
 		<div className={profilePage ? "post-card-profile-page" : "post-card"}>
 			{showCommentSuccess && (
@@ -233,6 +225,19 @@ function PostCard({
 					}}
 				>
 					Comment Added
+				</Alert>
+			)}
+			{showShareSuccess && (
+				<Alert
+					severity="success"
+					style={{
+						position: "fixed",
+						zIndex: 2,
+						bottom: 90,
+						right: 40,
+					}}
+				>
+					Post Shared
 				</Alert>
 			)}
 			{profilePage && owner && (
