@@ -60,8 +60,6 @@ function Profile() {
 		owner = false;
 	}
 
-	//BEGIN AUTHOR FETCH
-
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}`)
 			.then((data) => {
@@ -74,14 +72,11 @@ function Profile() {
 	}, [changeProfile]);
 	//console.log("TEST: AUTHOR PROFILE DATA:", authProfile);
 
-	//END AUTHOR FETCH
-
-	//BEGIN AUTHOR FOLLOWERS FETCH
 	useEffect(() => {
 		async function checkRemoteFollowers(id_author) {
 			await getRequest(`checkRemoteFollowers/${id_author}`);
 		}
-	
+
 		console.log("CHECKING REMOTE FOLLOWERS");
 		checkRemoteFollowers(profileUUID);
 
@@ -97,10 +92,6 @@ function Profile() {
 
 	//console.log("TEST followers OUT OF REQUEST:", followers);
 
-	//END AUTHOR FOLLOWERS FETCH
-
-	//BEGIN AUTHOR FOLLOWINGS FETCH
-
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/followings`)
 			.then((data) => {
@@ -112,11 +103,7 @@ function Profile() {
 			});
 	}, [showFollowing, changeProfile]);
 
-	//END AUTHOR FOLLOWINGS FETCH
-
 	//console.log("TEST: AUTHOR followings DATA:", followings);
-
-	//BEGIN AUTHOR FRIENDS FETCH
 
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/friends`)
@@ -129,13 +116,8 @@ function Profile() {
 			});
 	}, [showFriends, changeProfile]);
 
-	//END AUTHOR FOLLOWINGS FETCH
-
 	//console.log("TEST: AUTHOR friends DATA:", friends);
 
-	//END AUTHOR FOLLOWERS FETCH
-
-	//BEGIN AUTHOR FOLLOWREQS FETCH
 	useEffect(() => {
 		getRequest(`authors/${profileUUID}/followrequests`)
 			.then((data) => {
