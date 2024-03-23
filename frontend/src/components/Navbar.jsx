@@ -1,6 +1,5 @@
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import logo from "../assets/snack-logo.png";
-// import { Link } from "react-router-dom";
 import {
 	User,
 	UsersThree,

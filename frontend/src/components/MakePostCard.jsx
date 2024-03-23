@@ -4,7 +4,7 @@
 import "./MakePostCard.css";
 import Alert from "@mui/material/Alert";
 import React, { useState, useEffect } from "react";
-import { postRequest, putRequest, getRequest } from "../utils/Requests.jsx";
+import { putRequest } from "../utils/Requests.jsx";
 const MakePostCard = ({
 	onSubmit,
 	onCancel,

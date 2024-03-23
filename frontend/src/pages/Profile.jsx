@@ -1,15 +1,9 @@
-import React, {
-	useEffect,
-	useInsertionEffect,
-	useState,
-	forceUpdate,
-} from "react";
+import React, { useEffect, useState } from "react";
 import ProfileCard from "../components/ProfileCard.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { getRequest, postRequest } from "../utils/Requests.jsx";
 import { useAuth } from "../utils/Auth.jsx";
 import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th

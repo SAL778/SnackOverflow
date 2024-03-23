@@ -18,10 +18,10 @@ function SinglePost() {
 				console.log("data");
 				console.log(data);
 				setPost(data);
-				let commentUrl = data.comments
+				let commentUrl = data.comments;
 				getRequest(commentUrl)
 					.then((data) => {
-						console.log("data.items")
+						console.log("data.items");
 						console.log(data.items);
 						setComments(data.items);
 						console.log("comments");
@@ -39,7 +39,7 @@ function SinglePost() {
 				setError(error);
 				setIsLoading(false);
 			});
-	}
+	};
 	useEffect(() => {
 		getPost();
 	}, [authorId, postId]);
@@ -77,43 +77,42 @@ function SinglePost() {
 					<p>Post not found.</p>
 				)}
 			</div>
-			{
-				comments.length > 0 ? (
-					<div className="comments-list">
-						<div className="comment-card">
-							<p>Comments:</p>
-						</div>
-					{
-						comments.map((comment) => {
-							const commentDates = new Date(comment.published);
-							const formattedCommentDate = `${commentDates.getFullYear()}-${String(
-								commentDates.getMonth() + 1
-							).padStart(2, "0")}-${String(commentDates.getDate()).padStart(2, "0")}`;
-							
-							const commentAuthorId = comment.author.id.split("/").slice(-1)[0];
-							
-							const commentId = comment.id.split("/").slice(-1)[0];
-							return (
-								<CommentCard
-									key={comment.id}
-									username={comment.author.displayName}
-									date={formattedCommentDate}
-									comment={comment.comment}
-									authorId={commentAuthorId}
-									postId={postId}
-									commentId={commentId}
-									contentType={comment.contentType}
-								/>
-							);
-						})
-					}
-				</div>
-				) : (
-					<div className="no-comment-card">
-						<p>No comments yet.</p>
+			{comments.length > 0 ? (
+				<div className="comments-list">
+					<div className="comment-card">
+						<p>Comments:</p>
 					</div>
-					)
-			}
+					{comments.map((comment) => {
+						const commentDates = new Date(comment.published);
+						const formattedCommentDate = `${commentDates.getFullYear()}-${String(
+							commentDates.getMonth() + 1
+						).padStart(2, "0")}-${String(commentDates.getDate()).padStart(
+							2,
+							"0"
+						)}`;
+
+						const commentAuthorId = comment.author.id.split("/").slice(-1)[0];
+
+						const commentId = comment.id.split("/").slice(-1)[0];
+						return (
+							<CommentCard
+								key={comment.id}
+								username={comment.author.displayName}
+								date={formattedCommentDate}
+								comment={comment.comment}
+								authorId={commentAuthorId}
+								postId={postId}
+								commentId={commentId}
+								contentType={comment.contentType}
+							/>
+						);
+					})}
+				</div>
+			) : (
+				<div className="no-comment-card">
+					<p>No comments yet.</p>
+				</div>
+			)}
 		</div>
 	);
 }

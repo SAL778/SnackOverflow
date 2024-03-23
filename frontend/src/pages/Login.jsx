@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
@@ -29,7 +29,7 @@ const theme = createTheme({
 export default function Login() {
 	const auth = useAuth();
 	const navigate = useNavigate();
-	const [error, setError] = React.useState(null);
+	const [error, setError] = useState(null);
 
 	const handleLogin = async (event) => {
 		event.preventDefault();
