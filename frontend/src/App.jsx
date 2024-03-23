@@ -1,4 +1,3 @@
-import { React, useState } from "react";
 import "./App.css";
 import "./output.css";
 import Navigation from "./components/Navbar.jsx";
@@ -10,7 +9,7 @@ import Explore from "./pages/Explore.jsx";
 import NewPost from "./pages/NewPost.jsx";
 import Login from "./pages/Login.jsx";
 import PrivateRoute from "./utils/PrivateRoute.jsx";
-import { AuthProvider, useAuth } from "./utils/Auth.jsx";
+import { useAuth } from "./utils/Auth.jsx";
 import Signup from "./pages/Signup.jsx";
 import Lookup from "./pages/Lookup.jsx";
 const routes = [
