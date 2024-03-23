@@ -70,15 +70,19 @@ export default function Navigation() {
 
 	// poll data from /checkRemoteFollowRequests every 5 seconds
 	useEffect(() => {
-		const timeout = 10000; // 10 seconds
+		const timeout = 5000; // 5 seconds
 
 		if (auth.user) {
+			async function checkRemoteFollowers(id_author) {
+				await getRequest(`checkRemoteFollowers/${id_author}`);
+			}
+			// run once when the component mounts
+			console.log("CHECKING REMOTE FOLLOWERS");
+			checkRemoteFollowers(auth.user.id);
+
 			const id = setInterval(async () => {
 				console.log("Checking remote follow requests for user: ", auth.user.id, auth.user.displayName);
 				await getRequest(`checkRemoteFollowRequests/${auth.user.id}`)
-				// TODO: wait 5 seconds ??
-				console.log("Checking remote followers for user: ", auth.user.id, auth.user.displayName);
-				await getRequest(`checkRemoteFollowers/${auth.user.id}`)
 			}, timeout);
 
 			setIntervalId(id);
