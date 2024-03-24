@@ -1521,7 +1521,7 @@ def get_remote_authors(request):
     print(remote_nodes)
     for node in remote_nodes:
         response = get_request_remote(host_url=node.host_url, path="authors/")
-        print("Response: " + response)
+        print(response)
         if response is not None:
             print("Response for get remote authors")
             if response.status_code == 200:
