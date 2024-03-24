@@ -724,6 +724,8 @@ def get_and_create_post(request, id_author):
     if request.method == 'POST':
         print("inside post")
         if userId != id_author:
+            print("userId",userId)
+            print("id_author",id_author)
             return Response({"detail":"Can't create post for another user"}, status=status.HTTP_401_UNAUTHORIZED)
         # requestData = dict(request.data)
         requestData = request.data
@@ -1370,16 +1372,17 @@ def get_and_post_inbox(request, id_author):
                     print("Error sending the follow request to the remote server inbox")
                     print(str(e))
                     return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
-                
-                print("Response: ", response.status_code, response.json())
 
-                if response.status_code != 201:
+                # print("Response: ", response.status_code, response.json())
+                
+
+                if (response.status_code != 201) and (response.status_code != 200):
                     print("Not 201")
                     print(response.status_code)
                     print(response.json())
                     return Response(status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    print("Yes 201")
+                    print("Yes 201 or 200")
 
                     followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
@@ -1397,12 +1400,12 @@ def get_and_post_inbox(request, id_author):
                         requestData["item"] = serializer.data
                     except Exception as e:
                         return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-                    return Response(response.json(), status=response.status_code)
-
+                    # if resposne.json exist sent it
+                    # else return the response
+                    try:
+                        return Response(response.json(), status=response.status_code)
+                    except Exception as e:
+                        return Response({"details":"correct response"}, status=response.status_code)
 
             followRequest = FollowRequest.objects.filter(from_user=actorAuthor, to_user=objectAuthor).exists()
             
@@ -1451,7 +1454,7 @@ def get_and_post_inbox(request, id_author):
                 }
                 
                 response = requests.post(request_url, json=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
-                if response.status_code ==201:
+                if response.status_code ==201 or response.status_code ==200:
                     print("Comment sent to the remote server inbox")
                     return Response(response.json(), status=response.status_code)
                 else:
