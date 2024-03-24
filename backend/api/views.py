@@ -137,7 +137,7 @@ def get_authors(request):
     """
     Get all profiles on the server (paginated)
     """
-    authors = Author.objects.all()
+    authors = Author.objects.filter(is_remote=False, is_staff=False)
     page_number = request.query_params.get('page', 0)
 
     # default page size is 10
@@ -196,14 +196,10 @@ def get_and_update_author(request, id):
         # mainly to create a remote author in our local db
         serializer = AuthorSerializer(data=request.data)
         if serializer.is_valid():
-            print("ahahahahhaha")
             # remove trailing slash from url
             request.data['id'] = request.data.get('id').rstrip('/')
             # extract uuid from url/full id
             author_id = request.data.get('id').split('/')[-1]
-
-            print("lollll")
-            print("id: ", uuid.UUID(author_id))
             
             author = Author.objects.create(
                 type=request.data.get('type'),
@@ -216,7 +212,6 @@ def get_and_update_author(request, id):
                 is_remote=True
             )
 
-            print("wtfffffff")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
@@ -394,7 +389,7 @@ def get_sent_follow_requests(request,id):
     """
     Get all sent friend requests
     """
-    print(id)
+
     author= get_object_or_404(Author, id=id)
     sent_follow_requests = FollowRequest.objects.filter(from_user_id=id)
     serializer = FollowRequestSerializer(sent_follow_requests, context={'request': request}, many=True)
@@ -533,7 +528,6 @@ def get_all_friends_follows_posts(request, id_author):
     print("userId: ", userId)
     print("getting all friends and follows posts")
     if request.method == 'GET':
-        print("inside get")
         if userId is None:
             return Response({"details":"User is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
