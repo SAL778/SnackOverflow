@@ -1527,7 +1527,7 @@ def get_remote_authors(request):
             if response.status_code == 200:
                 payload = response.json()
                 authors = payload.get("items")
-                print("payload: " + payload)
+                print(payload)
                 # discard author whose host field is not a valid url
                 # discard author who is a local author, that is, its host field is the same as the current server's host
                 request_domain = request.build_absolute_uri('/')[:-1]
