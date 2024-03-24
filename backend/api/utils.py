@@ -6,6 +6,8 @@ def get_request_remote(host_url, path):
     node = Node.objects.filter(host_url=host_url, is_active=True).first()
     if node != None:
         print("Node from get_request_remote: "+ node.team_name)
+    else:
+        print("Node is none.")
     if node:
         request_url = f"{node.api_url}{path}"
         try:
