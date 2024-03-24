@@ -4,7 +4,7 @@ from .models import Node
 def get_request_remote(host_url, path):
 
     node = Node.objects.filter(host_url=host_url, is_active=True).first()
-
+    print("Node from get_request_remote: "+ node)
     if node:
         request_url = f"{node.api_url}{path}"
         try:

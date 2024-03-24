@@ -1518,14 +1518,16 @@ def get_remote_authors(request):
     """
     remote_nodes = Node.objects.filter(is_active=True)
     allRemoteAuthors = []
+    print(remote_nodes)
     for node in remote_nodes:
         response = get_request_remote(host_url=node.host_url, path="authors/")
-
+        
         if response is not None:
+            print("Response for get remote authors")
             if response.status_code == 200:
                 payload = response.json()
                 authors = payload.get("items")
-
+                print("payload: " + payload)
                 # discard author whose host field is not a valid url
                 # discard author who is a local author, that is, its host field is the same as the current server's host
                 request_domain = request.build_absolute_uri('/')[:-1]
