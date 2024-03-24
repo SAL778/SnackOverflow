@@ -1370,7 +1370,9 @@ def get_and_post_inbox(request, id_author):
                     print("Error sending the follow request to the remote server inbox")
                     print(str(e))
                     return Response({"details":str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+                print("Response object " + response)
+                print("response json: " + response.json())
+                print("response status_code: " + response.status_code)
                 print("Response: ", response.status_code, response.json())
 
                 if response.status_code != 201:
