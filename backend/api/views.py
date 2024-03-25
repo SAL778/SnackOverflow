@@ -763,6 +763,12 @@ def get_and_create_post(request, id_author):
                 post.content = post.content[23:]
             elif post.contentType == "image/png;base64":
                 post.content = post.content[22:]
+
+            # set the origin for the post
+            if post.origin == "":
+                post.origin = serializer.data.get("id")
+            if post.source == "":
+                post.source = serializer.data.get("id")
             post.save()
             
             if postType == "PUBLIC":
