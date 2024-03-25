@@ -127,6 +127,7 @@ function PostCard({
 		if (!commentData.comment) {
 			return;
 		}
+		console.log("AuthUserCommentSubmti: ", auth.user.id);
 		let dataToSend = {
 			type: "inbox",
 			author: `${serviceUrl}/authors/${authorId}`,
@@ -139,7 +140,7 @@ function PostCard({
 					comment: commentData.comment,
 					contentType: "text/markdown",
 					post: {
-						id: `${serviceUrl}/authors/${authorId}/posts/${postId}}`,
+						id: `${serviceUrl}/authors/${authorId}/posts/${postId}`,
 					},
 				},
 			],
