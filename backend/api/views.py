@@ -555,10 +555,10 @@ def get_all_friends_follows_posts(request, id_author):
                         all_posts = response.json().get('items')
                         for post in all_posts:
                             # check if the post type is public
-                            # filter the post so that the post id is not equal to the post origin
-                            print("origin: ", post.get("origin"))
+                            # filter the post so that the post id is not equal to the post source
+                            print("source: ", post.get("source"))
                             print("id: ", post.get("id"))
-                            if post.get("origin") and post.get("origin") != post.get("id"):
+                            if post.get("source") and post.get("source") != post.get("id"):
                                 print("going to continue")
                                 continue
                             else:
@@ -582,9 +582,9 @@ def get_all_friends_follows_posts(request, id_author):
                         all_posts = response.json().get('items')
 
                         for post in all_posts:
-                            print("origin 2: ", post.get("origin"))
+                            print("source 2: ", post.get("source"))
                             print("id 2: ", post.get("id"))
-                            if post.get("origin") and post.get("origin") != post.get("id"):
+                            if post.get("source") and post.get("source") != post.get("id"):
                                 print("going to continue 2")
                                 continue
                             else:
@@ -763,6 +763,12 @@ def get_and_create_post(request, id_author):
                 post.content = post.content[23:]
             elif post.contentType == "image/png;base64":
                 post.content = post.content[22:]
+
+            # set the origin for the post
+            if post.origin == "":
+                post.origin = serializer.data.get("id")
+            if post.source == "":
+                post.source = serializer.data.get("id")
             post.save()
             
             if postType == "PUBLIC":
@@ -1253,8 +1259,12 @@ def get_and_post_inbox(request, id_author):
                         "object": item.get("object"),
                     }],
                 }
+
+                print("LIKE PAYLOAD: ", like_payload)
  
                 response = post_request_remote(host_url=author.host, path=f"authors/{id_author}/inbox", data=like_payload)
+
+                print("AFTER LIKE PAYLOAD SENDING REMOTE")
 
                 if response is not None:
                     if response.status_code ==200:
@@ -1279,13 +1289,20 @@ def get_and_post_inbox(request, id_author):
                     else:
                         fakePostId = objectString.split("/")[-1]
                         print("fakePostId: ", fakePostId)
+                        request_url_fakepostId = "".join(["authors", objectString.split("authors")[1]])
                         #make a request to the remote server to get the post
-                        response = get_request_remote(host_url=likeAuthor.host, path=f"{objectString}")
+                        response = get_request_remote(host_url=likeAuthor.host, path=f"{request_url_fakepostId}")
+                        print(request_url_fakepostId)
                         if response is not None:
+                            print(response.status_code)
                             if response.status_code == 200:
+                                print("getting post")
                                 post = response.json()
-                                postId = post.get("origin").split("/")[-1]
+                                print(post)
+                                postId = post.get("source").split("/")[-1]
+                                print(postId)
                                 likeData["post"] = get_object_or_404(Post, id=postId).id
+                                print(likeData["post"])
                             else:
                                 return Response(response.text, status=response.status_code) 
                         else:
@@ -1306,12 +1323,16 @@ def get_and_post_inbox(request, id_author):
             
             likeExists = Like.objects.filter(author=likeAuthor, post=likeData["post"]).exists()
             
+            print("checking likeExists")
+
             if likeExists:
+                print("likeExists")
                 return Response({"details":"like already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             likeSerializer = LikeSerializer(data=likeData, context={'request': request})
-
+            print("likeSerializer created")
             if likeSerializer.is_valid():
+                print("saving likeSerializer")
                 likeSerializer.save()
                 requestData["item"] = likeSerializer.data
             else:
@@ -1482,11 +1503,15 @@ def get_and_post_inbox(request, id_author):
                 host_url = author.host
                 node = Node.objects.filter(host_url=host_url).first()
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
+                item["id"] = item.get("post").get("id")
                 comment_payload = {
                     "type":"inbox",
                     "author": f"{node.api_url}authors/{id_author}",
                     "items":[item],
                 }
+
+                print("ITEM: ", item)
+                print("COMMENT PAYLOAD: ", comment_payload)
                 
                 response = requests.post(request_url, json=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code ==201 or response.status_code ==200:
@@ -1515,12 +1540,18 @@ def get_and_post_inbox(request, id_author):
                 getPostUrl = item.get("id").split("/")[:-2]
                 getPostUrl = "/".join(getPostUrl)
                 print("getPostUrl: ", getPostUrl)
-                response = get_request_remote(host_url=commentAuthor.host, path=f"{getPostUrl}")
+                request_url_fakepostId = "".join(["authors", getPostUrl.split("authors")[1]])
+                print("request_url_fakepostId: ", request_url_fakepostId)
+                response = get_request_remote(host_url=commentAuthor.host, path=f"{request_url_fakepostId}")
                 if response is not None:
                     if response.status_code == 200:
+                        print("getting post for commenting")
                         post = response.json()
-                        postId = post.get("origin").split("/")[-1]
+                        print(post)
+                        postId = post.get("source").split("/")[-1]
+                        print(postId)
                         commentData["post"] = get_object_or_404(Post, id=postId).id
+                        print(commentData["post"])
                     else:
                         return Response(response.text, status=response.status_code)
             else:
@@ -1569,14 +1600,16 @@ def get_remote_authors(request):
     """
     remote_nodes = Node.objects.filter(is_active=True)
     allRemoteAuthors = []
+    print(remote_nodes)
     for node in remote_nodes:
         response = get_request_remote(host_url=node.host_url, path="authors/")
-
+        print(response)
         if response is not None:
+            print("Response for get remote authors")
             if response.status_code == 200:
                 payload = response.json()
                 authors = payload.get("items")
-
+                print(payload)
                 # discard author whose host field is not a valid url
                 # discard author who is a local author, that is, its host field is the same as the current server's host
                 request_domain = request.build_absolute_uri('/')[:-1]
