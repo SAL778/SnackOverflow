@@ -1658,8 +1658,8 @@ def get_and_post_inbox(request, id_author):
                         print("response is none")
                 elif "testing" in commentAuthor.host:
                     print("testing comment request for team ok")
-                    print(item.get("id"))
-                    postId = item.get("id").split("/")[-3]
+                    print(item.get("post"))
+                    postId = item.get("post").split("/")[-1]
                     commentData["post"] = get_object_or_404(Post, id=postId).id
                     
                 elif "3rdTeam" in commentAuthor.host:
