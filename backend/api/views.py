@@ -583,7 +583,7 @@ def get_all_friends_follows_posts(request, id_author):
                                 remote_following_posts_list.append(post)
                     else:
                         print("remote_following_posts error: ", response.status_code)
-
+            print("remote_following_posts_list: ", remote_following_posts_list)
             # get all the friends whose is_remote is true            
             remote_friends = friends.filter(followed_user__is_remote=True)
             print("remote_friends: ", remote_friends)
