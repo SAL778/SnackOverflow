@@ -556,8 +556,13 @@ def get_all_friends_follows_posts(request, id_author):
                         for post in all_posts:
                             # check if the post type is public
                             # filter the post so that the post id is not equal to the post origin
-                            if post.get("origin") is not None and post.get("origin") != post.get("id"):
+                            print("origin: ", post.get("origin"))
+                            print("id: ", post.get("id"))
+                            if post.get("origin") and post.get("origin") != post.get("id"):
+                                print("going to continue")
                                 continue
+                            else:
+                                print("good")
                             if post.get('visibility').upper() == "PUBLIC":
                                 post = check_content(post, request)
                                 remote_following_posts_list.append(post)
@@ -577,8 +582,13 @@ def get_all_friends_follows_posts(request, id_author):
                         all_posts = response.json().get('items')
 
                         for post in all_posts:
-                            if post.get("origin") is not None and post.get("origin") != post.get("id"):
+                            print("origin 2: ", post.get("origin"))
+                            print("id 2: ", post.get("id"))
+                            if post.get("origin") and post.get("origin") != post.get("id"):
+                                print("going to continue 2")
                                 continue
+                            else:
+                                print("good 2")
                             if post.get('visibility').upper() == "FRIENDS":
                                 print("freins post")
                                 post = check_content(post, request)
