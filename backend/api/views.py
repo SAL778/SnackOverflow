@@ -1262,6 +1262,8 @@ def get_and_post_inbox(request, id_author):
                 host_url = author.host
                 node = Node.objects.filter(host_url=host_url).first()
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
+                postId = item.get("object").split("/")[-1]
+                item["object"] = f"{node.api_url}authors/{id_author}/posts/{postId}"
                 like_payload = {
                     "type":"inbox",
                     "author": f"{node.api_url}authors/{id_author}",
@@ -1576,6 +1578,11 @@ def get_and_post_inbox(request, id_author):
                 host_url = author.host
                 node = Node.objects.filter(host_url=host_url).first()
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
+                item_author_id = item.get("author").get("id").split("/")[-1]
+                item_author = Author.objects.filter(id=item_author_id).first()
+                item["author"] = AuthorSerializer(item_author, context={'request': request}).data
+                psot_id =item["post"]["id"].split("/")[-1]
+                item["post"]["id"] = f"{node.api_url}authors/{id_author}/posts/{psot_id}"
                 if "testing" in request_url:
                     comment_payload = item
                     print("sending to team OK comment payload", comment_payload)
