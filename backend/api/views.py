@@ -555,10 +555,10 @@ def get_all_friends_follows_posts(request, id_author):
                         all_posts = response.json().get('items')
                         for post in all_posts:
                             # check if the post type is public
-                            # filter the post so that the post id is not equal to the post origin
-                            print("origin: ", post.get("origin"))
+                            # filter the post so that the post id is not equal to the post source
+                            print("source: ", post.get("source"))
                             print("id: ", post.get("id"))
-                            if post.get("origin") and post.get("origin") != post.get("id"):
+                            if post.get("source") and post.get("source") != post.get("id"):
                                 print("going to continue")
                                 continue
                             else:
@@ -582,9 +582,9 @@ def get_all_friends_follows_posts(request, id_author):
                         all_posts = response.json().get('items')
 
                         for post in all_posts:
-                            print("origin 2: ", post.get("origin"))
+                            print("source 2: ", post.get("source"))
                             print("id 2: ", post.get("id"))
-                            if post.get("origin") and post.get("origin") != post.get("id"):
+                            if post.get("source") and post.get("source") != post.get("id"):
                                 print("going to continue 2")
                                 continue
                             else:
@@ -1289,7 +1289,7 @@ def get_and_post_inbox(request, id_author):
                                 print("getting post")
                                 post = response.json()
                                 print(post)
-                                postId = post.get("origin").split("/")[-1]
+                                postId = post.get("source").split("/")[-1]
                                 print(postId)
                                 likeData["post"] = get_object_or_404(Post, id=postId).id
                                 print(likeData["post"])
@@ -1530,7 +1530,7 @@ def get_and_post_inbox(request, id_author):
                 if response is not None:
                     if response.status_code == 200:
                         post = response.json()
-                        postId = post.get("origin").split("/")[-1]
+                        postId = post.get("source").split("/")[-1]
                         commentData["post"] = get_object_or_404(Post, id=postId).id
                     else:
                         return Response(response.text, status=response.status_code)
