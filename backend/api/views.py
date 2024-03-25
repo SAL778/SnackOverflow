@@ -1282,10 +1282,15 @@ def get_and_post_inbox(request, id_author):
                         #make a request to the remote server to get the post
                         response = get_request_remote(host_url=likeAuthor.host, path=f"{objectString}")
                         if response is not None:
+                            print(response.status_code)
                             if response.status_code == 200:
+                                print("getting post")
                                 post = response.json()
+                                print(post)
                                 postId = post.get("origin").split("/")[-1]
+                                print(postId)
                                 likeData["post"] = get_object_or_404(Post, id=postId).id
+                                print(likeData["post"])
                             else:
                                 return Response(response.text, status=response.status_code) 
                         else:
@@ -1306,12 +1311,16 @@ def get_and_post_inbox(request, id_author):
             
             likeExists = Like.objects.filter(author=likeAuthor, post=likeData["post"]).exists()
             
+            print("checking likeExists")
+
             if likeExists:
+                print("likeExists")
                 return Response({"details":"like already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             likeSerializer = LikeSerializer(data=likeData, context={'request': request})
-
+            print("likeSerializer created")
             if likeSerializer.is_valid():
+                print("saving likeSerializer")
                 likeSerializer.save()
                 requestData["item"] = likeSerializer.data
             else:
