@@ -1448,7 +1448,6 @@ def get_and_post_inbox(request, id_author):
                         profile_image=object.get("profileImage"),
                         is_remote=True
                     )
-
                 print("after creating object author...")
                 
                 author = Author.objects.filter(id=id_author).first()
@@ -1461,6 +1460,15 @@ def get_and_post_inbox(request, id_author):
 
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
                 print("Request url: ", request_url)
+                
+                actorAuthorSerializerDict = AuthorSerializer(actorAuthor, context={'request': request}).data
+                objectAuthorSerializerDict = AuthorSerializer(objectAuthor, context={'request': request}).data
+
+                print(actorAuthorSerializerDict)
+                print(objectAuthorSerializerDict)
+
+                actor["id"] = f"{actorAuthorSerializerDict.get('host')}api/authors/{actorId}"
+                object["id"] = f"{objectAuthorSerializerDict.get('host')}api/authors/{objectId}"
 
                 payload = {
                     "type": "inbox",
