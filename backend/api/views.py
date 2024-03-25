@@ -1599,6 +1599,8 @@ def get_and_post_inbox(request, id_author):
                 psot_id =item["post"]["id"].split("/")[-1]
                 item["post"]["id"] = f"{node.api_url}authors/{id_author}/posts/{psot_id}"
                 if "testing" in request_url:
+                    item["post"] = item["post"]["id"]
+                    print("item post sending to team ok", item["post"])
                     comment_payload = item
                     print("sending to team OK comment payload", comment_payload)
                 else:
