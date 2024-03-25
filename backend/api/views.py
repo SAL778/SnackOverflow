@@ -1499,11 +1499,15 @@ def get_and_post_inbox(request, id_author):
                 host_url = author.host
                 node = Node.objects.filter(host_url=host_url).first()
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
+                item["id"] = item.get("post").get("id")
                 comment_payload = {
                     "type":"inbox",
                     "author": f"{node.api_url}authors/{id_author}",
                     "items":[item],
                 }
+
+                print("ITEM: ", item)
+                print("COMMENT PAYLOAD: ", comment_payload)
                 
                 response = requests.post(request_url, json=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code ==201 or response.status_code ==200:
