@@ -297,12 +297,11 @@ def get_update_and_delete_follower(request, id_author, id_follower):
 
             # send a get request to authors/<uuid:requesting_author>/followers/<path:foreign_author_id>/accept
             if "testing" in follower.follower.host:
-                print("testing for team OK")
-                print("follower host: ", follower.follower.host)
-                print("follower id: ", follower.follower.id)
-                print("path: ", f"authors/{follower.follower.id}/followers/{quote(follower.followed_user.url)}/accept")
-
                 try:
+                    print("testing for team OK")
+                    print("follower host: ", follower.follower.host)
+                    print("follower id: ", follower.follower.id)
+                    print("path: ", f"authors/{follower.follower.id}/followers/{quote(follower.followed_user.url)}/accept")
                     response = get_request_remote(host_url=follower.follower.host, path=f"authors/{follower.follower.id}/followers/{quote(follower.followed_user.url)}/accept")
                 except:
                     print("ERROR sending request to /accept for team OK")
