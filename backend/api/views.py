@@ -1279,8 +1279,10 @@ def get_and_post_inbox(request, id_author):
                     else:
                         fakePostId = objectString.split("/")[-1]
                         print("fakePostId: ", fakePostId)
+                        request_url_fakepostId = "".join(["authors", objectString.split("authors")[1]])
                         #make a request to the remote server to get the post
-                        response = get_request_remote(host_url=likeAuthor.host, path=f"{objectString}")
+                        response = get_request_remote(host_url=likeAuthor.host, path=f"{request_url_fakepostId}")
+                        print(request_url_fakepostId)
                         if response is not None:
                             print(response.status_code)
                             if response.status_code == 200:
