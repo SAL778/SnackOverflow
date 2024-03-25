@@ -1319,6 +1319,7 @@ def get_and_post_inbox(request, id_author):
                                         postId = objectString.split("/")[-1]
 
                                     likeData["post"] = get_object_or_404(Post, id=postId).id
+                                    print(likeData["post"])
                                 else:
                                     return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
                             else:
