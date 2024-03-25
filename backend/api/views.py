@@ -785,11 +785,17 @@ def get_and_create_post(request, id_author):
                         node = Node.objects.filter(host_url=host_url).first()
 
                         request_url = f"{node.api_url}authors/{follower.follower.id}/inbox"
+
                         post_payload = {
                             "type":"inbox",
                             "author": f"{node.api_url}authors/{follower.follower.id}",
                             "items":[serializer.data],
                         }
+
+                        if "testing" in request_url:
+                            print("testing url")
+                            post_payload = serializer.data
+                            print("post payload for team ok", post_payload)
 
                         response = requests.post(request_url, json=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                         if response.status_code ==200:
@@ -820,7 +826,14 @@ def get_and_create_post(request, id_author):
                                 "author": f"{node.api_url}authors/{follower.follower.id}",
                                 "items":[serializer.data],
                             }
-
+                            # TODO: for friends only post might have to add a viewing_author field with the id to the payload
+                            # like this
+                            # { serializer.data, "viewing_author": id_author}
+                            if "testing" in request_url:
+                                print("testing url")
+                                post_payload = serializer.data
+                                print("post payload for team ok", post_payload)
+                            
                             response = requests.post(request_url, json=post_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                             if response.status_code ==200:
                                 print("Post sent to the remote server inbox")
@@ -1249,6 +1262,8 @@ def get_and_post_inbox(request, id_author):
                 host_url = author.host
                 node = Node.objects.filter(host_url=host_url).first()
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
+                postId = item.get("object").split("/")[-1]
+                item["object"] = f"{node.api_url}authors/{id_author}/posts/{postId}"
                 like_payload = {
                     "type":"inbox",
                     "author": f"{node.api_url}authors/{id_author}",
@@ -1261,7 +1276,16 @@ def get_and_post_inbox(request, id_author):
                 }
 
                 print("LIKE PAYLOAD: ", like_payload)
- 
+                
+                if "testing" in request_url:
+                    like_payload = {
+                        "type":"like",
+                        "author": AuthorSerializer(likeAuthor, context={'request': request}).data,
+                        "summary": likeAuthor.display_name + " liked your post",
+                        "object": item.get("object"),
+                    }
+                    print("sending to team OK like payload", like_payload)
+                
                 response = post_request_remote(host_url=author.host, path=f"authors/{id_author}/inbox", data=like_payload)
 
                 print("AFTER LIKE PAYLOAD SENDING REMOTE")
@@ -1287,26 +1311,59 @@ def get_and_post_inbox(request, id_author):
                     if "comments" in objectString:
                         return Response({"details":"object have a comment"}, status=status.HTTP_200_OK)
                     else:
-                        fakePostId = objectString.split("/")[-1]
-                        print("fakePostId: ", fakePostId)
-                        request_url_fakepostId = "".join(["authors", objectString.split("authors")[1]])
-                        #make a request to the remote server to get the post
-                        response = get_request_remote(host_url=likeAuthor.host, path=f"{request_url_fakepostId}")
-                        print(request_url_fakepostId)
-                        if response is not None:
-                            print(response.status_code)
-                            if response.status_code == 200:
-                                print("getting post")
-                                post = response.json()
-                                print(post)
-                                postId = post.get("source").split("/")[-1]
-                                print(postId)
-                                likeData["post"] = get_object_or_404(Post, id=postId).id
-                                print(likeData["post"])
+                        if "testing" in likeAuthor.host:
+                            print("testing request for team ok")
+                            if objectString is not None or objectString != "":
+                                if "posts" in objectString:
+                                    if "comments" in objectString:
+                                        postId = objectString.split("/")[-3]
+                                    else:
+                                        postId = objectString.split("/")[-1]
+
+                                    likeData["post"] = get_object_or_404(Post, id=postId).id
+                                    print(likeData["post"])
+                                else:
+                                    return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
                             else:
-                                return Response(response.text, status=response.status_code) 
+                                return Response({"details":"object is required"}, status=status.HTTP_400_BAD_REQUEST)
+                        elif "linkup" in likeAuthor.host:
+                            fakePostId = objectString.split("/")[-1]
+                            print("fakePostId: ", fakePostId)
+                            request_url_fakepostId = "".join(["authors", objectString.split("authors")[1]])
+                            #make a request to the remote server to get the post
+                            response = get_request_remote(host_url=likeAuthor.host, path=f"{request_url_fakepostId}")
+                            print(request_url_fakepostId)
+                            if response is not None:
+                                print(response.status_code)
+                                if response.status_code == 200:
+                                    print("getting post")
+                                    post = response.json()
+                                    print(post)
+                                    postId = post.get("source").split("/")[-1]
+                                    print(postId)
+                                    likeData["post"] = get_object_or_404(Post, id=postId).id
+                                    print(likeData["post"])
+                                else:
+                                    return Response(response.text, status=response.status_code) 
+                            else:
+                                return Response({"details":"Error getting the post from the remote server"}, status=status.HTTP_400_BAD_REQUEST)
+                        elif "3rdTeam" in likeAuthor.host:
+                            print("likeAuthor.host: ", likeAuthor.host)
                         else:
-                            return Response({"details":"Error getting the post from the remote server"}, status=status.HTTP_400_BAD_REQUEST)
+                            # for our remote node
+                            if objectString is not None or objectString != "":
+                                if "posts" in objectString:
+                                    if "comments" in objectString:
+                                        postId = objectString.split("/")[-3]
+                                    else:
+                                        postId = objectString.split("/")[-1]
+
+                                    likeData["post"] = get_object_or_404(Post, id=postId).id
+                                else:
+                                    return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
+                            else:
+                                return Response({"details":"object is required"}, status=status.HTTP_400_BAD_REQUEST)
+                            
             else:
                 if objectString is not None or objectString != "":
                     if "posts" in objectString:
@@ -1393,7 +1450,6 @@ def get_and_post_inbox(request, id_author):
                         profile_image=object.get("profileImage"),
                         is_remote=True
                     )
-
                 print("after creating object author...")
                 
                 author = Author.objects.filter(id=id_author).first()
@@ -1406,6 +1462,15 @@ def get_and_post_inbox(request, id_author):
 
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
                 print("Request url: ", request_url)
+                
+                actorAuthorSerializerDict = AuthorSerializer(actorAuthor, context={'request': request}).data
+                objectAuthorSerializerDict = AuthorSerializer(objectAuthor, context={'request': request}).data
+
+                print(actorAuthorSerializerDict)
+                print(objectAuthorSerializerDict)
+
+                actor["id"] = f"{actorAuthorSerializerDict.get('host')}api/authors/{actorId}"
+                object["id"] = f"{objectAuthorSerializerDict.get('host')}api/authors/{objectId}"
 
                 payload = {
                     "type": "inbox",
@@ -1419,6 +1484,16 @@ def get_and_post_inbox(request, id_author):
                         }
                     ]
                 }
+
+                if "testing" in request_url:
+                    payload = {
+                        "type": "follow",
+                        "summary": f"{actor.get('displayName')} wants to follow {object.get('displayName')}",
+                        "actor": actor,
+                        "object": object
+                    }
+                    print("sending to team OK follow payload", payload)
+
 
                 print("encoding: ", node.base64_authorization)
 
@@ -1503,16 +1578,25 @@ def get_and_post_inbox(request, id_author):
                 host_url = author.host
                 node = Node.objects.filter(host_url=host_url).first()
                 request_url = f"{node.api_url}authors/{id_author}/inbox"
-                item["id"] = item.get("post").get("id")
-                comment_payload = {
-                    "type":"inbox",
-                    "author": f"{node.api_url}authors/{id_author}",
-                    "items":[item],
-                }
+                item_author_id = item.get("author").get("id").split("/")[-1]
+                item_author = Author.objects.filter(id=item_author_id).first()
+                item["author"] = AuthorSerializer(item_author, context={'request': request}).data
+                psot_id =item["post"]["id"].split("/")[-1]
+                item["post"]["id"] = f"{node.api_url}authors/{id_author}/posts/{psot_id}"
+                if "testing" in request_url:
+                    comment_payload = item
+                    print("sending to team OK comment payload", comment_payload)
+                else:
+                    item["id"] = item.get("post").get("id")
+                    comment_payload = {
+                        "type":"inbox",
+                        "author": f"{node.api_url}authors/{id_author}",
+                        "items":[item],
+                    }
 
-                print("ITEM: ", item)
-                print("COMMENT PAYLOAD: ", comment_payload)
-                
+                    print("ITEM: ", item)
+                    print("COMMENT PAYLOAD for team HTTP: ", comment_payload)
+
                 response = requests.post(request_url, json=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code ==201 or response.status_code ==200:
                     print("Comment sent to the remote server inbox")
@@ -1537,23 +1621,37 @@ def get_and_post_inbox(request, id_author):
             
             if commentAuthor.is_remote:
                 # get the proper post id
-                getPostUrl = item.get("id").split("/")[:-2]
-                getPostUrl = "/".join(getPostUrl)
-                print("getPostUrl: ", getPostUrl)
-                request_url_fakepostId = "".join(["authors", getPostUrl.split("authors")[1]])
-                print("request_url_fakepostId: ", request_url_fakepostId)
-                response = get_request_remote(host_url=commentAuthor.host, path=f"{request_url_fakepostId}")
-                if response is not None:
-                    if response.status_code == 200:
-                        print("getting post for commenting")
-                        post = response.json()
-                        print(post)
-                        postId = post.get("source").split("/")[-1]
-                        print(postId)
-                        commentData["post"] = get_object_or_404(Post, id=postId).id
-                        print(commentData["post"])
+                if "linkup" in commentAuthor.host:
+                    getPostUrl = item.get("id").split("/")[:-2]
+                    getPostUrl = "/".join(getPostUrl)
+                    print("getPostUrl: ", getPostUrl)
+                    request_url_fakepostId = "".join(["authors", getPostUrl.split("authors")[1]])
+                    print("request_url_fakepostId: ", request_url_fakepostId)
+                    response = get_request_remote(host_url=commentAuthor.host, path=f"{request_url_fakepostId}")
+                    if response is not None:
+                        if response.status_code == 200:
+                            print("getting post for commenting")
+                            post = response.json()
+                            print(post)
+                            postId = post.get("source").split("/")[-1]
+                            print(postId)
+                            commentData["post"] = get_object_or_404(Post, id=postId).id
+                            print(commentData["post"])
+                        else:
+                            return Response(response.text, status=response.status_code)
                     else:
-                        return Response(response.text, status=response.status_code)
+                        print("response is none")
+                elif "testing" in commentAuthor.host:
+                    print("testing comment request for team ok")
+                    print(item.get("id"))
+                    postId = item.get("id").split("/")[-3]
+                    commentData["post"] = get_object_or_404(Post, id=postId).id
+                    
+                elif "3rdTeam" in commentAuthor.host:
+                    pass
+                else:
+                    # our own remote server
+                    commentData["post"] = item.get("post").get("id").split("/")[-1]    
             else:
                 commentData["post"] = item.get("post").get("id").split("/")[-1]
             #increment the comment count in the post

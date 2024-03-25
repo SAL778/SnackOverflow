@@ -26,32 +26,56 @@ urlpatterns = [
 
    path("authors/", views.get_authors, name="get_authors"),
    path("authors/<uuid:id>", views.get_and_update_author, name="get_and_update_author"),
+
+   path("authors/<uuid:id>/", views.get_and_update_author, name="get_and_update_author_trailing_slash"),
+
+   path("authors/<uuid:id>/followers/", views.get_followers, name="get_followers_trailing_slash"),
    path("authors/<uuid:id>/followers", views.get_followers, name="get_followers"),
+
    path("authors/<uuid:id_author>/followers/<path:id_follower>", views.get_update_and_delete_follower, name="get_update_and_delete_follower"),
+
+   path("authors/<uuid:id_author>/followers/<path:id_follower>/", views.get_update_and_delete_follower, name="get_update_and_delete_follower_trailing_slash"),
 
     # custom apis for followings and friends
    path("authors/<uuid:id_author>/followings", views.get_followings, name="get_followings"),
    path("authors/<uuid:id_author>/friends", views.get_friends, name="get_friends"),
+
+   path("authors/<uuid:id_author>/followings/", views.get_followings, name="get_followings_trailing_slash"),
+   path("authors/<uuid:id_author>/friends/", views.get_friends, name="get_friends_trailling_slash"),
 
    # custom apis for follow requests? needed? Not sure
    path("authors/<uuid:id>/followrequests", views.get_received_follow_requests, name="get_received_follow_requests"),
    path("authors/<uuid:id>/sentFollowRequests", views.get_sent_follow_requests, name="get_sent_follow_requests"),
    path("authors/<uuid:id_author>/followrequests/<uuid:id_sender>", views.get_create_delete_and_accept_follow_request, name="get_and_delete_a_follow_request"),
 
+   path("authors/<uuid:id>/followrequests/", views.get_received_follow_requests, name="get_received_follow_requests_trailling_slash"),
+   path("authors/<uuid:id>/sentFollowRequests/", views.get_sent_follow_requests, name="get_sent_follow_requests_trailling_slash"),
+   path("authors/<uuid:id_author>/followrequests/<uuid:id_sender>/", views.get_create_delete_and_accept_follow_request, name="get_and_delete_a_follow_request_trailling_slash"),
+
    # apis for posts
    path("authors/<uuid:id_author>/posts/", views.get_and_create_post, name="get_and_create_post"),
    path("authors/<uuid:id_author>/posts/<uuid:id_post>/image", views.get_image, name="get_image"),
    path("authors/<uuid:id_author>/posts/<uuid:id_post>", views.get_update_and_delete_specific_post, name="get_update_and_delete_specific_post"),
 
+   path("authors/<uuid:id_author>/posts/<uuid:id_post>/image/", views.get_image, name="get_image_trailing_slash"),
+   path("authors/<uuid:id_author>/posts/<uuid:id_post>/", views.get_update_and_delete_specific_post, name="get_update_and_delete_specific_post_trailling_slash"),
+
    # apis for comments
    path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments", views.get_and_create_comment, name="get_and_create_comment"),
+
+   path("authors/<uuid:id_author>/posts/<uuid:id_post>/comments/", views.get_and_create_comment, name="get_and_create_comment"),
 
    # apis for likes
    path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes", views.get_post_likes, name="get_post_likes"),
    path("authors/<uuid:id_author>/liked", views.get_liked, name="get_liked"),
 
+   path("authors/<uuid:id_author>/posts/<uuid:id_post>/likes/", views.get_post_likes, name="get_post_likes_trailing_slash"),
+   path("authors/<uuid:id_author>/liked/", views.get_liked, name="get_liked_trailing_slash"),
+
    # apis for inbox
    path("authors/<uuid:id_author>/inbox", views.get_and_post_inbox, name="get_and_post_inbox"),
+
+   path("authors/<uuid:id_author>/inbox/", views.get_and_post_inbox, name="get_and_post_inbox_trailing_slash"),
 
    # custom urls
    path("publicPosts/", views.get_all_public_posts, name="get_all_public_posts"),
