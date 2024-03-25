@@ -555,6 +555,14 @@ def get_all_friends_follows_posts(request, id_author):
                         all_posts = response.json().get('items')
                         for post in all_posts:
                             # check if the post type is public
+                            # filter the post so that the post id is not equal to the post origin
+                            print("origin: ", post.get("origin"))
+                            print("id: ", post.get("id"))
+                            if post.get("origin") and post.get("origin") != post.get("id"):
+                                print("going to continue")
+                                continue
+                            else:
+                                print("good")
                             if post.get('visibility').upper() == "PUBLIC":
                                 post = check_content(post, request)
                                 remote_following_posts_list.append(post)
@@ -574,6 +582,13 @@ def get_all_friends_follows_posts(request, id_author):
                         all_posts = response.json().get('items')
 
                         for post in all_posts:
+                            print("origin 2: ", post.get("origin"))
+                            print("id 2: ", post.get("id"))
+                            if post.get("origin") and post.get("origin") != post.get("id"):
+                                print("going to continue 2")
+                                continue
+                            else:
+                                print("good 2")
                             if post.get('visibility').upper() == "FRIENDS":
                                 print("freins post")
                                 post = check_content(post, request)
@@ -805,8 +820,8 @@ def get_and_create_post(request, id_author):
                                 print("Post sent to the remote server inbox")
                             else:
                                 print("Error sending the post to the remote server inbox")
-                                print(response.status_code, response.text)
-                                return Response(response.text, status=response.status_code)
+                                print(response.status_code)
+                                return Response({"details":"wrong response"}, status=response.status_code)
                         else:
                             requestData = serializer.data
                             inboxSerializer = InboxSerializer(data=requestData, context={'request': request})
@@ -1038,10 +1053,10 @@ def get_and_create_comment(request, id_author, id_post):
             response = post_request_remote(host_url=post_author.host, path=f"authors/{id_author}/posts/{id_post}/comments", data=request.data)
             
             if response is not None:
-                if response.status_code == 201:
-                    return Response(response.json(), status=response.status_code)
+                if response.status_code == 201 or response.status_code == 200:
+                    return Response({"details":"comments posted properly"}, status=response.status_code)
                 else:
-                    return Response(response.text, status=response.status_code)
+                    return Response({"details":"comment wrong status code"}, status=response.status_code)
             else:
                 return Response({"details": "Error posting comment to remote server"}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -1244,30 +1259,50 @@ def get_and_post_inbox(request, id_author):
                 if response is not None:
                     if response.status_code ==200:
                         print("Like sent to the remote server inbox")
-                        return Response(response.json(), status=response.status_code)
+                        return Response({"details":"like sent"}, status=response.status_code)
                     else:
                         print("Error sending the like to the remote server inbox")
-                        print(response.status_code, response.text)
-                        return Response(response.text, status=response.status_code)
+                        print(response.status_code)
+                        return Response({"details":"like sent error"}, status=response.status_code)
                 else:
                     return Response({"details":"Error sending the like to the remote server inbox"}, status=status.HTTP_400_BAD_REQUEST)
                 
+
             likeData = item.copy()
             likeData["author"] = likeAuthor.id
             objectString = likeData.get("object")
-            
-            if objectString is not None or objectString != "":
-                if "posts" in objectString:
+            if likeAuthor.is_remote:
+                # get the proper post id
+                if objectString is not None or objectString != "":
                     if "comments" in objectString:
-                        postId = objectString.split("/")[-3]
+                        return Response({"details":"object have a comment"}, status=status.HTTP_200_OK)
                     else:
-                        postId = objectString.split("/")[-1]
-
-                    likeData["post"] = get_object_or_404(Post, id=postId).id
-                else:
-                    return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
+                        fakePostId = objectString.split("/")[-1]
+                        print("fakePostId: ", fakePostId)
+                        #make a request to the remote server to get the post
+                        response = get_request_remote(host_url=likeAuthor.host, path=f"{objectString}")
+                        if response is not None:
+                            if response.status_code == 200:
+                                post = response.json()
+                                postId = post.get("origin").split("/")[-1]
+                                likeData["post"] = get_object_or_404(Post, id=postId).id
+                            else:
+                                return Response(response.text, status=response.status_code) 
+                        else:
+                            return Response({"details":"Error getting the post from the remote server"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({"details":"object is required"}, status=status.HTTP_400_BAD_REQUEST)
+                if objectString is not None or objectString != "":
+                    if "posts" in objectString:
+                        if "comments" in objectString:
+                            postId = objectString.split("/")[-3]
+                        else:
+                            postId = objectString.split("/")[-1]
+
+                        likeData["post"] = get_object_or_404(Post, id=postId).id
+                    else:
+                        return Response({"details":"object should have a post"}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"details":"object is required"}, status=status.HTTP_400_BAD_REQUEST)
             
             likeExists = Like.objects.filter(author=likeAuthor, post=likeData["post"]).exists()
             
@@ -1456,7 +1491,10 @@ def get_and_post_inbox(request, id_author):
                 response = requests.post(request_url, json=comment_payload, headers={'Authorization': f'Basic {node.base64_authorization}'})
                 if response.status_code ==201 or response.status_code ==200:
                     print("Comment sent to the remote server inbox")
-                    return Response(response.json(), status=response.status_code)
+                    try:
+                        return Response(response.json(), status=response.status_code)
+                    except Exception as e:
+                        return Response({"details":"correct response"}, status=response.status_code)
                 else:
                     print("Error sending the comment to the remote server inbox")
                     print(response.status_code, response.text)
@@ -1469,12 +1507,25 @@ def get_and_post_inbox(request, id_author):
                 # do something - create an author copy
                 print("Comment author is not in our server")
                 return
-
             commentData = item.copy()
             commentData["author"] = commentAuthor.id
-            commentData["post"] = item.get("post").get("id").split("/")[-1]
-            #increment the comment count in the post
             
+            if commentAuthor.is_remote:
+                # get the proper post id
+                getPostUrl = item.get("id").split("/")[:-2]
+                getPostUrl = "/".join(getPostUrl)
+                print("getPostUrl: ", getPostUrl)
+                response = get_request_remote(host_url=commentAuthor.host, path=f"{getPostUrl}")
+                if response is not None:
+                    if response.status_code == 200:
+                        post = response.json()
+                        postId = post.get("origin").split("/")[-1]
+                        commentData["post"] = get_object_or_404(Post, id=postId).id
+                    else:
+                        return Response(response.text, status=response.status_code)
+            else:
+                commentData["post"] = item.get("post").get("id").split("/")[-1]
+            #increment the comment count in the post
             post = Post.objects.filter(id=commentData["post"]).first()
             post.count += 1
             post.save()
