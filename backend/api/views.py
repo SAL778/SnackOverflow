@@ -1526,12 +1526,18 @@ def get_and_post_inbox(request, id_author):
                 getPostUrl = item.get("id").split("/")[:-2]
                 getPostUrl = "/".join(getPostUrl)
                 print("getPostUrl: ", getPostUrl)
-                response = get_request_remote(host_url=commentAuthor.host, path=f"{getPostUrl}")
+                request_url_fakepostId = "".join(["authors", getPostUrl.split("authors")[1]])
+                print("request_url_fakepostId: ", request_url_fakepostId)
+                response = get_request_remote(host_url=commentAuthor.host, path=f"{request_url_fakepostId}")
                 if response is not None:
                     if response.status_code == 200:
+                        print("getting post for commenting")
                         post = response.json()
+                        print(post)
                         postId = post.get("source").split("/")[-1]
+                        print(postId)
                         commentData["post"] = get_object_or_404(Post, id=postId).id
+                        print(commentData["post"])
                     else:
                         return Response(response.text, status=response.status_code)
             else:
