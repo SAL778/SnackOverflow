@@ -1259,8 +1259,12 @@ def get_and_post_inbox(request, id_author):
                         "object": item.get("object"),
                     }],
                 }
+
+                print("LIKE PAYLOAD: ", like_payload)
  
                 response = post_request_remote(host_url=author.host, path=f"authors/{id_author}/inbox", data=like_payload)
+
+                print("AFTER LIKE PAYLOAD SENDING REMOTE")
 
                 if response is not None:
                     if response.status_code ==200:
