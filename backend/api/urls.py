@@ -30,7 +30,7 @@ urlpatterns = [
    path("authors/<uuid:id>/", views.get_and_update_author, name="get_and_update_author_trailing_slash"),
 
    path("authors/<uuid:id>/followers", views.get_followers, name="get_followers"),
-   path("authors/<uuid:id_author>/followers/<path:id_follower>", views.get_update_and_delete_follower, name="get_update_and_delete_follower"),,
+   path("authors/<uuid:id_author>/followers/<path:id_follower>", views.get_update_and_delete_follower, name="get_update_and_delete_follower"),
 
     # custom apis for followings and friends
    path("authors/<uuid:id_author>/followings", views.get_followings, name="get_followings"),
