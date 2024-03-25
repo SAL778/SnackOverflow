@@ -70,7 +70,7 @@ export default function Navigation() {
 
 	// poll data from /checkRemoteFollowRequests every 5 seconds
 	useEffect(() => {
-		const timeout = 5000; // 5 seconds
+		const timeout = 30000;
 
 		if (auth.user) {
 			async function checkRemoteFollowers(id_author) {
