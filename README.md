@@ -24,6 +24,10 @@ Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
 
 All text is licensed under the CC-BY-SA 4.0 http://creativecommons.org/licenses/by-sa/4.0/deed.en_US
 
+## API Specifications
+https://snackoverflow-7f593e547e10.herokuapp.com/api/swagger/schema
+https://snackoverflow-7f593e547e10.herokuapp.com/api/swagger/redoc/
+
 ## Extra citations
 
 For our logo "Snack Overflow", the original source image comes from a reply to the original post by u/Roadcrosser at this [link](https://www.reddit.com/r/ProgrammerHumor/comments/2vadys/comment/cofylak/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) accessed 2024-02-22. The direct link to the image is available [here](https://i.imgur.com/jSUHoMZ.png).
