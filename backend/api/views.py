@@ -289,9 +289,24 @@ def get_update_and_delete_follower(request, id_author, id_follower):
     elif request.method == 'PUT':
         # create a new follower
         author = Author.objects.filter(id=id_follower)
-
         if author.exists() and author.count() == 1:
             follower, created = Follower.objects.get_or_create(follower_id=id_follower, followed_user_id=id_author)
+
+            print("ACCEPTING FOLLOW REQUEST ==> CREATE NEW FOLLOW")
+            print("before follower host: ", follower.follower.host)
+
+            # send a get request to authors/<uuid:requesting_author>/followers/<path:foreign_author_id>/accept
+            if "testing" in follower.follower.host:
+                try:
+                    print("testing for team OK")
+                    print("follower host: ", follower.follower.host)
+                    print("follower id: ", follower.follower.id)
+                    print("path: ", f"authors/{follower.follower.id}/followers/{quote(follower.followed_user.url)}/accept")
+                    response = get_request_remote(host_url=follower.follower.host, path=f"authors/{follower.follower.id}/followers/{quote(follower.followed_user.url)}/accept")
+                except:
+                    print("ERROR sending request to /accept for team OK")
+
+
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -568,7 +583,7 @@ def get_all_friends_follows_posts(request, id_author):
                                 remote_following_posts_list.append(post)
                     else:
                         print("remote_following_posts error: ", response.status_code)
-
+            print("remote_following_posts_list: ", remote_following_posts_list)
             # get all the friends whose is_remote is true            
             remote_friends = friends.filter(followed_user__is_remote=True)
             print("remote_friends: ", remote_friends)
@@ -1584,6 +1599,8 @@ def get_and_post_inbox(request, id_author):
                 psot_id =item["post"]["id"].split("/")[-1]
                 item["post"]["id"] = f"{node.api_url}authors/{id_author}/posts/{psot_id}"
                 if "testing" in request_url:
+                    item["post"] = item["post"]["id"]
+                    print("item post sending to team ok", item["post"])
                     comment_payload = item
                     print("sending to team OK comment payload", comment_payload)
                 else:
@@ -1643,8 +1660,8 @@ def get_and_post_inbox(request, id_author):
                         print("response is none")
                 elif "testing" in commentAuthor.host:
                     print("testing comment request for team ok")
-                    print(item.get("id"))
-                    postId = item.get("id").split("/")[-3]
+                    print(item.get("post"))
+                    postId = item.get("post").split("/")[-1]
                     commentData["post"] = get_object_or_404(Post, id=postId).id
                     
                 elif "3rdTeam" in commentAuthor.host:
