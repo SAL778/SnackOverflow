@@ -1055,7 +1055,10 @@ def get_and_create_comment(request, id_author, id_post):
 
             if response is not None:
                 if response.status_code == 200:
-                    return Response(response.json())
+                    return_response = response.json()
+                    if "comments" in return_response and "items" not in return_response:
+                        return_response["items"] = return_response["comments"]
+                    return Response(return_response)
                 else:
                     return Response(response.text, status=response.status_code)
                 
