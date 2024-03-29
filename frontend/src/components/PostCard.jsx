@@ -134,14 +134,10 @@ function PostCard({
 			items: [
 				{
 					type: "Comment",
-					author: {
-						id: `${serviceUrl}/authors/${auth.user.id}`,
-					},
+					author: { id: `${serviceUrl}/authors/${auth.user.id}`,},
 					comment: commentData.comment,
 					contentType: "text/markdown",
-					post: {
-						id: `${serviceUrl}/authors/${authorId}/posts/${postId}`,
-					},
+					post: { id: `${serviceUrl}/authors/${authorId}/posts/${postId}`,},
 				},
 			],
 		};
