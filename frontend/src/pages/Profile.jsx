@@ -192,7 +192,7 @@ function Profile() {
 				//change={changeProfile}
 			/>
 
-			<div className="flex justify-center mt-24">
+			<div className="flex justify-center">
 				<div className="flex-initial flex-col h-56 grid-cols-5 gap-14 content-center">
 					{buttons.map((button, index) => (
 						<button
@@ -209,7 +209,7 @@ function Profile() {
 				</div>
 			</div>
 
-			<div class="overflow-y-scroll h-96 max-h-screen">
+			<div class="overflow-y-scroll max-h-screen" style={{ height: "30rem" }}>
 				{showFollowers && (
 					<div class="space-y-6">
 						{followers["items"].map((follower) => (
