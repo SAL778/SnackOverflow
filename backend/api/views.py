@@ -1146,6 +1146,7 @@ def get_post_likes(request, id_author, id_post):
         print("AFTER RESPONSE")
 
         if response is not None:
+            print("RESPONSE CODE: ", response.status_code)
             if response.status_code == 200:
                 return Response(response.json())
             else:
