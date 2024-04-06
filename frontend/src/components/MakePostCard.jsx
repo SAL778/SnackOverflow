@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 import { putRequest } from "../utils/Requests.jsx";
 const MakePostCard = ({
 	onSubmit,
+	onEdit,
 	onCancel,
 	initialData,
 	authorId,
@@ -98,6 +99,7 @@ const MakePostCard = ({
 				.then((response) => {
 					// Handle success
 					// console.log("PUT Request Data:", response);
+					onEdit();
 				})
 				.catch((error) => {
 					// Handle error
