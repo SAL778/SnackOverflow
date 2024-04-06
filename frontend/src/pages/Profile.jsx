@@ -175,7 +175,6 @@ function Profile() {
 
 	return (
 		//Current User/Author, uses data from initial fetch.
-		//NOTE: CURRENTLY USES DEFAULT IMAGE NO MATTER WHAT CAUSE STILL NOT SURE HOW THOSE WILL GO
 		<div className="my-2 mx-56">
 			<ProfileCard
 				key={authProfile.id}
