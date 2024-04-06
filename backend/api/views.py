@@ -1139,14 +1139,19 @@ def get_post_likes(request, id_author, id_post):
     """
     post_author = get_object_or_404(Author, id=id_author)
     if post_author.is_remote:
+
+        print("BEFORE RESPONSE")
         # send the request to the remote server
         response = get_request_remote(host_url=post_author.host, path=f"authors/{id_author}/posts/{id_post}/likes")
+        print("AFTER RESPONSE")
 
         if response is not None:
             if response.status_code == 200:
                 return Response(response.json())
             else:
                 return Response(response.text, status=response.status_code)
+        else:
+            return Response({"details": "Error getting likes from remote server"}, status=status.HTTP_400_BAD_REQUEST)
         
     post = get_object_or_404(Post, id=id_post, author__id=id_author)
     likes = Like.objects.filter(post=post)
