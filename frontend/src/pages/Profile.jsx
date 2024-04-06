@@ -176,7 +176,7 @@ function Profile() {
 	return (
 		//Current User/Author, uses data from initial fetch.
 		//NOTE: CURRENTLY USES DEFAULT IMAGE NO MATTER WHAT CAUSE STILL NOT SURE HOW THOSE WILL GO
-		<div className="my-4 mx-56">
+		<div className="my-2 mx-56">
 			<ProfileCard
 				key={authProfile.id}
 				url={authProfile.url}
@@ -209,7 +209,10 @@ function Profile() {
 				</div>
 			</div>
 
-			<div class="overflow-y-scroll max-h-screen" style={{ height: "30rem" }}>
+			<div
+				className="overflow-y-scroll"
+				style={{ height: "30rem", marginTop: "-1rem" }}
+			>
 				{showFollowers && (
 					<div class="space-y-6">
 						{followers["items"].map((follower) => (
