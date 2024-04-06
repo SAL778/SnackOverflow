@@ -1309,7 +1309,7 @@ def get_and_post_inbox(request, id_author):
                 print("AFTER LIKE PAYLOAD SENDING REMOTE")
 
                 if response is not None:
-                    if response.status_code ==200:
+                    if response.status_code ==200 or response.status_code == 201: 
                         print("Like sent to the remote server inbox")
                         return Response({"details":"like sent"}, status=response.status_code)
                     else:
