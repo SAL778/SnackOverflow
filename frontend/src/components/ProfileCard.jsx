@@ -7,6 +7,7 @@ import {
 } from "../utils/Requests.jsx";
 import { Link } from "react-router-dom";
 import { useAuth } from "../utils/Auth.jsx";
+import defaultPFP from "../assets/smiley.jpg";
 
 //Card modified from this source: https://flowbite.com/docs/components/card/ Accessed Feb 10th
 //Buttons modified from this source: https://flowbite.com/docs/components/button-group/ Accessed Feb 10th
@@ -33,6 +34,8 @@ function ProfileCard({
 	//viewerId is the id of the person viewing the page, useful for distinguishing, used for displaying card of the actual owner.
 
 	const auth = useAuth();
+
+	imageSrc = imageSrc || defaultPFP
 
 	let cardUUID = "";
 	const [showCard, setShowCard] = useState(true); //IF A FOLLOWER IS UNFOLLOWED OR REQUEST DEALT WITH, THIS WILL BE CHANGED AS TO NOT SHOW IT? HOPEFULLY?
@@ -140,7 +143,7 @@ function ProfileCard({
 			{showCard && (
 				<a
 					href="#"
-					className="self-center mx-72 w-96 h-48 flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row md:max-w-xl dark:border-white-700 dark:bg-white-800"
+					className="self-center mx-72 w-[450px] h-48 flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row md:max-w-xl dark:border-white-700 dark:bg-white-800"
 				>
 					<img
 						className="object-cover ml-2 mr-1 w-full max-w-40 max-h-40 min-w-40 min-h-40 rounded-t-lg h-96 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg"
@@ -148,7 +151,7 @@ function ProfileCard({
 						alt=""
 					></img>
 
-					<div className="flex flex-col justify-between p-4 leading-normal">
+					<div className="flex flex-col justify-between p-4 leading-normal w-[150px]">
 						<h5 className="mb-2 text-2xl font-bold tracking-tight text-black-900 dark:text-black">
 							{username}
 						</h5>

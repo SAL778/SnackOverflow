@@ -12,6 +12,7 @@ const NewPost = ({ editMode }) => {
 	const [initialPostData, setInitialPostData] = useState(null);
 	const auth = useAuth();
 	const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+	const [showEditedAlert, setShowEditedAlert] = useState(false);
 
 	useEffect(() => {
 		if (editMode) {
@@ -66,6 +67,11 @@ const NewPost = ({ editMode }) => {
 		}
 	};
 
+	const handlePostEdit = () => {
+		setShowEditedAlert(true);
+		setTimeout(() => setShowEditedAlert(false), 3000); // Hide alert after 3 seconds
+	};
+
 	const handleCancel = () => {
 		// Cancel action: clear the form or redirect to another page, clear for now.
 		console.log("Post creation canceled");
@@ -92,8 +98,28 @@ const NewPost = ({ editMode }) => {
 					Post Successful
 				</Alert>
 			)}
+			{showEditedAlert && (
+				<Alert
+					severity="success"
+					style={{
+						position: "absolute",
+						zIndex: 2,
+						width: "400px",
+						height: "400px",
+						marginBottom: "200px",
+						marginLeft: "200px",
+						display: "flex",
+						flexDirection: "column",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					Post Edited!
+				</Alert>
+			)}
 			<MakePostCard
 				onSubmit={handlePostSubmit}
+				onEdit={handlePostEdit}
 				onCancel={handleCancel}
 				initialData={initialPostData}
 				authorId={authorId}
