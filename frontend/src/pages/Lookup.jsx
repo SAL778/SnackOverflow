@@ -78,7 +78,7 @@ function Lookup() {
 	}, []);
 
 	return (
-		<div className="lookup-container" class="space-y-2 pt-4">
+		<div className="lookup-container">
 			{authors.map((author) => {
 				// button type will be Follow if the author is not in the following list and not in the follow requests list
 				// button type will be Following if the author is in the followings list
