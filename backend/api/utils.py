@@ -10,6 +10,15 @@ def get_request_remote(host_url, path):
         print("Node is none.")
     if node:
         request_url = f"{node.api_url}{path}"
+
+        if node.team_name == 'TeamAttack':
+            # remove trailing slash from request_url if it exists
+            if request_url[-1] == '/':
+                request_url = request_url[:-1]
+                
+            print("Requesting from TeamAttack: ", request_url)
+
+
         try:
             response = requests.get(request_url, headers={'Authorization': f'Basic {node.base64_authorization}'})
         except requests.exceptions.RequestException as e:
